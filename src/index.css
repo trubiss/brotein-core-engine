@@ -60,30 +60,34 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+    font-weight: 900;
   }
 }
 
 @layer components {
   .input-underline {
-    @apply bg-transparent border-0 border-b-2 border-foreground px-0 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground w-full;
+    @apply bg-transparent border-0 border-b-2 border-foreground px-0 py-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground w-full;
     font-family: var(--font-body);
     font-size: 1rem;
+    border-radius: 0 !important;
   }
 
   .btn-primary {
-    @apply bg-primary text-primary-foreground px-8 py-4 font-bold tracking-widest uppercase text-sm w-full transition-all duration-150 active:scale-[0.98];
+    @apply bg-primary text-primary-foreground px-8 py-5 font-bold tracking-[0.2em] uppercase text-sm w-full transition-all duration-100 active:scale-[0.98];
     font-family: var(--font-display);
+    border-radius: 0 !important;
   }
 
   .btn-primary:hover {
-    @apply opacity-90;
+    @apply opacity-85;
   }
 
   .btn-outline {
-    @apply bg-transparent text-foreground border-2 border-foreground px-8 py-4 font-bold tracking-widest uppercase text-sm w-full transition-all duration-150 active:scale-[0.98];
+    @apply bg-transparent text-foreground border-2 border-foreground px-8 py-5 font-bold tracking-[0.2em] uppercase text-sm w-full transition-all duration-100 active:scale-[0.98];
     font-family: var(--font-display);
+    border-radius: 0 !important;
   }
 
   .btn-outline:hover {
@@ -91,29 +95,35 @@
   }
 
   .label-spaced {
-    @apply text-xs tracking-[0.2em] uppercase text-muted-foreground mb-2 block;
+    @apply text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-3 block font-bold;
     font-family: var(--font-display);
   }
 
   .screen-container {
-    @apply min-h-screen flex flex-col px-6 py-8 max-w-md mx-auto;
+    @apply min-h-screen flex flex-col px-6 py-10 max-w-md mx-auto;
+  }
+
+  .section-divider {
+    @apply w-full h-px bg-border my-10;
   }
 
   .progress-bar-track {
-    @apply w-full h-2 bg-muted;
+    @apply w-full h-1 bg-muted;
   }
 
   .progress-bar-fill {
-    @apply h-2 bg-foreground transition-all duration-500;
+    @apply h-1 bg-foreground transition-all duration-500;
   }
 
   .card-brutal {
-    @apply border-2 border-foreground p-6;
+    @apply border-2 border-foreground p-8;
+    border-radius: 0 !important;
   }
 
   .day-box {
-    @apply w-8 h-8 border border-foreground flex items-center justify-center text-xs;
+    @apply w-9 h-9 border-2 border-foreground flex items-center justify-center text-xs font-bold;
     font-family: var(--font-display);
+    border-radius: 0 !important;
   }
 
   .day-box-filled {
