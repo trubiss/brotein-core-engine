@@ -74,17 +74,20 @@ export function getTodayProtein(): number {
 }
 
 export function calculateMacros(weight: number, activityLevel: string, goal: string) {
-  // Protein multiplier based on goal
-  let proteinMultiplier = 1.6; // equilibrium
-  if (goal === 'hypertrophy') proteinMultiplier = 2.2;
+  // Protein based on goal
+  let proteinMultiplier = 1.4; // equilibrium/maintenance
+  if (goal === 'hypertrophy') proteinMultiplier = 1.8;
 
-  // Activity modifier for calories
+  // Adjust for recovery activity level
+  if (activityLevel === 'recovery') proteinMultiplier = 1.2;
+
+  // Activity modifier for TDEE
   let activityMod = 1.55; // moderate
   if (activityLevel === 'active') activityMod = 1.75;
   if (activityLevel === 'recovery') activityMod = 1.3;
 
   const protein = Math.round(weight * proteinMultiplier);
-  const bmr = weight * 22; // simplified
+  const bmr = weight * 22;
   const calories = Math.round(bmr * activityMod);
   const proteinCals = protein * 4;
   const fatCals = calories * 0.25;
