@@ -52,7 +52,7 @@ export default function Dashboard({ onNavigate }: Props) {
     <motion.div className="screen-container" variants={stagger} initial="initial" animate="animate">
       {/* Header */}
       <motion.div variants={fadeUp} className="flex items-center justify-between mb-14">
-        <h1 className="text-2xl font-black tracking-[0.15em]">BROTEIN</h1>
+        <h1 className="font-black tracking-[0.15em] font-sans text-3xl">BROTEIN</h1>
         <button onClick={() => onNavigate('profile')} className="p-2 border-2 border-foreground active:scale-95 transition-transform">
           <User size={20} />
         </button>
