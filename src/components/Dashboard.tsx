@@ -34,35 +34,39 @@ export default function Dashboard({ onNavigate }: Props) {
       </div>
 
       {/* Fuel Status */}
-      <div className="mb-8">
-        <p className="label-spaced">Fuel Status</p>
-        <p className="text-6xl font-bold font-display tracking-tight">{remaining}g</p>
-        <p className="text-sm text-muted-foreground mt-1">remaining today</p>
+      <div className="mb-4">
+        <p className="label-spaced">FUEL STATUS</p>
+        <p className="text-7xl font-black font-display tracking-tighter">{remaining}g</p>
+        <p className="text-xs text-muted-foreground mt-2 uppercase tracking-widest">remaining today</p>
       </div>
 
+      <div className="section-divider" />
+
       {/* Progress Card */}
-      <div className="card-brutal mb-8">
-        <div className="flex justify-between items-baseline mb-4">
-          <p className="label-spaced mb-0">Progress</p>
+      <div className="card-brutal mb-4">
+        <div className="flex justify-between items-baseline mb-6">
+          <p className="label-spaced mb-0">PROGRESS</p>
           <p className="font-display text-sm font-bold">{todayProtein} / {profile.dailyProtein}g</p>
         </div>
         <div className="progress-bar-track mb-4">
           <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
         </div>
-        <div className="flex justify-between text-xs text-muted-foreground">
+        <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest">
           <span>{remaining}g remaining</span>
           <span>{Math.round(progress)}%</span>
         </div>
-        <button className="btn-primary mt-6" onClick={() => setShowModal(true)}>
+        <button className="btn-primary mt-8" onClick={() => setShowModal(true)}>
           QUICK ADD +
         </button>
       </div>
 
+      <div className="section-divider" />
+
       {/* Streak */}
-      <div className="mb-8">
-        <p className="label-spaced">Current Streak</p>
-        <p className="text-3xl font-bold font-display mb-4">{streak} days</p>
-        <div className="flex gap-1">
+      <div className="mb-4">
+        <p className="label-spaced">CURRENT STREAK</p>
+        <p className="text-4xl font-black font-display mb-6">{streak} DAYS</p>
+        <div className="flex gap-1.5">
           {Array.from({ length: 7 }).map((_, i) => (
             <div key={i} className={`day-box ${i < streak ? 'day-box-filled' : ''}`}>
               {i < streak ? '✓' : ''}
@@ -71,26 +75,28 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
       </div>
 
+      <div className="section-divider" />
+
       {/* Recent Logs */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <p className="label-spaced mb-0">Recent Logs</p>
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-6">
+          <p className="label-spaced mb-0">RECENT LOGS</p>
           <button
-            className="text-xs font-display tracking-widest underline"
+            className="text-[10px] font-display tracking-[0.2em] font-bold uppercase border-b-2 border-foreground pb-0.5"
             onClick={() => onNavigate('history')}
           >
             VIEW ALL
           </button>
         </div>
         {todayLogs.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4 border-t border-border">
+          <p className="text-sm text-muted-foreground py-6 border-t-2 border-border uppercase tracking-wider">
             No logs yet today
           </p>
         ) : (
-          <div className="border-t border-border">
+          <div className="border-t-2 border-foreground">
             {todayLogs.slice(0, 3).map(log => (
-              <div key={log.id} className="flex justify-between py-3 border-b border-border">
-                <span className="text-sm">{log.name}</span>
+              <div key={log.id} className="flex justify-between py-4 border-b border-border">
+                <span className="text-sm uppercase tracking-wider">{log.name}</span>
                 <span className="font-display text-sm font-bold">{log.protein}g</span>
               </div>
             ))}
@@ -98,10 +104,12 @@ export default function Dashboard({ onNavigate }: Props) {
         )}
       </div>
 
+      <div className="section-divider" />
+
       {/* Insight */}
-      <div className="card-brutal bg-card">
-        <p className="label-spaced">Insight</p>
-        <p className="text-sm leading-relaxed">
+      <div className="card-brutal">
+        <p className="label-spaced">INSIGHT</p>
+        <p className="text-sm leading-relaxed tracking-wide">
           Protein synthesis peaks 3-4 hours post-workout. Prioritize density.
         </p>
       </div>
