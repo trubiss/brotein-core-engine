@@ -40,9 +40,9 @@ export default function ResultsScreen({ data, onComplete, onBack }: Props) {
 
   return (
     <div className="flex-1 flex flex-col justify-between">
-      <div className="pt-16">
-        <h1 className="text-3xl font-bold tracking-[0.1em] mb-2">CALCULATION COMPLETE</h1>
-        <div className="w-12 h-0.5 bg-foreground mb-12" />
+      <div className="pt-20">
+        <h1 className="text-3xl font-black tracking-[0.15em] mb-3">CALCULATION COMPLETE</h1>
+        <div className="w-16 h-0.5 bg-foreground" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center">

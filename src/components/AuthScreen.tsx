@@ -9,11 +9,12 @@ export default function AuthScreen({ data, onUpdate, onNext }: Props) {
 
   return (
     <div className="flex-1 flex flex-col justify-between">
-      <div className="pt-16">
-        <h1 className="text-4xl font-bold tracking-[0.15em] mb-4">BROTEIN</h1>
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+      <div className="pt-20">
+        <h1 className="text-5xl font-black tracking-[0.2em] mb-6">BROTEIN</h1>
+        <p className="text-xs text-muted-foreground leading-relaxed max-w-xs uppercase tracking-[0.15em]">
           Architectural nutrition for the disciplined athlete. Construct your physique with mathematical precision.
         </p>
+        <div className="w-16 h-0.5 bg-foreground mt-6" />
       </div>
 
       <div className="space-y-8 py-12">

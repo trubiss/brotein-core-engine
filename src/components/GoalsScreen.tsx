@@ -19,9 +19,9 @@ const goals = [
 export default function GoalsScreen({ data, onUpdate, onNext, onBack }: Props) {
   return (
     <div className="flex-1 flex flex-col justify-between">
-      <div className="pt-16">
-        <h1 className="text-3xl font-bold tracking-[0.1em] mb-2">KINETIC OBJECTIVES</h1>
-        <div className="w-12 h-0.5 bg-foreground mb-8" />
+      <div className="pt-20">
+        <h1 className="text-3xl font-black tracking-[0.15em] mb-3">KINETIC OBJECTIVES</h1>
+        <div className="w-16 h-0.5 bg-foreground" />
       </div>
 
       <div className="space-y-10 py-4">

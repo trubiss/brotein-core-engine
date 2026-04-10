@@ -10,9 +10,9 @@ export default function BiometricsScreen({ data, onUpdate, onNext, onBack }: Pro
 
   return (
     <div className="flex-1 flex flex-col justify-between">
-      <div className="pt-16">
-        <h1 className="text-3xl font-bold tracking-[0.1em] mb-2">STRUCTURAL DATA</h1>
-        <div className="w-12 h-0.5 bg-foreground mb-8" />
+      <div className="pt-20">
+        <h1 className="text-3xl font-black tracking-[0.15em] mb-3">STRUCTURAL DATA</h1>
+        <div className="w-16 h-0.5 bg-foreground" />
       </div>
 
       <div className="space-y-8 py-8">
