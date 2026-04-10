@@ -12,8 +12,24 @@ export default function Dashboard({ onNavigate }: Props) {
   const [todayProtein, setTodayProtein] = useState(getTodayProtein());
   const [todayLogs, setTodayLogs] = useState(getTodayLogs());
   const [showModal, setShowModal] = useState(false);
-  const streak = getStreak();
+  const [streak, setStreak] = useState(getStreak());
+  const currentDateRef = useRef(new Date().toISOString().split('T')[0]);
   const remaining = Math.max(0, profile.dailyProtein - todayProtein);
+  const progress = Math.min(100, (todayProtein / profile.dailyProtein) * 100);
+
+  // Midnight reset: check every 30s if the day has changed
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date().toISOString().split('T')[0];
+      if (now !== currentDateRef.current) {
+        currentDateRef.current = now;
+        setTodayProtein(getTodayProtein());
+        setTodayLogs(getTodayLogs());
+        setStreak(getStreak());
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
   const progress = Math.min(100, (todayProtein / profile.dailyProtein) * 100);
 
   const handleLog = (name: string, protein: number) => {
