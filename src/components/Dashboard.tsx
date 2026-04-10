@@ -30,12 +30,12 @@ export default function Dashboard({ onNavigate }: Props) {
     }, 30000);
     return () => clearInterval(interval);
   }, []);
-  const progress = Math.min(100, (todayProtein / profile.dailyProtein) * 100);
 
   const handleLog = (name: string, protein: number) => {
     addLog({ name, protein });
     setTodayProtein(getTodayProtein());
     setTodayLogs(getTodayLogs());
+    setStreak(getStreak());
     setShowModal(false);
   };
 
