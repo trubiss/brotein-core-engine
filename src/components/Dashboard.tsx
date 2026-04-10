@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getProfile, getTodayProtein, getTodayLogs, getStreak, addLog } from '@/lib/store';
 import QuickLogModal from './QuickLogModal';
 import { User } from 'lucide-react';
