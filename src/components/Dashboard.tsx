@@ -5,6 +5,7 @@ import { addLog, watchLogsForDate, watchSummary, watchAllSummaries, computeStrea
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 import { getSuggestions } from '@/lib/suggestions';
 import QuickLogModal from './QuickLogModal';
+import ProteinPace from './ProteinPace';
 import { User, Plus, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -103,6 +104,10 @@ export default function Dashboard({ onNavigate }: Props) {
           QUICK ADD +
         </button>
       </motion.div>
+
+      <div className="section-divider" />
+
+      <ProteinPace logs={logs} consumed={consumed} target={target} />
 
       {suggestions.length > 0 && (
         <>
