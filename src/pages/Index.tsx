@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { isOnboarded } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
+import SignInScreen from '@/components/SignInScreen';
 import OnboardingFlow from '@/components/OnboardingFlow';
 import Dashboard from '@/components/Dashboard';
 import HistoryScreen from '@/components/HistoryScreen';
@@ -15,12 +16,19 @@ const pageVariants = {
 };
 
 const Index = () => {
-  const [onboarded, setOnboarded] = useState(isOnboarded());
+  const { user, profile, loading } = useAuth();
   const [page, setPage] = useState<Page>('dashboard');
 
-  if (!onboarded) {
-    return <OnboardingFlow onComplete={() => setOnboarded(true)} />;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="label-spaced mb-0">LOADING…</p>
+      </div>
+    );
   }
+
+  if (!user) return <SignInScreen />;
+  if (!profile) return <OnboardingFlow />;
 
   return (
     <AnimatePresence mode="wait">

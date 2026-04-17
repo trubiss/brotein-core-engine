@@ -1,55 +1,53 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import AuthScreen from './AuthScreen';
+import { useAuth } from '@/lib/auth';
 import BiometricsScreen from './BiometricsScreen';
 import GoalsScreen from './GoalsScreen';
 import ResultsScreen from './ResultsScreen';
+import { ActivityLevel, Goal } from '@/lib/types';
 
 interface OnboardingData {
-  name: string;
-  email: string;
-  password: string;
   weight: number;
   height: number;
   age: number;
-  activityLevel: 'active' | 'moderate' | 'recovery';
-  goal: 'hypertrophy' | 'equilibrium';
+  activityLevel: ActivityLevel;
+  goal: Goal;
 }
 
 const initialData: OnboardingData = {
-  name: '',
-  email: '',
-  password: '',
-  weight: 0,
-  height: 0,
-  age: 0,
-  activityLevel: 'active',
-  goal: 'hypertrophy',
+  weight: 0, height: 0, age: 0,
+  activityLevel: 'active', goal: 'hypertrophy',
 };
 
 const slideVariants = {
-  enter: (direction: number) => ({ x: direction > 0 ? '100%' : '-100%', opacity: 0 }),
+  enter: (d: number) => ({ x: d > 0 ? '100%' : '-100%', opacity: 0 }),
   center: { x: 0, opacity: 1 },
-  exit: (direction: number) => ({ x: direction > 0 ? '-100%' : '100%', opacity: 0 }),
+  exit: (d: number) => ({ x: d > 0 ? '-100%' : '100%', opacity: 0 }),
 };
 
-export default function OnboardingFlow({ onComplete }: { onComplete: () => void }) {
+export default function OnboardingFlow() {
+  const { user, refreshProfile } = useAuth();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [data, setData] = useState<OnboardingData>(initialData);
 
   const next = () => { setDirection(1); setStep(s => s + 1); };
-  const back = () => { setDirection(-1); setStep(s => s - 1); };
-
-  const update = (partial: Partial<OnboardingData>) => {
-    setData(prev => ({ ...prev, ...partial }));
-  };
+  const back = () => { setDirection(-1); setStep(s => Math.max(0, s - 1)); };
+  const update = (partial: Partial<OnboardingData>) => setData(prev => ({ ...prev, ...partial }));
 
   const screens = [
-    <AuthScreen key="auth" data={data} onUpdate={update} onNext={next} />,
     <BiometricsScreen key="bio" data={data} onUpdate={update} onNext={next} onBack={back} />,
     <GoalsScreen key="goals" data={data} onUpdate={update} onNext={next} onBack={back} />,
-    <ResultsScreen key="results" data={data} onComplete={onComplete} onBack={back} />,
+    <ResultsScreen
+      key="results"
+      data={{
+        name: user?.displayName ?? 'Athlete',
+        email: user?.email ?? '',
+        ...data,
+      }}
+      onComplete={refreshProfile}
+      onBack={back}
+    />,
   ];
 
   return (
