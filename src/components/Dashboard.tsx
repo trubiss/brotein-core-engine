@@ -7,7 +7,8 @@ import { getSuggestions } from '@/lib/suggestions';
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 import QuickLogModal from './QuickLogModal';
 import ProteinPace from './ProteinPace';
-import { User, Plus, BarChart3 } from 'lucide-react';
+import FoodScanModal from './FoodScanModal';
+import { User, Plus, BarChart3, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -27,6 +28,7 @@ export default function Dashboard({ onNavigate }: Props) {
   const [summary, setSummary] = useState<DailySummary | null>(null);
   const [streak, setStreak] = useState(0);
   const [showModal, setShowModal] = useState(false);
+  const [showScan, setShowScan] = useState(false);
 
   // Roll over at midnight
   useEffect(() => {
