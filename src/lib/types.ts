@@ -17,6 +17,13 @@ export interface UserProfile {
   dailyFats: number;
   mealFrequency: number;
   notifications: boolean;
+  reminders?: {
+    enabled: boolean;
+    morning: { enabled: boolean; time: string };
+    midday: { enabled: boolean; time: string };
+    evening: { enabled: boolean; time: string };
+    behindTarget: { enabled: boolean; thresholdPct: number };
+  };
   createdAt?: number;
   updatedAt?: number;
 }

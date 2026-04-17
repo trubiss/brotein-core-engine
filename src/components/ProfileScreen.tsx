@@ -5,6 +5,7 @@ import { updateProfileFields } from '@/lib/firestore';
 import { Goal } from '@/lib/types';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
+import ReminderSettingsPanel from './ReminderSettingsPanel';
 
 interface Props { onBack: () => void; }
 
@@ -42,11 +43,6 @@ export default function ProfileScreen({ onBack }: Props) {
     } finally {
       setBusy(false);
     }
-  };
-
-  const toggleNotifications = async () => {
-    await updateProfileFields(user.uid, { notifications: !profile.notifications });
-    await refreshProfile();
   };
 
   return (
@@ -123,22 +119,7 @@ export default function ProfileScreen({ onBack }: Props) {
         )}
       </div>
 
-      <motion.div variants={fadeUp} className="mt-12 border-t-2 border-foreground pt-8">
-        <div className="flex items-center justify-between gap-3">
-          <p className="label-spaced mb-0 truncate">NOTIFICATIONS</p>
-          <button
-            onClick={toggleNotifications}
-            className={`w-14 h-8 border-2 border-foreground relative transition-colors duration-200 shrink-0 ${
-              profile.notifications ? 'bg-foreground' : 'bg-background'
-            }`}
-            aria-label="Toggle notifications"
-          >
-            <div className={`absolute top-0.5 w-6 h-6 transition-all duration-200 ${
-              profile.notifications ? 'right-0.5 bg-background' : 'left-0.5 bg-foreground'
-            }`} />
-          </button>
-        </div>
-      </motion.div>
+      <ReminderSettingsPanel />
     </motion.div>
   );
 }
