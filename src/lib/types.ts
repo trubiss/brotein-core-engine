@@ -28,6 +28,8 @@ export interface UserProfile {
   updatedAt?: number;
 }
 
+export type LogSource = 'manual' | 'database' | 'favorite' | 'recent' | 'ai-scan';
+
 export interface FoodLog {
   id: string;
   date: string; // YYYY-MM-DD (local)
@@ -35,6 +37,14 @@ export interface FoodLog {
   foodName: string;
   proteinGrams: number;
   mealType?: MealType;
+  source?: LogSource;
+  // AI scan metadata (only present when source === 'ai-scan')
+  aiDetectedName?: string;
+  aiEstimatedGrams?: number;
+  aiConfidence?: number;
+  aiPortion?: string;
+  aiEdited?: boolean;
+  imageRef?: string;
   createdAt: number;
   updatedAt: number;
 }

@@ -7,7 +7,8 @@ import { getSuggestions } from '@/lib/suggestions';
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 import QuickLogModal from './QuickLogModal';
 import ProteinPace from './ProteinPace';
-import { User, Plus, BarChart3 } from 'lucide-react';
+import FoodScanModal from './FoodScanModal';
+import { User, Plus, BarChart3, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -27,6 +28,7 @@ export default function Dashboard({ onNavigate }: Props) {
   const [summary, setSummary] = useState<DailySummary | null>(null);
   const [streak, setStreak] = useState(0);
   const [showModal, setShowModal] = useState(false);
+  const [showScan, setShowScan] = useState(false);
 
   // Roll over at midnight
   useEffect(() => {
@@ -118,9 +120,19 @@ export default function Dashboard({ onNavigate }: Props) {
           <span>{remaining}G REMAINING</span>
           <span>{Math.round(progress)}%</span>
         </div>
-        <button className="btn-primary mt-8" onClick={() => setShowModal(true)}>
-          QUICK ADD +
-        </button>
+        <div className="flex gap-2 mt-8">
+          <button className="btn-primary flex-1" onClick={() => setShowModal(true)}>
+            QUICK ADD +
+          </button>
+          <button
+            className="border-2 border-foreground px-4 py-5 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shrink-0"
+            onClick={() => setShowScan(true)}
+            aria-label="Scan food"
+          >
+            <Camera size={16} strokeWidth={2.5} />
+            <span className="text-xs font-bold tracking-[0.2em] uppercase font-display">SCAN</span>
+          </button>
+        </div>
       </motion.div>
 
       <div className="section-divider" />
@@ -224,7 +236,32 @@ export default function Dashboard({ onNavigate }: Props) {
           onSubmit={async ({ foodName, proteinGrams, mealType }) => {
             await log(foodName, proteinGrams, mealType);
           }}
+          onScan={() => { setShowModal(false); setShowScan(true); }}
           onClose={() => setShowModal(false)}
+        />
+      )}
+
+      {showScan && (
+        <FoodScanModal
+          onClose={() => setShowScan(false)}
+          onConfirm={async ({ foodName, proteinGrams, mealType, ai, edited }) => {
+            try {
+              await addLog(user.uid, {
+                foodName,
+                proteinGrams,
+                mealType,
+                source: 'ai-scan',
+                aiDetectedName: ai.foodName,
+                aiEstimatedGrams: ai.proteinGrams,
+                aiConfidence: ai.confidence,
+                aiPortion: ai.portion,
+                aiEdited: edited,
+              });
+              toast.success(`+${proteinGrams}G LOGGED · AI SCAN`);
+            } catch (e: unknown) {
+              toast.error(e instanceof Error ? e.message : 'Failed to log');
+            }
+          }}
         />
       )}
     </motion.div>

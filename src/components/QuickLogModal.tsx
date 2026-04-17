@@ -3,7 +3,7 @@ import { MealType, FoodLog } from '@/lib/types';
 import { FOOD_DATABASE, searchFoods, FoodItem } from '@/lib/foods';
 import { useAuth } from '@/lib/auth';
 import { watchFavorites, watchRecentLogs, addFavorite, removeFavorite, FavoriteFood } from '@/lib/firestore';
-import { Search, Star, X } from 'lucide-react';
+import { Search, Star, X, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -16,6 +16,7 @@ interface Props {
   submitLabel?: string;
   onSubmit: (data: { foodName: string; proteinGrams: number; mealType?: MealType }) => void | Promise<void>;
   onClose: () => void;
+  onScan?: () => void;
 }
 
 const PRESETS = [20, 30, 40, 50];
@@ -28,7 +29,7 @@ const MEALS: { value: MealType; label: string }[] = [
 
 type Tab = 'search' | 'favorites' | 'recent' | 'manual';
 
-export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabel = 'LOG', onSubmit, onClose }: Props) {
+export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabel = 'LOG', onSubmit, onClose, onScan }: Props) {
   const { user } = useAuth();
   const [tab, setTab] = useState<Tab>(initial ? 'manual' : 'search');
   const [name, setName] = useState(initial?.foodName ?? '');
@@ -142,6 +143,16 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
           <h2 className="text-xl font-black tracking-[0.1em]">{title}</h2>
           <button onClick={onClose} className="p-1.5 border-2 border-foreground active:scale-95"><X size={14} /></button>
         </div>
+
+        {!initial && onScan && (
+          <button
+            onClick={onScan}
+            className="w-full mb-4 border-2 border-foreground p-3 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform bg-foreground text-background"
+          >
+            <Camera size={14} strokeWidth={2.5} />
+            <span className="text-xs font-bold tracking-[0.2em] uppercase">SCAN FOOD WITH AI</span>
+          </button>
+        )}
 
         {!initial && (
           <div className="grid grid-cols-4 gap-1 mb-5">

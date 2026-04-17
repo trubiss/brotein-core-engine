@@ -1,4 +1,1 @@
-project_id = "scan-food"
-
-[functions.scan-food]
-verify_jwt = false
+project_id = "rcihzqxvtkfqaxmwptgv"
