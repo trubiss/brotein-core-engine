@@ -152,7 +152,7 @@ export async function addLog(
       createdAt: now,
       updatedAt: now,
     }).filter(([, v]) => v !== undefined)
-  ) as FoodLog;
+  ) as unknown as FoodLog;
   await setDoc(ref, log);
   await recomputeSummary(uid, date, profile.dailyProtein);
   return log;
