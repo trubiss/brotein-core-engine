@@ -144,6 +144,16 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
           <button onClick={onClose} className="p-1.5 border-2 border-foreground active:scale-95"><X size={14} /></button>
         </div>
 
+        {!initial && onScan && (
+          <button
+            onClick={onScan}
+            className="w-full mb-4 border-2 border-foreground p-3 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform bg-foreground text-background"
+          >
+            <Camera size={14} strokeWidth={2.5} />
+            <span className="text-xs font-bold tracking-[0.2em] uppercase">SCAN FOOD WITH AI</span>
+          </button>
+        )}
+
         {!initial && (
           <div className="grid grid-cols-4 gap-1 mb-5">
             <TabBtn id="search" label="FOODS" />
