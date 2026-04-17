@@ -113,23 +113,46 @@ async function recomputeSummary(uid: string, date: string, target: number) {
 
 export async function addLog(
   uid: string,
-  input: { foodName: string; proteinGrams: number; mealType?: MealType; date?: string; timestamp?: number }
+  input: {
+    foodName: string;
+    proteinGrams: number;
+    mealType?: MealType;
+    date?: string;
+    timestamp?: number;
+    source?: FoodLog['source'];
+    aiDetectedName?: string;
+    aiEstimatedGrams?: number;
+    aiConfidence?: number;
+    aiPortion?: string;
+    aiEdited?: boolean;
+    imageRef?: string;
+  }
 ) {
   const profile = await getProfile(uid);
   if (!profile) throw new Error('Profile required');
   const now = Date.now();
   const date = input.date ?? todayKey();
   const ref = doc(logsCol(uid));
-  const log: FoodLog = {
-    id: ref.id,
-    date,
-    timestamp: input.timestamp ?? now,
-    foodName: input.foodName,
-    proteinGrams: input.proteinGrams,
-    mealType: input.mealType,
-    createdAt: now,
-    updatedAt: now,
-  };
+  // Strip undefined fields — Firestore rejects them.
+  const log: FoodLog = Object.fromEntries(
+    Object.entries({
+      id: ref.id,
+      date,
+      timestamp: input.timestamp ?? now,
+      foodName: input.foodName,
+      proteinGrams: input.proteinGrams,
+      mealType: input.mealType,
+      source: input.source,
+      aiDetectedName: input.aiDetectedName,
+      aiEstimatedGrams: input.aiEstimatedGrams,
+      aiConfidence: input.aiConfidence,
+      aiPortion: input.aiPortion,
+      aiEdited: input.aiEdited,
+      imageRef: input.imageRef,
+      createdAt: now,
+      updatedAt: now,
+    }).filter(([, v]) => v !== undefined)
+  ) as FoodLog;
   await setDoc(ref, log);
   await recomputeSummary(uid, date, profile.dailyProtein);
   return log;
