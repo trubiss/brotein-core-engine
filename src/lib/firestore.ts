@@ -1,9 +1,54 @@
 import {
   collection, doc, setDoc, getDoc, getDocs, deleteDoc, updateDoc,
-  onSnapshot, query, orderBy, where, runTransaction, serverTimestamp,
+  onSnapshot, query, orderBy, where, limit,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { FoodLog, UserProfile, DailySummary, MealType, todayKey, calculateMacros } from './types';
+
+export interface FavoriteFood {
+  id: string;
+  foodName: string;
+  proteinGrams: number;
+  mealType?: MealType;
+  createdAt: number;
+}
+
+const favoritesCol = (uid: string) => collection(db, 'users', uid, 'favorites');
+
+export function watchFavorites(uid: string, cb: (items: FavoriteFood[]) => void) {
+  return onSnapshot(favoritesCol(uid), s => {
+    const arr: FavoriteFood[] = [];
+    s.forEach(d => arr.push(d.data() as FavoriteFood));
+    arr.sort((a, b) => b.createdAt - a.createdAt);
+    cb(arr);
+  });
+}
+
+export async function addFavorite(uid: string, input: { foodName: string; proteinGrams: number; mealType?: MealType }) {
+  const ref = doc(favoritesCol(uid));
+  const fav: FavoriteFood = {
+    id: ref.id,
+    foodName: input.foodName,
+    proteinGrams: input.proteinGrams,
+    mealType: input.mealType,
+    createdAt: Date.now(),
+  };
+  await setDoc(ref, fav);
+  return fav;
+}
+
+export async function removeFavorite(uid: string, id: string) {
+  await deleteDoc(doc(favoritesCol(uid), id));
+}
+
+export function watchRecentLogs(uid: string, cb: (logs: FoodLog[]) => void, max = 30) {
+  const q = query(logsCol(uid), orderBy('timestamp', 'desc'), limit(max));
+  return onSnapshot(q, s => {
+    const arr: FoodLog[] = [];
+    s.forEach(d => arr.push(d.data() as FoodLog));
+    cb(arr);
+  });
+}
 
 const userDoc = (uid: string) => doc(db, 'users', uid);
 const logsCol = (uid: string) => collection(db, 'users', uid, 'logs');
