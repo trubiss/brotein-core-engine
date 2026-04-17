@@ -9,9 +9,9 @@ export default function BiometricsScreen({ data, onUpdate, onNext, onBack }: Pro
   const canProceed = data.weight > 0 && data.height > 0 && data.age > 0;
 
   return (
-    <div className="flex-1 flex flex-col justify-between">
-      <div className="pt-20">
-        <h1 className="text-3xl font-black tracking-[0.15em] mb-3">STRUCTURAL DATA</h1>
+    <div className="flex-1 flex flex-col justify-between min-w-0">
+      <div className="pt-16">
+        <h1 className="text-2xl font-black tracking-[0.15em] mb-3 break-words">STRUCTURAL DATA</h1>
         <div className="w-16 h-0.5 bg-foreground" />
       </div>
 
