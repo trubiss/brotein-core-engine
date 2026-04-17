@@ -6,8 +6,9 @@ import OnboardingFlow from '@/components/OnboardingFlow';
 import Dashboard from '@/components/Dashboard';
 import HistoryScreen from '@/components/HistoryScreen';
 import ProfileScreen from '@/components/ProfileScreen';
+import InsightsScreen from '@/components/InsightsScreen';
 
-type Page = 'dashboard' | 'history' | 'profile';
+type Page = 'dashboard' | 'history' | 'profile' | 'insights';
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -42,6 +43,7 @@ const Index = () => {
       >
         {page === 'history' && <HistoryScreen onBack={() => setPage('dashboard')} />}
         {page === 'profile' && <ProfileScreen onBack={() => setPage('dashboard')} />}
+        {page === 'insights' && <InsightsScreen onBack={() => setPage('dashboard')} />}
         {page === 'dashboard' && <Dashboard onNavigate={setPage} />}
       </motion.div>
     </AnimatePresence>

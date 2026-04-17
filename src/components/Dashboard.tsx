@@ -5,11 +5,11 @@ import { addLog, watchLogsForDate, watchSummary, watchAllSummaries, computeStrea
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 import { getSuggestions } from '@/lib/suggestions';
 import QuickLogModal from './QuickLogModal';
-import { User, Plus } from 'lucide-react';
+import { User, Plus, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
-  onNavigate: (page: 'history' | 'profile') => void;
+  onNavigate: (page: 'history' | 'profile' | 'insights') => void;
 }
 
 const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
@@ -64,9 +64,14 @@ export default function Dashboard({ onNavigate }: Props) {
     <motion.div className="screen-container pb-32" variants={stagger} initial="initial" animate="animate">
       <motion.div variants={fadeUp} className="flex items-center justify-between mb-12 min-w-0">
         <h1 className="font-black tracking-[0.15em] font-sans text-3xl truncate">BROTEIN</h1>
-        <button onClick={() => onNavigate('profile')} className="p-2 border-2 border-foreground active:scale-95 transition-transform shrink-0">
-          <User size={20} />
-        </button>
+        <div className="flex gap-2 shrink-0">
+          <button onClick={() => onNavigate('insights')} className="p-2 border-2 border-foreground active:scale-95 transition-transform" aria-label="Insights">
+            <BarChart3 size={20} />
+          </button>
+          <button onClick={() => onNavigate('profile')} className="p-2 border-2 border-foreground active:scale-95 transition-transform" aria-label="Profile">
+            <User size={20} />
+          </button>
+        </div>
       </motion.div>
 
       <motion.div variants={fadeUp} className="mb-4 min-w-0">
