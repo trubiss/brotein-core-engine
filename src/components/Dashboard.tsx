@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth';
 import { addLog, watchLogsForDate, watchSummary, watchAllSummaries, computeStreak } from '@/lib/firestore';
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 import { getSuggestions } from '@/lib/suggestions';
+import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 import QuickLogModal from './QuickLogModal';
 import ProteinPace from './ProteinPace';
 import { User, Plus, BarChart3 } from 'lucide-react';
@@ -43,6 +44,23 @@ export default function Dashboard({ onNavigate }: Props) {
     const u3 = watchAllSummaries(user.uid, all => setStreak(computeStreak(all)));
     return () => { u1(); u2(); u3(); };
   }, [user, today]);
+
+  // In-app reminder evaluator: checks every minute and surfaces toasts.
+  // Push notifications can replace `toast` later without touching the logic.
+  useEffect(() => {
+    if (!profile) return;
+    const settings = getReminderSettings(profile);
+    const tick = () => {
+      const events = evaluateReminders(settings, {
+        consumed: summary?.consumedProtein ?? 0,
+        target: profile.dailyProtein,
+      });
+      events.forEach(e => toast(e.title, { description: e.body }));
+    };
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => clearInterval(id);
+  }, [profile, summary]);
 
   if (!profile || !user) return null;
 
