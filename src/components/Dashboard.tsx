@@ -142,7 +142,7 @@ export default function Dashboard({ onNavigate }: Props) {
 
       <motion.div variants={fadeUp} className="mb-4">
         <div className="flex justify-between items-center mb-6 gap-2 min-w-0">
-          <p className="label-spaced mb-0 truncate">RECENT LOGS</p>
+          <p className="label-spaced mb-0 truncate">TODAY TIMELINE</p>
           <button
             className="text-[10px] font-display tracking-[0.2em] font-bold uppercase border-b-2 border-foreground pb-0.5 active:opacity-60 shrink-0"
             onClick={() => onNavigate('history')}
@@ -158,16 +158,24 @@ export default function Dashboard({ onNavigate }: Props) {
           </div>
         ) : (
           <div className="border-t-2 border-foreground">
-            {logs.slice(0, 3).map((l, i) => (
+            {[...logs].sort((a, b) => a.timestamp - b.timestamp).map((l, i) => (
               <motion.div
                 key={l.id}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05, duration: 0.25 }}
-                className="flex justify-between gap-3 py-4 border-b border-border min-w-0"
+                transition={{ delay: i * 0.04, duration: 0.25 }}
+                className="flex items-start gap-3 py-4 border-b border-border min-w-0"
               >
-                <span className="text-sm uppercase tracking-[0.12em] truncate">{l.foodName}</span>
-                <span className="font-display text-sm font-bold whitespace-nowrap">{l.proteinGrams}G</span>
+                <span className="font-display text-[11px] font-bold whitespace-nowrap pt-0.5 w-12 shrink-0">
+                  {new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm uppercase tracking-[0.12em] truncate">{l.foodName}</p>
+                  {l.mealType && (
+                    <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-0.5">{l.mealType}</p>
+                  )}
+                </div>
+                <span className="font-display text-sm font-bold whitespace-nowrap shrink-0">{l.proteinGrams}G</span>
               </motion.div>
             ))}
           </div>
