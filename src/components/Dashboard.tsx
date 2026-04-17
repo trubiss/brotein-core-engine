@@ -236,7 +236,32 @@ export default function Dashboard({ onNavigate }: Props) {
           onSubmit={async ({ foodName, proteinGrams, mealType }) => {
             await log(foodName, proteinGrams, mealType);
           }}
+          onScan={() => { setShowModal(false); setShowScan(true); }}
           onClose={() => setShowModal(false)}
+        />
+      )}
+
+      {showScan && (
+        <FoodScanModal
+          onClose={() => setShowScan(false)}
+          onConfirm={async ({ foodName, proteinGrams, mealType, ai, edited }) => {
+            try {
+              await addLog(user.uid, {
+                foodName,
+                proteinGrams,
+                mealType,
+                source: 'ai-scan',
+                aiDetectedName: ai.foodName,
+                aiEstimatedGrams: ai.proteinGrams,
+                aiConfidence: ai.confidence,
+                aiPortion: ai.portion,
+                aiEdited: edited,
+              });
+              toast.success(`+${proteinGrams}G LOGGED · AI SCAN`);
+            } catch (e: unknown) {
+              toast.error(e instanceof Error ? e.message : 'Failed to log');
+            }
+          }}
         />
       )}
     </motion.div>
