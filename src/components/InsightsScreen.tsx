@@ -53,26 +53,40 @@ export default function InsightsScreen({ onBack }: Props) {
       <motion.div variants={fadeUp} className="mb-8">
         <p className="label-spaced">7-DAY CONSISTENCY</p>
         <div className="border-t-2 border-foreground pt-4">
-          <div className="grid grid-cols-7 gap-2 mb-3">
-            {analytics.weeklyConsistency.map((d, i) => {
-              const pct = d.target > 0 ? Math.min(100, (d.consumed / d.target) * 100) : 0;
-              return (
-                <div key={d.date} className="flex flex-col items-center gap-1 min-w-0">
-                  <div className="w-full h-20 border-2 border-foreground relative overflow-hidden">
-                    <div
-                      className="absolute bottom-0 left-0 right-0 bg-foreground"
-                      style={{ height: `${pct}%` }}
-                    />
-                    {d.hit && (
-                      <Check size={10} className="absolute top-1 right-1 text-foreground mix-blend-difference" strokeWidth={3} />
-                    )}
+          {analytics.totalTrackedDays === 0 ? (
+            <>
+              <div className="grid grid-cols-7 gap-2 mb-3">
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <div key={i} className="flex flex-col items-center gap-1 min-w-0">
+                    <div className="w-full h-20 border-2 border-dashed border-foreground/40" />
+                    <span className="text-[9px] font-display tracking-wider opacity-40">{DAY_LABELS[i]}</span>
                   </div>
-                  <span className="text-[9px] font-display tracking-wider">{DAY_LABELS[new Date(d.date + 'T00:00:00').getDay()]}</span>
-                  <span className="text-[8px] text-muted-foreground tracking-wider">{d.consumed}G</span>
-                </div>
-              );
-            })}
-          </div>
+                ))}
+              </div>
+              <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground text-center mt-2">YOUR WEEK STARTS HERE</p>
+            </>
+          ) : (
+            <div className="grid grid-cols-7 gap-2 mb-3">
+              {analytics.weeklyConsistency.map((d) => {
+                const pct = d.target > 0 ? Math.min(100, (d.consumed / d.target) * 100) : 0;
+                return (
+                  <div key={d.date} className="flex flex-col items-center gap-1 min-w-0">
+                    <div className="w-full h-20 border-2 border-foreground relative overflow-hidden">
+                      <div
+                        className="absolute bottom-0 left-0 right-0 bg-foreground"
+                        style={{ height: `${pct}%` }}
+                      />
+                      {d.hit && (
+                        <Check size={10} className="absolute top-1 right-1 text-foreground mix-blend-difference" strokeWidth={3} />
+                      )}
+                    </div>
+                    <span className="text-[9px] font-display tracking-wider">{DAY_LABELS[new Date(d.date + 'T00:00:00').getDay()]}</span>
+                    <span className="text-[8px] text-muted-foreground tracking-wider">{d.consumed}G</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </motion.div>
 
@@ -80,12 +94,16 @@ export default function InsightsScreen({ onBack }: Props) {
       <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3 mb-8">
         <div className="border-2 border-foreground p-4 min-w-0">
           <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">WEEKLY AVG</p>
-          <p className="font-display text-3xl font-black leading-none">{analytics.weeklyAvg}<span className="text-sm">G</span></p>
+          <p className="font-display text-3xl font-black leading-none">
+            {analytics.totalTrackedDays === 0 ? '–' : <>{analytics.weeklyAvg}<span className="text-sm">G</span></>}
+          </p>
           <p className="text-[10px] tracking-[0.2em] uppercase mt-2 text-muted-foreground">PER DAY</p>
         </div>
         <div className="border-2 border-foreground p-4 min-w-0">
           <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">7-DAY HIT %</p>
-          <p className="font-display text-3xl font-black leading-none">{analytics.weeklyHitPct}<span className="text-sm">%</span></p>
+          <p className="font-display text-3xl font-black leading-none">
+            {analytics.totalTrackedDays === 0 ? '–' : <>{analytics.weeklyHitPct}<span className="text-sm">%</span></>}
+          </p>
           <p className="text-[10px] tracking-[0.2em] uppercase mt-2 text-muted-foreground">DAYS ON TARGET</p>
         </div>
       </motion.div>
@@ -95,11 +113,15 @@ export default function InsightsScreen({ onBack }: Props) {
         <p className="label-spaced">30-DAY ADHERENCE</p>
         <div className="border-2 border-foreground p-4">
           <div className="flex items-baseline justify-between mb-3 gap-2 min-w-0">
-            <p className="font-display text-5xl font-black leading-none">{analytics.monthlyAdherence}<span className="text-xl">%</span></p>
-            <div className="flex items-center gap-2 border-2 border-foreground px-2 py-1 shrink-0">
-              <TrendIcon size={14} strokeWidth={2.5} />
-              <span className="text-[10px] font-bold tracking-[0.2em] uppercase">{analytics.trend}</span>
-            </div>
+            <p className="font-display text-5xl font-black leading-none">
+              {analytics.totalTrackedDays === 0 ? '–' : analytics.monthlyAdherence}<span className="text-xl">%</span>
+            </p>
+            {analytics.totalTrackedDays > 0 && (
+              <div className="flex items-center gap-2 border-2 border-foreground px-2 py-1 shrink-0">
+                <TrendIcon size={14} strokeWidth={2.5} />
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase">{analytics.trend}</span>
+              </div>
+            )}
           </div>
           <div className="progress-bar-track">
             <div
@@ -108,7 +130,9 @@ export default function InsightsScreen({ onBack }: Props) {
             />
           </div>
           <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground mt-3">
-            {analytics.totalHitDays}/{analytics.totalTrackedDays} TRACKED DAYS HIT TARGET
+            {analytics.totalTrackedDays === 0
+              ? 'LOG YOUR FIRST DAY TO SEE TRENDS'
+              : `${analytics.totalHitDays}/${analytics.totalTrackedDays} TRACKED DAYS HIT TARGET`}
           </p>
         </div>
       </motion.div>
