@@ -45,11 +45,11 @@ export default function SignInScreen() {
         )}
         <div>
           <label className="label-spaced">EMAIL</label>
-          <input className="input-underline" type="email" autoComplete="email" placeholder="you@domain.com" value={email} onChange={e => setEmail(e.target.value)} />
+          <input className="input-underline" type="email" autoComplete="email" placeholder="name@email.com" value={email} onChange={e => setEmail(e.target.value)} />
         </div>
         <div>
           <label className="label-spaced">PASSWORD</label>
-          <input className="input-underline" type="password" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} placeholder="••••••" value={password} onChange={e => setPassword(e.target.value)} />
+          <input className="input-underline" type="password" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
         </div>
       </div>
 
