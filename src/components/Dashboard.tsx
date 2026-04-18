@@ -132,7 +132,7 @@ export default function Dashboard({ onNavigate }: Props) {
           </button>
         </div>
         <button
-          className="w-full mt-2 bg-foreground text-background px-4 py-4 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform border-2 border-foreground"
+          className="w-full mt-2 bg-background text-foreground px-4 py-4 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform border-2 border-foreground"
           onClick={() => setShowScan(true)}
         >
           <Camera size={16} strokeWidth={2.5} />
