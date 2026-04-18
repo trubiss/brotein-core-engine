@@ -126,17 +126,9 @@ export default function Dashboard({ onNavigate }: Props) {
           <span>{remaining}G REMAINING</span>
           <span>{Math.round(progress)}%</span>
         </div>
-        <div className="flex gap-2 mt-8">
-          <button className="btn-primary flex-1" onClick={() => setShowModal(true)}>
+        <div className="mt-8">
+          <button className="btn-primary w-full" onClick={() => setShowModal(true)}>
             QUICK ADD +
-          </button>
-          <button
-            className="border-2 border-foreground px-4 py-5 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shrink-0"
-            onClick={() => setShowScan(true)}
-            aria-label="Scan food"
-          >
-            <Camera size={16} strokeWidth={2.5} />
-            <span className="text-xs font-bold tracking-[0.2em] uppercase font-display">SCAN</span>
           </button>
         </div>
         <button
