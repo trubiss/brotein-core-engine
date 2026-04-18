@@ -22,8 +22,9 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="label-spaced mb-0">LOADING…</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+        <h1 className="font-mono text-4xl tracking-tighter mb-4">BROTEIN</h1>
+        <p className="label-spaced mb-0 opacity-50">LOADING…</p>
       </div>
     );
   }

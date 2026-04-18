@@ -26,14 +26,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      if (u) {
-        const p = await getProfile(u.uid);
-        setProfile(p);
-      } else {
-        setProfile(null);
+      setLoading(true);
+      try {
+        if (u) {
+          const p = await getProfile(u.uid);
+          setUser(u);
+          setProfile(p);
+        } else {
+          setUser(null);
+          setProfile(null);
+        }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
     return () => unsub();
   }, []);
