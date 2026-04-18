@@ -31,7 +31,7 @@ type Tab = 'search' | 'favorites' | 'recent' | 'manual';
 
 export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabel = 'LOG', onSubmit, onClose, onScan }: Props) {
   const { user } = useAuth();
-  const [tab, setTab] = useState<Tab>(initial ? 'manual' : 'search');
+  const [tab, setTab] = useState<Tab>(initial ? 'manual' : 'recent');
   const [name, setName] = useState(initial?.foodName ?? '');
   const [protein, setProtein] = useState(initial ? String(initial.proteinGrams) : '');
   const [mealType, setMealType] = useState<MealType | undefined>(initial?.mealType);

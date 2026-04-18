@@ -99,6 +99,12 @@ export default function Dashboard({ onNavigate }: Props) {
         <p className="label-spaced">FUEL STATUS</p>
         <p className="text-7xl font-black font-display tracking-tighter leading-none mt-2">{remaining}g</p>
         <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-[0.25em]">REMAINING TODAY</p>
+        {logs.length === 0 && (
+          <div className="mt-4 border-2 border-foreground p-3">
+            <p className="text-[10px] tracking-[0.2em] uppercase font-bold">NO LOGS YET TODAY</p>
+            <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mt-1">ADD YOUR FIRST MEAL TO GET STARTED</p>
+          </div>
+        )}
       </motion.div>
 
       <div className="section-divider" />
@@ -133,11 +139,14 @@ export default function Dashboard({ onNavigate }: Props) {
             <span className="text-xs font-bold tracking-[0.2em] uppercase font-display">SCAN</span>
           </button>
         </div>
+        <button
+          className="w-full mt-2 bg-foreground text-background px-4 py-4 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform border-2 border-foreground"
+          onClick={() => setShowScan(true)}
+        >
+          <Camera size={16} strokeWidth={2.5} />
+          <span className="text-xs font-bold tracking-[0.2em] uppercase font-display">SCAN FOOD WITH AI</span>
+        </button>
       </motion.div>
-
-      <div className="section-divider" />
-
-      <ProteinPace logs={logs} consumed={consumed} target={target} />
 
       {suggestions.length > 0 && (
         <>
@@ -166,9 +175,17 @@ export default function Dashboard({ onNavigate }: Props) {
 
       <div className="section-divider" />
 
+      <ProteinPace logs={logs} consumed={consumed} target={target} />
+
+      <div className="section-divider" />
+
       <motion.div variants={fadeUp} className="mb-4">
         <p className="label-spaced">CURRENT STREAK</p>
-        <p className="text-4xl font-black font-display mb-6">{streak} DAYS</p>
+        {streak > 0 ? (
+          <p className="text-4xl font-black font-display mb-6">{streak} DAYS</p>
+        ) : (
+          <p className="text-sm font-bold uppercase tracking-[0.15em] mb-6">LOG TODAY TO START YOUR STREAK 🔥</p>
+        )}
         <div className="flex gap-2">
           {Array.from({ length: 7 }).map((_, i) => (
             <div key={i} className={`day-box ${i < streak ? 'day-box-filled' : ''}`}>
