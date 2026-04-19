@@ -26,7 +26,11 @@ function TargetBars() {
               key={i}
               initial={{ scaleY: 0 }}
               animate={{ scaleY: 1 }}
-              transition={{ duration: 0.45, delay: i * 0.1, ease: [0.65, 0, 0.35, 1] }}
+              transition={{
+                duration: 1.5,
+                delay: i * 0.08,
+                ease: [0.65, 0, 0.35, 1],
+              }}
               style={{ transformOrigin: 'bottom' }}
               className="w-8 h-full bg-foreground"
             />
@@ -34,7 +38,7 @@ function TargetBars() {
           <motion.span
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.2, delay: 1.8 }}
+            transition={{ duration: 0.3, delay: 1.5 }}
             style={{ mixBlendMode: 'difference' }}
             className="absolute inset-0 flex items-center justify-center font-sans font-black uppercase tracking-tighter text-white text-3xl pointer-events-none whitespace-nowrap"
           >
