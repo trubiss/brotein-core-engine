@@ -15,72 +15,119 @@ const slideVariants = {
 
 const TOTAL = 4;
 
-// Brutalist animated step graph for Screen 4
-function StepGraph() {
-  // Staircase points scaled to 280x180 viewBox
-  // Path: starts bottom-left, steps up to top-right, closes to baseline for fill
-  const linePath = 'M 0 170 L 40 170 L 40 140 L 80 140 L 80 110 L 120 110 L 120 80 L 160 80 L 160 55 L 200 55 L 200 30 L 240 30 L 240 10 L 280 10';
-  const fillPath = `${linePath} L 280 180 L 0 180 Z`;
+// Monolithic Discipline Column for Screen 4 — 7 concrete layers stack bottom-to-top
+function MonolithColumn() {
+  const LAYERS = 7;
+  const COL_W = 140;
+  const LAYER_H = 28;
+  const TOTAL_H = LAYERS * LAYER_H; // 196
+  const STAGGER = 0.18;
+  const LAYER_DUR = 0.35;
+  const buildEnd = (LAYERS - 1) * STAGGER + LAYER_DUR; // ~1.43s
+
+  // Concrete texture: layered radial + repeating noise via SVG filter
+  const concreteBg = `
+    radial-gradient(ellipse at 30% 20%, hsl(var(--foreground) / 0.92) 0%, hsl(var(--foreground)) 60%),
+    repeating-linear-gradient(115deg, hsl(var(--foreground)) 0px, hsl(var(--foreground)) 3px, hsl(var(--foreground) / 0.85) 3px, hsl(var(--foreground)) 6px)
+  `;
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative w-[280px] h-[180px]">
-        <svg
-          viewBox="0 0 280 180"
-          preserveAspectRatio="none"
-          className="absolute inset-0 w-full h-full overflow-visible"
-        >
-          {/* Animated clip reveals fill + line left-to-right */}
+    <div className="flex flex-col items-center gap-4">
+      {/* Column assembly */}
+      <div
+        className="relative"
+        style={{ width: COL_W, height: TOTAL_H }}
+      >
+        {/* SVG noise filter for concrete grain */}
+        <svg width="0" height="0" className="absolute">
           <defs>
-            <clipPath id="reveal-clip">
-              <motion.rect
-                x="0"
-                y="0"
-                height="180"
-                initial={{ width: 0 }}
-                animate={{ width: 280 }}
-                transition={{ duration: 1.5, ease: [0.65, 0, 0.35, 1] }}
-              />
-            </clipPath>
+            <filter id="concrete-noise">
+              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" />
+              <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.18 0" />
+              <feComposite in2="SourceGraphic" operator="in" />
+            </filter>
           </defs>
-
-          <g clipPath="url(#reveal-clip)">
-            {/* Solid black fill under the staircase */}
-            <path d={fillPath} fill="hsl(var(--foreground))" />
-            {/* Heavy stepped line on top */}
-            <path
-              d={linePath}
-              fill="none"
-              stroke="hsl(var(--foreground))"
-              strokeWidth="4"
-              strokeLinecap="square"
-              strokeLinejoin="miter"
-            />
-          </g>
-
-          {/* Heavy baseline */}
-          <line
-            x1="0"
-            y1="180"
-            x2="280"
-            y2="180"
-            stroke="hsl(var(--foreground))"
-            strokeWidth="6"
-          />
         </svg>
 
-        {/* Stamp: positioned in the largest filled region (right side, near peak) */}
-        <motion.span
+        {/* Stacked layers, bottom-up */}
+        {Array.from({ length: LAYERS }).map((_, i) => {
+          const fromBottom = i; // 0 = base
+          return (
+            <motion.div
+              key={i}
+              initial={{ y: -40, opacity: 0, scaleY: 0.6 }}
+              animate={{ y: 0, opacity: 1, scaleY: 1 }}
+              transition={{
+                duration: LAYER_DUR,
+                delay: fromBottom * STAGGER,
+                ease: [0.7, 0, 0.2, 1],
+              }}
+              style={{
+                position: 'absolute',
+                left: 0,
+                bottom: fromBottom * LAYER_H,
+                width: COL_W,
+                height: LAYER_H,
+                background: concreteBg,
+                borderTop: fromBottom === LAYERS - 1 ? 'none' : '1px solid hsl(var(--background) / 0.18)',
+                boxShadow: 'inset 0 -2px 0 hsl(var(--background) / 0.15), inset 0 2px 0 hsl(var(--foreground))',
+                transformOrigin: 'bottom',
+              }}
+            >
+              {/* Grain overlay */}
+              <div
+                className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-60"
+                style={{
+                  backgroundImage:
+                    'repeating-radial-gradient(circle at 20% 30%, hsl(var(--background) / 0.08) 0px, transparent 1.5px), repeating-radial-gradient(circle at 70% 80%, hsl(var(--background) / 0.06) 0px, transparent 1px)',
+                }}
+              />
+            </motion.div>
+          );
+        })}
+
+        {/* Heavy ground baseline */}
+        <div
+          className="absolute left-[-20px] right-[-20px] bg-foreground"
+          style={{ bottom: -8, height: 6 }}
+        />
+
+        {/* Recessed-carved text: "100% CONSISTENCY" — engraved into stone face */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 1.5 }}
-          className="absolute right-2 bottom-3 font-sans font-black uppercase tracking-tight text-background text-[15px] leading-[0.95] text-right pointer-events-none"
+          transition={{ duration: 0.4, delay: buildEnd + 0.1 }}
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
-          100%
-          <br />
-          CONSISTENCY
-        </motion.span>
+          <div
+            className="font-mono font-black uppercase text-background text-center leading-[0.95] tracking-tighter"
+            style={{
+              fontSize: 18,
+              // Engraved/recessed effect: dark inset shadow above, light highlight below
+              textShadow: `
+                0 -1px 0 hsl(var(--foreground)),
+                0 1px 0 hsl(var(--background) / 0.35),
+                0 2px 1px hsl(var(--background) / 0.15)
+              `,
+              filter: 'drop-shadow(0 1px 0 rgba(0,0,0,0.6))',
+            }}
+          >
+            100%
+            <br />
+            CONSISTENCY
+          </div>
+        </motion.div>
       </div>
+
+      {/* STREAK ACTIVE stamp below column */}
+      <motion.div
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: buildEnd + 0.5 }}
+        className="font-mono font-black uppercase tracking-widest text-foreground text-xs"
+      >
+        STREAK ACTIVE
+      </motion.div>
     </div>
   );
 }
@@ -231,7 +278,7 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
     {
       headline: <>FORGE<br />DISCIPLINE.</>,
       sub: 'CONSISTENCY IS THE ONLY HACK. HIT YOUR TARGET DAILY, BUILD YOUR STREAK, AND UNLOCK YOUR PHYSICAL TRAJECTORY.',
-      visual: <StepGraph />,
+      visual: <MonolithColumn />,
       cta: "LET'S GO",
     },
   ];
