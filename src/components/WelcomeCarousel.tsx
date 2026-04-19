@@ -15,37 +15,71 @@ const slideVariants = {
 
 const TOTAL = 4;
 
-// Animated 7-bar target visual for Screen 4
-function TargetBars() {
+// Brutalist animated step graph for Screen 4
+function StepGraph() {
+  // Staircase points scaled to 280x180 viewBox
+  // Path: starts bottom-left, steps up to top-right, closes to baseline for fill
+  const linePath = 'M 0 170 L 40 170 L 40 140 L 80 140 L 80 110 L 120 110 L 120 80 L 160 80 L 160 55 L 200 55 L 200 30 L 240 30 L 240 10 L 280 10';
+  const fillPath = `${linePath} L 280 180 L 0 180 Z`;
+
   return (
     <div className="flex flex-col items-center">
-      <div className="relative">
-        <div className="relative flex items-end gap-1.5 h-[180px]">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ scaleY: 0 }}
-              animate={{ scaleY: 1 }}
-              transition={{
-                duration: 1.5,
-                delay: i * 0.08,
-                ease: [0.65, 0, 0.35, 1],
-              }}
-              style={{ transformOrigin: 'bottom' }}
-              className="w-8 h-full bg-foreground"
+      <div className="relative w-[280px] h-[180px]">
+        <svg
+          viewBox="0 0 280 180"
+          preserveAspectRatio="none"
+          className="absolute inset-0 w-full h-full overflow-visible"
+        >
+          {/* Animated clip reveals fill + line left-to-right */}
+          <defs>
+            <clipPath id="reveal-clip">
+              <motion.rect
+                x="0"
+                y="0"
+                height="180"
+                initial={{ width: 0 }}
+                animate={{ width: 280 }}
+                transition={{ duration: 1.5, ease: [0.65, 0, 0.35, 1] }}
+              />
+            </clipPath>
+          </defs>
+
+          <g clipPath="url(#reveal-clip)">
+            {/* Solid black fill under the staircase */}
+            <path d={fillPath} fill="hsl(var(--foreground))" />
+            {/* Heavy stepped line on top */}
+            <path
+              d={linePath}
+              fill="none"
+              stroke="hsl(var(--foreground))"
+              strokeWidth="4"
+              strokeLinecap="square"
+              strokeLinejoin="miter"
             />
-          ))}
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 1.5 }}
-            style={{ mixBlendMode: 'difference' }}
-            className="absolute inset-0 flex items-center justify-center font-sans font-black uppercase tracking-tighter text-white text-3xl pointer-events-none whitespace-nowrap"
-          >
-            100% TARGET
-          </motion.span>
-        </div>
-        <div className="h-[6px] w-full bg-foreground" />
+          </g>
+
+          {/* Heavy baseline */}
+          <line
+            x1="0"
+            y1="180"
+            x2="280"
+            y2="180"
+            stroke="hsl(var(--foreground))"
+            strokeWidth="6"
+          />
+        </svg>
+
+        {/* Stamp: positioned in the largest filled region (right side, near peak) */}
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 1.5 }}
+          className="absolute right-2 bottom-3 font-sans font-black uppercase tracking-tight text-background text-[15px] leading-[0.95] text-right pointer-events-none"
+        >
+          100%
+          <br />
+          CONSISTENCY
+        </motion.span>
       </div>
     </div>
   );
@@ -197,7 +231,7 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
     {
       headline: <>FORGE<br />DISCIPLINE.</>,
       sub: 'CONSISTENCY IS THE ONLY HACK. HIT YOUR TARGET DAILY, BUILD YOUR STREAK, AND UNLOCK YOUR PHYSICAL TRAJECTORY.',
-      visual: <TargetBars />,
+      visual: <StepGraph />,
       cta: "LET'S GO",
     },
   ];
