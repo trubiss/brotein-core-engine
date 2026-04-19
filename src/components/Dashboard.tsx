@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
-import { addLog, watchLogsForDate, watchSummary, watchAllSummaries, computeStreak } from '@/lib/firestore';
+import { addLog, watchLogsForDate, watchSummary, watchAllSummaries, computeStreak, updateLog, deleteLog } from '@/lib/firestore';
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 import { getSuggestions } from '@/lib/suggestions';
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 import QuickLogModal from './QuickLogModal';
 import ProteinPace from './ProteinPace';
 import FoodScanModal from './FoodScanModal';
-import { User, Plus, BarChart3, Camera } from 'lucide-react';
+import SwipeableLogRow from './SwipeableLogRow';
+import { User, Plus, BarChart3, Camera, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
