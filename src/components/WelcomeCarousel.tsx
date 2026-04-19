@@ -15,6 +15,37 @@ const slideVariants = {
 
 const TOTAL = 4;
 
+// Animated 7-bar target visual for Screen 4
+function TargetBars() {
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative">
+        <div className="relative flex items-end gap-1.5 h-[180px]">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: 1 }}
+              transition={{ duration: 0.45, delay: i * 0.1, ease: [0.65, 0, 0.35, 1] }}
+              style={{ transformOrigin: 'bottom' }}
+              className="w-8 h-full bg-foreground"
+            />
+          ))}
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2, delay: 1.8 }}
+            className="absolute inset-0 flex items-center justify-center font-mono font-black uppercase tracking-tighter text-background text-2xl pointer-events-none whitespace-nowrap"
+          >
+            100% TARGET
+          </motion.span>
+        </div>
+        <div className="h-[6px] w-full bg-foreground" />
+      </div>
+    </div>
+  );
+}
+
 // Bloated spreadsheet visual for Screen 1
 function BloatedSpreadsheet() {
   const cols = ['KCAL', 'CARB', 'FAT', 'PRO', 'FIB', 'ZN', 'B12', 'MG'];
@@ -161,18 +192,7 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
     {
       headline: <>FORGE<br />DISCIPLINE.</>,
       sub: 'CONSISTENCY IS THE ONLY HACK. HIT YOUR TARGET DAILY, BUILD YOUR STREAK, AND UNLOCK YOUR PHYSICAL TRAJECTORY.',
-      visual: (
-        <div className="flex flex-col items-center gap-5">
-          <div className="flex gap-2">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div key={i} className="w-9 h-9 border-2 border-foreground bg-background" />
-            ))}
-          </div>
-          <span className="font-mono font-bold text-sm uppercase tracking-widest text-foreground">
-            STREAK ACTIVE
-          </span>
-        </div>
-      ),
+      visual: <TargetBars />,
       cta: "LET'S GO",
     },
   ];
