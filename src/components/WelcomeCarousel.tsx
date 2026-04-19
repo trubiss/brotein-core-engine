@@ -231,7 +231,7 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
     {
       headline: <>FORGE<br />DISCIPLINE.</>,
       sub: 'CONSISTENCY IS THE ONLY HACK. HIT YOUR TARGET DAILY, BUILD YOUR STREAK, AND UNLOCK YOUR PHYSICAL TRAJECTORY.',
-      visual: <TargetBars />,
+      visual: <StepGraph />,
       cta: "LET'S GO",
     },
   ];
