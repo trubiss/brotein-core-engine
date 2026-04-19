@@ -324,6 +324,7 @@ export default function Dashboard({ onNavigate }: Props) {
                 foodName,
                 proteinGrams,
                 mealType,
+                date: viewDate,
                 source: 'ai-scan',
                 aiDetectedName: ai.foodName,
                 aiEstimatedGrams: ai.proteinGrams,
@@ -336,6 +337,23 @@ export default function Dashboard({ onNavigate }: Props) {
               toast.error(e instanceof Error ? e.message : 'Failed to log');
             }
           }}
+        />
+      )}
+
+      {editing && (
+        <QuickLogModal
+          title="EDIT LOG"
+          submitLabel="SAVE"
+          initial={{ foodName: editing.foodName, proteinGrams: editing.proteinGrams, mealType: editing.mealType }}
+          onSubmit={async ({ foodName, proteinGrams, mealType }) => {
+            try {
+              await updateLog(user.uid, editing.id, { foodName, proteinGrams, mealType });
+              toast.success('UPDATED');
+            } catch (e: unknown) {
+              toast.error(e instanceof Error ? e.message : 'Update failed');
+            }
+          }}
+          onClose={() => setEditing(null)}
         />
       )}
     </motion.div>
