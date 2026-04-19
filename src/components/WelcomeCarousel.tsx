@@ -35,7 +35,8 @@ function TargetBars() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2, delay: 1.8 }}
-            className="absolute inset-0 flex items-center justify-center font-mono font-black uppercase tracking-tighter text-background text-2xl pointer-events-none whitespace-nowrap"
+            style={{ mixBlendMode: 'difference' }}
+            className="absolute inset-0 flex items-center justify-center font-sans font-black uppercase tracking-tighter text-white text-3xl pointer-events-none whitespace-nowrap"
           >
             100% TARGET
           </motion.span>
