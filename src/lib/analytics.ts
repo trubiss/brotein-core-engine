@@ -1,4 +1,4 @@
-import { DailySummary, todayKey } from './types';
+import { DailySummary, FoodLog, todayKey } from './types';
 
 export interface Analytics {
   weeklyAvg: number;
@@ -140,4 +140,41 @@ export function computeAchievements(opts: {
   });
 
   return achievements;
+}
+
+export interface AiAccuracy {
+  totalScans: number;          // last 7 days
+  acceptedScans: number;       // user did not edit
+  acceptanceRate: number;      // 0..100
+  avgGramError: number;        // avg |userGrams - aiGrams| in g, accepted+edited
+  avgGramErrorPct: number;     // avg % error of grams (relative to user value), 0..100+
+}
+
+export function computeAiAccuracy(logs: FoodLog[]): AiAccuracy {
+  const cutoff = Date.now() - 7 * 86400000;
+  const scans = logs.filter(
+    l => l.source === 'ai-scan' && l.aiEstimatedGrams !== undefined && l.timestamp >= cutoff
+  );
+  const total = scans.length;
+  if (total === 0) {
+    return { totalScans: 0, acceptedScans: 0, acceptanceRate: 0, avgGramError: 0, avgGramErrorPct: 0 };
+  }
+  const accepted = scans.filter(l => !l.aiEdited).length;
+  const acceptanceRate = Math.round((accepted / total) * 100);
+
+  let sumErr = 0;
+  let sumErrPct = 0;
+  for (const l of scans) {
+    const err = Math.abs((l.proteinGrams ?? 0) - (l.aiEstimatedGrams ?? 0));
+    sumErr += err;
+    const denom = l.proteinGrams || l.aiEstimatedGrams || 1;
+    sumErrPct += (err / denom) * 100;
+  }
+  return {
+    totalScans: total,
+    acceptedScans: accepted,
+    acceptanceRate,
+    avgGramError: Math.round(sumErr / total),
+    avgGramErrorPct: Math.round(sumErrPct / total),
+  };
 }

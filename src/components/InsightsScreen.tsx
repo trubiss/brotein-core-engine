@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, TrendingUp, TrendingDown, Minus, Lock, Check } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Minus, Lock, Check, Camera } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { watchAllSummaries, computeStreak } from '@/lib/firestore';
-import { DailySummary } from '@/lib/types';
-import { computeAnalytics, computeAchievements } from '@/lib/analytics';
+import { watchAllSummaries, watchAllLogs, computeStreak } from '@/lib/firestore';
+import { DailySummary, FoodLog } from '@/lib/types';
+import { computeAnalytics, computeAchievements, computeAiAccuracy } from '@/lib/analytics';
 
 interface Props { onBack: () => void; }
 
@@ -19,14 +19,18 @@ const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 export default function InsightsScreen({ onBack }: Props) {
   const { user, profile } = useAuth();
   const [summaries, setSummaries] = useState<DailySummary[]>([]);
+  const [logs, setLogs] = useState<FoodLog[]>([]);
 
   useEffect(() => {
     if (!user) return;
-    return watchAllSummaries(user.uid, setSummaries);
+    const u1 = watchAllSummaries(user.uid, setSummaries);
+    const u2 = watchAllLogs(user.uid, setLogs);
+    return () => { u1(); u2(); };
   }, [user]);
 
   const target = profile?.dailyProtein ?? 0;
   const analytics = useMemo(() => computeAnalytics(summaries, target), [summaries, target]);
+  const aiAccuracy = useMemo(() => computeAiAccuracy(logs), [logs]);
   const currentStreak = useMemo(() => computeStreak(summaries), [summaries]);
   const achievements = useMemo(() => computeAchievements({
     currentStreak,
@@ -134,6 +138,55 @@ export default function InsightsScreen({ onBack }: Props) {
               ? 'LOG YOUR FIRST DAY TO SEE TRENDS'
               : `${analytics.totalHitDays}/${analytics.totalTrackedDays} TRACKED DAYS HIT TARGET`}
           </p>
+        </div>
+      </motion.div>
+
+      {/* AI ACCURACY (last 7 days) */}
+      <motion.div variants={fadeUp} className="mb-8">
+        <div className="flex items-center gap-2 mb-2">
+          <Camera size={12} strokeWidth={2.5} />
+          <p className="label-spaced !mb-0">AI ACCURACY · 7D</p>
+        </div>
+        <div className="border-2 border-foreground p-4">
+          {aiAccuracy.totalScans === 0 ? (
+            <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground text-center py-3">
+              NO AI SCANS THIS WEEK — TRY THE CAMERA IN QUICK LOG
+            </p>
+          ) : (
+            <>
+              <div className="flex items-baseline justify-between mb-3 gap-2 min-w-0">
+                <p className="font-display text-5xl font-black leading-none">
+                  {aiAccuracy.acceptanceRate}<span className="text-xl">%</span>
+                </p>
+                <div className="text-right shrink-0">
+                  <p className="text-[10px] font-bold tracking-[0.2em] uppercase">ACCEPTED</p>
+                  <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                    {aiAccuracy.acceptedScans}/{aiAccuracy.totalScans} SCANS
+                  </p>
+                </div>
+              </div>
+              <div className="progress-bar-track">
+                <div
+                  className="progress-bar-fill"
+                  style={{ width: `${aiAccuracy.acceptanceRate}%`, transition: 'width 0.6s ease-out' }}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-border">
+                <div className="min-w-0">
+                  <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">AVG GRAM ERROR</p>
+                  <p className="font-display text-2xl font-black leading-none">
+                    ±{aiAccuracy.avgGramError}<span className="text-sm">G</span>
+                  </p>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">AVG % OFF</p>
+                  <p className="font-display text-2xl font-black leading-none">
+                    ±{aiAccuracy.avgGramErrorPct}<span className="text-sm">%</span>
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </motion.div>
 
