@@ -100,7 +100,7 @@ export default function Dashboard({ onNavigate }: Props) {
 
   const log = async (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
     try {
-      await addLog(user.uid, { foodName, proteinGrams, mealType }, viewDate);
+      await addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate });
       toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Failed to log');
