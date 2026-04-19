@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import { watchAllLogs, deleteLog, updateLog } from '@/lib/firestore';
 import { FoodLog, MealType } from '@/lib/types';
-import { ArrowLeft, Pencil, Trash2, Search } from 'lucide-react';
+import { ArrowLeft, Search } from 'lucide-react';
 import QuickLogModal from './QuickLogModal';
+import SwipeableLogRow from './SwipeableLogRow';
 import { toast } from 'sonner';
 
 interface Props { onBack: () => void; }
@@ -68,8 +69,7 @@ export default function HistoryScreen({ onBack }: Props) {
   const dates = Object.keys(grouped).sort().reverse();
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this log?')) return;
-    try { await deleteLog(user.uid, id); toast.success('Deleted'); }
+    try { await deleteLog(user.uid, id); toast.success('DELETED'); }
     catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Delete failed'); }
   };
 
@@ -143,8 +143,11 @@ export default function HistoryScreen({ onBack }: Props) {
       )}
 
       {/* Logs */}
-      <motion.div variants={fadeUp} className="mb-4">
+      <motion.div variants={fadeUp} className="mb-2">
         <p className="label-spaced">LOG ENTRIES</p>
+        <p className="text-[9px] text-muted-foreground tracking-[0.25em] uppercase">
+          TAP TO EDIT · SWIPE LEFT TO DELETE
+        </p>
       </motion.div>
 
       {dates.length === 0 ? (
@@ -168,20 +171,22 @@ export default function HistoryScreen({ onBack }: Props) {
               </div>
               <div className="border-t-2 border-foreground">
                 {dayLogs.map(log => (
-                  <div key={log.id} className="flex items-center justify-between gap-3 py-4 border-b border-border min-w-0">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm uppercase tracking-[0.12em] truncate">{log.foodName}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1 tracking-wider">
-                        {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        {log.mealType ? ` · ${log.mealType.toUpperCase()}` : ''}
-                      </p>
+                  <SwipeableLogRow
+                    key={log.id}
+                    onTap={() => setEditing(log)}
+                    onDelete={() => handleDelete(log.id)}
+                  >
+                    <div className="flex items-center justify-between gap-3 py-4 px-1 min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm uppercase tracking-[0.12em] truncate">{log.foodName}</p>
+                        <p className="text-[10px] text-muted-foreground mt-1 tracking-wider">
+                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {log.mealType ? ` · ${log.mealType.toUpperCase()}` : ''}
+                        </p>
+                      </div>
+                      <span className="font-display text-sm font-bold whitespace-nowrap">{log.proteinGrams}G</span>
                     </div>
-                    <span className="font-display text-sm font-bold whitespace-nowrap">{log.proteinGrams}G</span>
-                    <div className="flex gap-1 shrink-0">
-                      <button onClick={() => setEditing(log)} className="p-2 border-2 border-foreground active:scale-95" aria-label="Edit"><Pencil size={14} /></button>
-                      <button onClick={() => handleDelete(log.id)} className="p-2 border-2 border-foreground active:scale-95" aria-label="Delete"><Trash2 size={14} /></button>
-                    </div>
-                  </div>
+                  </SwipeableLogRow>
                 ))}
               </div>
             </motion.div>

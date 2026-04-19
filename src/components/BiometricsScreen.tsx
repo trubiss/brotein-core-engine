@@ -3,9 +3,10 @@ interface Props {
   onUpdate: (d: Partial<Props['data']>) => void;
   onNext: () => void;
   onBack: () => void;
+  onManualOverride?: () => void;
 }
 
-export default function BiometricsScreen({ data, onUpdate, onNext, onBack }: Props) {
+export default function BiometricsScreen({ data, onUpdate, onNext, onBack, onManualOverride }: Props) {
   const canProceed = data.weight > 0 && data.height > 0 && data.age > 0;
 
   return (
@@ -48,16 +49,26 @@ export default function BiometricsScreen({ data, onUpdate, onNext, onBack }: Pro
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <button className="btn-outline flex-1" onClick={onBack}>BACK</button>
-        <button
-          className="btn-primary flex-1"
-          disabled={!canProceed}
-          onClick={onNext}
-          style={{ opacity: canProceed ? 1 : 0.3 }}
-        >
-          NEXT
-        </button>
+      <div className="flex flex-col gap-4">
+        <div className="flex gap-4">
+          <button className="btn-outline flex-1" onClick={onBack}>BACK</button>
+          <button
+            className="btn-primary flex-1"
+            disabled={!canProceed}
+            onClick={onNext}
+            style={{ opacity: canProceed ? 1 : 0.3 }}
+          >
+            NEXT
+          </button>
+        </div>
+        {onManualOverride && (
+          <button
+            onClick={onManualOverride}
+            className="text-[10px] tracking-[0.25em] uppercase font-bold underline underline-offset-4 text-muted-foreground hover:text-foreground active:opacity-60 py-2"
+          >
+            ALREADY KNOW YOUR TARGET? ENTER MANUALLY
+          </button>
+        )}
       </div>
     </div>
   );

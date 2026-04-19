@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
-import { addLog, watchLogsForDate, watchSummary, watchAllSummaries, computeStreak } from '@/lib/firestore';
+import { addLog, watchLogsForDate, watchSummary, watchAllSummaries, computeStreak, updateLog, deleteLog } from '@/lib/firestore';
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 import { getSuggestions } from '@/lib/suggestions';
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 import QuickLogModal from './QuickLogModal';
 import ProteinPace from './ProteinPace';
 import FoodScanModal from './FoodScanModal';
-import { User, Plus, BarChart3, Camera } from 'lucide-react';
+import SwipeableLogRow from './SwipeableLogRow';
+import { User, Plus, BarChart3, Camera, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -24,28 +25,53 @@ const fadeUp = {
 export default function Dashboard({ onNavigate }: Props) {
   const { user, profile } = useAuth();
   const [today, setToday] = useState(todayKey());
+  const [viewDate, setViewDate] = useState(todayKey());
   const [logs, setLogs] = useState<FoodLog[]>([]);
   const [summary, setSummary] = useState<DailySummary | null>(null);
   const [streak, setStreak] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [showScan, setShowScan] = useState(false);
+  const [editing, setEditing] = useState<FoodLog | null>(null);
+
+  const isToday = viewDate === today;
 
   // Roll over at midnight
   useEffect(() => {
     const id = setInterval(() => {
       const k = todayKey();
-      if (k !== today) setToday(k);
+      if (k !== today) {
+        setViewDate(prev => (prev === today ? k : prev));
+        setToday(k);
+      }
     }, 30_000);
     return () => clearInterval(id);
   }, [today]);
 
   useEffect(() => {
     if (!user) return;
-    const u1 = watchLogsForDate(user.uid, today, setLogs);
-    const u2 = watchSummary(user.uid, today, setSummary);
+    const u1 = watchLogsForDate(user.uid, viewDate, setLogs);
+    const u2 = watchSummary(user.uid, viewDate, setSummary);
     const u3 = watchAllSummaries(user.uid, all => setStreak(computeStreak(all)));
     return () => { u1(); u2(); u3(); };
-  }, [user, today]);
+  }, [user, viewDate]);
+
+  const shiftDate = (days: number) => {
+    const [y, m, d] = viewDate.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    dt.setDate(dt.getDate() + days);
+    const next = todayKey(dt);
+    if (next > today) return; // do not allow future
+    setViewDate(next);
+  };
+
+  const dateLabel = (() => {
+    if (isToday) return 'TODAY';
+    const [y, m, d] = viewDate.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    const yest = new Date(); yest.setDate(yest.getDate() - 1);
+    if (todayKey(dt) === todayKey(yest)) return 'YESTERDAY';
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+  })();
 
   // In-app reminder evaluator: checks every minute and surfaces toasts.
   // Push notifications can replace `toast` later without touching the logic.
@@ -74,11 +100,16 @@ export default function Dashboard({ onNavigate }: Props) {
 
   const log = async (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
     try {
-      await addLog(user.uid, { foodName, proteinGrams, mealType });
-      toast.success(`+${proteinGrams}G LOGGED`);
+      await addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate });
+      toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Failed to log');
     }
+  };
+
+  const handleDelete = async (id: string) => {
+    try { await deleteLog(user.uid, id); toast.success('DELETED'); }
+    catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Delete failed'); }
   };
 
   return (
@@ -95,11 +126,35 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
       </motion.div>
 
+      {/* Date navigator */}
+      <motion.div variants={fadeUp} className="flex items-center justify-between mb-8 border-2 border-foreground">
+        <button
+          onClick={() => shiftDate(-1)}
+          className="p-3 active:scale-95 transition-transform border-r-2 border-foreground"
+          aria-label="Previous day"
+        >
+          <ChevronLeft size={18} strokeWidth={2.5} />
+        </button>
+        <div className="flex-1 text-center px-2 min-w-0">
+          <p className="font-display text-sm font-bold tracking-[0.25em] uppercase truncate">{dateLabel}</p>
+        </div>
+        <button
+          onClick={() => shiftDate(1)}
+          disabled={isToday}
+          className="p-3 active:scale-95 transition-transform border-l-2 border-foreground disabled:opacity-25"
+          aria-label="Next day"
+        >
+          <ChevronRight size={18} strokeWidth={2.5} />
+        </button>
+      </motion.div>
+
       <motion.div variants={fadeUp} className="mb-4 min-w-0">
         <p className="label-spaced">FUEL STATUS</p>
         <p className="text-7xl font-black font-display tracking-tighter leading-none mt-2">{remaining}g</p>
-        <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-[0.25em]">REMAINING TODAY</p>
-        {logs.length === 0 && (
+        <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-[0.25em]">
+          REMAINING {isToday ? 'TODAY' : `· ${dateLabel}`}
+        </p>
+        {logs.length === 0 && isToday && (
           <div className="mt-4 border-2 border-foreground p-3">
             <p className="text-[10px] tracking-[0.2em] uppercase font-bold">NO LOGS YET TODAY</p>
             <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mt-1">ADD YOUR FIRST MEAL TO GET STARTED</p>
@@ -190,8 +245,8 @@ export default function Dashboard({ onNavigate }: Props) {
       <div className="section-divider" />
 
       <motion.div variants={fadeUp} className="mb-4">
-        <div className="flex justify-between items-center mb-6 gap-2 min-w-0">
-          <p className="label-spaced mb-0 truncate">TODAY TIMELINE</p>
+        <div className="flex justify-between items-center mb-2 gap-2 min-w-0">
+          <p className="label-spaced mb-0 truncate">{isToday ? 'TODAY' : dateLabel} TIMELINE</p>
           <button
             className="text-[10px] font-display tracking-[0.2em] font-bold uppercase border-b-2 border-foreground pb-0.5 active:opacity-60 shrink-0"
             onClick={() => onNavigate('history')}
@@ -199,11 +254,18 @@ export default function Dashboard({ onNavigate }: Props) {
             VIEW ALL
           </button>
         </div>
+        <p className="text-[9px] text-muted-foreground tracking-[0.25em] uppercase mb-4">
+          TAP TO EDIT · SWIPE LEFT TO DELETE
+        </p>
         {logs.length === 0 ? (
           <div className="border-t-2 border-foreground py-10 text-center">
-            <p className="text-sm uppercase tracking-[0.15em] mb-2">NO PROTEIN LOGGED TODAY</p>
-            <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mb-6">ADD YOUR FIRST INTAKE</p>
-            <button className="btn-outline" onClick={() => setShowModal(true)}>+ ADD FIRST LOG</button>
+            <p className="text-sm uppercase tracking-[0.15em] mb-2">
+              {isToday ? 'NO PROTEIN LOGGED TODAY' : `NO LOGS ON ${dateLabel}`}
+            </p>
+            <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mb-6">
+              {isToday ? 'ADD YOUR FIRST INTAKE' : 'BACKFILL THIS DAY'}
+            </p>
+            <button className="btn-outline" onClick={() => setShowModal(true)}>+ ADD LOG</button>
           </div>
         ) : (
           <div className="border-t-2 border-foreground">
@@ -213,18 +275,21 @@ export default function Dashboard({ onNavigate }: Props) {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.04, duration: 0.25 }}
-                className="flex items-start gap-3 py-4 border-b border-border min-w-0"
               >
-                <span className="font-display text-[11px] font-bold whitespace-nowrap pt-0.5 w-12 shrink-0">
-                  {new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm uppercase tracking-[0.12em] truncate">{l.foodName}</p>
-                  {l.mealType && (
-                    <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-0.5">{l.mealType}</p>
-                  )}
-                </div>
-                <span className="font-display text-sm font-bold whitespace-nowrap shrink-0">{l.proteinGrams}G</span>
+                <SwipeableLogRow onTap={() => setEditing(l)} onDelete={() => handleDelete(l.id)}>
+                  <div className="flex items-start gap-3 py-4 px-1 min-w-0">
+                    <span className="font-display text-[11px] font-bold whitespace-nowrap pt-0.5 w-12 shrink-0">
+                      {new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm uppercase tracking-[0.12em] truncate">{l.foodName}</p>
+                      {l.mealType && (
+                        <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-0.5">{l.mealType}</p>
+                      )}
+                    </div>
+                    <span className="font-display text-sm font-bold whitespace-nowrap shrink-0">{l.proteinGrams}G</span>
+                  </div>
+                </SwipeableLogRow>
               </motion.div>
             ))}
           </div>
@@ -259,6 +324,7 @@ export default function Dashboard({ onNavigate }: Props) {
                 foodName,
                 proteinGrams,
                 mealType,
+                date: viewDate,
                 source: 'ai-scan',
                 aiDetectedName: ai.foodName,
                 aiEstimatedGrams: ai.proteinGrams,
@@ -271,6 +337,23 @@ export default function Dashboard({ onNavigate }: Props) {
               toast.error(e instanceof Error ? e.message : 'Failed to log');
             }
           }}
+        />
+      )}
+
+      {editing && (
+        <QuickLogModal
+          title="EDIT LOG"
+          submitLabel="SAVE"
+          initial={{ foodName: editing.foodName, proteinGrams: editing.proteinGrams, mealType: editing.mealType }}
+          onSubmit={async ({ foodName, proteinGrams, mealType }) => {
+            try {
+              await updateLog(user.uid, editing.id, { foodName, proteinGrams, mealType });
+              toast.success('UPDATED');
+            } catch (e: unknown) {
+              toast.error(e instanceof Error ? e.message : 'Update failed');
+            }
+          }}
+          onClose={() => setEditing(null)}
         />
       )}
     </motion.div>
