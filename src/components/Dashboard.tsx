@@ -126,11 +126,35 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
       </motion.div>
 
+      {/* Date navigator */}
+      <motion.div variants={fadeUp} className="flex items-center justify-between mb-8 border-2 border-foreground">
+        <button
+          onClick={() => shiftDate(-1)}
+          className="p-3 active:scale-95 transition-transform border-r-2 border-foreground"
+          aria-label="Previous day"
+        >
+          <ChevronLeft size={18} strokeWidth={2.5} />
+        </button>
+        <div className="flex-1 text-center px-2 min-w-0">
+          <p className="font-display text-sm font-bold tracking-[0.25em] uppercase truncate">{dateLabel}</p>
+        </div>
+        <button
+          onClick={() => shiftDate(1)}
+          disabled={isToday}
+          className="p-3 active:scale-95 transition-transform border-l-2 border-foreground disabled:opacity-25"
+          aria-label="Next day"
+        >
+          <ChevronRight size={18} strokeWidth={2.5} />
+        </button>
+      </motion.div>
+
       <motion.div variants={fadeUp} className="mb-4 min-w-0">
         <p className="label-spaced">FUEL STATUS</p>
         <p className="text-7xl font-black font-display tracking-tighter leading-none mt-2">{remaining}g</p>
-        <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-[0.25em]">REMAINING TODAY</p>
-        {logs.length === 0 && (
+        <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-[0.25em]">
+          REMAINING {isToday ? 'TODAY' : `· ${dateLabel}`}
+        </p>
+        {logs.length === 0 && isToday && (
           <div className="mt-4 border-2 border-foreground p-3">
             <p className="text-[10px] tracking-[0.2em] uppercase font-bold">NO LOGS YET TODAY</p>
             <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mt-1">ADD YOUR FIRST MEAL TO GET STARTED</p>
