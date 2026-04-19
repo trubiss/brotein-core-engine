@@ -27,6 +27,22 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
     setStep((s) => s + 1);
   };
 
+  const prev = () => {
+    if (step === 0) return;
+    setDirection(-1);
+    setStep((s) => s - 1);
+  };
+
+  const SWIPE_THRESHOLD = 50;
+  const handleDragEnd = (
+    _: unknown,
+    info: { offset: { x: number }; velocity: { x: number } }
+  ) => {
+    const { offset, velocity } = info;
+    if (offset.x < -SWIPE_THRESHOLD || velocity.x < -500) next();
+    else if (offset.x > SWIPE_THRESHOLD || velocity.x > 500) prev();
+  };
+
   const headline = 'font-mono font-black text-5xl md:text-6xl uppercase tracking-tighter leading-[0.9] text-foreground';
   const subtext = 'font-sans text-xs uppercase tracking-widest text-muted-foreground leading-relaxed';
 
@@ -118,7 +134,11 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
             animate="center"
             exit="exit"
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="absolute inset-0 flex flex-col"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+            className="absolute inset-0 flex flex-col touch-pan-y cursor-grab active:cursor-grabbing"
           >
             {current.content}
           </motion.div>
