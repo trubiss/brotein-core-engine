@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import quickAddVideo from '/onboarding-quickadd.mp4.asset.json';
+import quickAddVideo from '../../public/onboarding-quickadd.mp4.asset.json';
 
 interface WelcomeCarouselProps {
   onComplete: () => void;
