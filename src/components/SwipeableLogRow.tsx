@@ -1,5 +1,5 @@
 import { useRef, useState, ReactNode } from 'react';
-import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { motion, useMotionValue, PanInfo } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 
 interface Props {
@@ -8,14 +8,13 @@ interface Props {
   children: ReactNode;
 }
 
-const REVEAL = 88; // px width of delete action
-const THRESHOLD = -56;
+const REVEAL = 80; // px width of delete action
+const THRESHOLD = -50;
 
 export default function SwipeableLogRow({ onTap, onDelete, children }: Props) {
   const x = useMotionValue(0);
   const [open, setOpen] = useState(false);
   const dragged = useRef(false);
-  const bgOpacity = useTransform(x, [-REVEAL, 0], [1, 0.4]);
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     setTimeout(() => { dragged.current = false; }, 50);
@@ -43,16 +42,16 @@ export default function SwipeableLogRow({ onTap, onDelete, children }: Props) {
   };
 
   return (
-    <div className="relative overflow-hidden border-b border-border">
-      {/* Delete action behind */}
-      <motion.button
+    <div className="relative overflow-hidden border-b-2 border-foreground">
+      {/* Delete action behind — solid black, white icon, brutalist */}
+      <button
         onClick={onDelete}
-        style={{ opacity: bgOpacity }}
-        className="absolute inset-y-0 right-0 w-[88px] bg-foreground text-background flex items-center justify-center active:opacity-80"
+        className="absolute inset-y-0 right-0 w-[80px] bg-foreground text-background flex items-center justify-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-widest active:bg-foreground/90"
         aria-label="Delete"
       >
-        <Trash2 size={16} strokeWidth={2.5} />
-      </motion.button>
+        <Trash2 size={14} strokeWidth={2.5} />
+        <span>DEL</span>
+      </button>
 
       <motion.div
         drag="x"
