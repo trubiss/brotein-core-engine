@@ -14,6 +14,60 @@ const slideVariants = {
 
 const TOTAL = 4;
 
+// Bloated spreadsheet visual for Screen 1
+function BloatedSpreadsheet() {
+  const cols = ['KCAL', 'CARB', 'FAT', 'PRO', 'FIB', 'ZN', 'B12', 'MG'];
+  const rows = 7;
+  return (
+    <div className="relative w-[280px] h-[260px]">
+      {/* Title bar */}
+      <div className="absolute -top-5 left-0 right-0 text-center font-mono text-[8px] uppercase tracking-widest text-muted-foreground">
+        MYFITNESSPAL / SPREADSHEET (BLOATED)
+      </div>
+      {/* Grid */}
+      <div className="w-full h-full border border-muted-foreground/40 grid grid-rows-[16px_repeat(7,1fr)] opacity-60">
+        {/* Header row */}
+        <div className="grid grid-cols-8 border-b border-muted-foreground/40">
+          {cols.map((c) => (
+            <div
+              key={c}
+              className="border-r border-muted-foreground/40 last:border-r-0 flex items-center justify-center font-mono text-[7px] uppercase text-muted-foreground"
+            >
+              {c}
+            </div>
+          ))}
+        </div>
+        {/* Data rows */}
+        {Array.from({ length: rows }).map((_, r) => (
+          <div key={r} className="grid grid-cols-8 border-b border-muted-foreground/30 last:border-b-0">
+            {cols.map((c, ci) => (
+              <div
+                key={ci}
+                className="border-r border-muted-foreground/30 last:border-r-0 flex items-center justify-center font-mono text-[7px] text-muted-foreground/70"
+              >
+                {((r * 13 + ci * 7) % 99) + 1}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      {/* Subtle massive X overlay */}
+      <svg
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        className="absolute inset-0 w-full h-full text-foreground opacity-90 pointer-events-none"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="square"
+      >
+        <line x1="4" y1="4" x2="96" y2="96" />
+        <line x1="96" y1="4" x2="4" y2="96" />
+      </svg>
+    </div>
+  );
+}
+
 export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -50,112 +104,71 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
   };
 
   const headline =
-    'font-mono font-black text-5xl md:text-6xl uppercase tracking-tighter leading-[0.9] text-foreground';
+    'font-mono font-black text-5xl md:text-6xl uppercase tracking-tighter leading-[0.9] text-foreground text-center';
   const subtext =
-    'font-sans text-xs uppercase tracking-widest text-muted-foreground leading-relaxed';
+    'font-sans text-xs uppercase tracking-widest text-muted-foreground leading-relaxed text-center max-w-xs';
 
-  const screens = [
+  type Screen = { headline: React.ReactNode; sub: string; visual: React.ReactNode; cta: string };
+
+  const screens: Screen[] = [
     {
-      content: (
-        <div className="flex-1 flex flex-col px-8 pt-20">
-          <h1 className={headline}>TRACKING<br />SUCKS.</h1>
-          <p className={`${subtext} mt-6 max-w-xs`}>
-            DIET APPS ARE BLOATED. YOU DON'T NEED A SPREADSHEET TO BUILD MUSCLE. YOU JUST NEED TO HIT YOUR TARGET.
-          </p>
-          <div className="flex-1 flex items-center justify-center">
-            <div className="relative w-56 h-56">
-              {/* Faint blurred pie chart */}
-              <div
-                className="absolute inset-0 rounded-full opacity-20 blur-md"
-                style={{
-                  background:
-                    'conic-gradient(hsl(var(--foreground)) 0deg 110deg, hsl(var(--muted-foreground)) 110deg 200deg, hsl(var(--foreground)) 200deg 270deg, hsl(var(--muted-foreground)) 270deg 360deg)',
-                }}
-              />
-              {/* Massive sharp X */}
-              <svg
-                viewBox="0 0 100 100"
-                className="absolute inset-0 w-full h-full text-foreground"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="10"
-                strokeLinecap="square"
-              >
-                <line x1="10" y1="10" x2="90" y2="90" />
-                <line x1="90" y1="10" x2="10" y2="90" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      ),
+      headline: <>TRACKING<br />SUCKS.</>,
+      sub: "DIET APPS ARE BLOATED. YOU DON'T NEED A SPREADSHEET TO BUILD MUSCLE. YOU JUST NEED TO HIT YOUR TARGET.",
+      visual: <BloatedSpreadsheet />,
       cta: 'NEXT',
     },
     {
-      content: (
-        <div className="flex-1 flex flex-col px-8 pt-20">
-          <h1 className={headline}>ONE<br />METRIC.</h1>
-          <p className={`${subtext} mt-6 max-w-xs`}>
-            CUT THE NOISE. STOP TRACKING MACROS YOU DON'T CARE ABOUT. FOCUS EXCLUSIVELY ON THE ONLY MACRONUTRIENT THAT DRIVES GROWTH.
-          </p>
-          <div className="flex-1 flex flex-col items-center justify-center gap-4">
-            <div className="flex flex-col items-center gap-1">
-              <span className="relative font-mono font-bold text-3xl uppercase tracking-tighter text-muted-foreground">
-                CARBS
-                <span className="absolute left-[-8%] right-[-8%] top-1/2 h-[3px] bg-foreground" />
-              </span>
-              <span className="relative font-mono font-bold text-3xl uppercase tracking-tighter text-muted-foreground">
-                FATS
-                <span className="absolute left-[-8%] right-[-8%] top-1/2 h-[3px] bg-foreground" />
-              </span>
-            </div>
-            <span className="font-mono font-black text-7xl md:text-8xl uppercase tracking-tighter leading-none text-foreground">
-              PROTEIN
+      headline: <>ONE<br />METRIC.</>,
+      sub: "CUT THE NOISE. STOP TRACKING MACROS YOU DON'T CARE ABOUT. FOCUS EXCLUSIVELY ON THE ONLY MACRONUTRIENT THAT DRIVES GROWTH.",
+      visual: (
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-1">
+            <span className="relative font-mono font-bold text-3xl uppercase tracking-tighter text-muted-foreground">
+              CARBS
+              <span className="absolute left-[-8%] right-[-8%] top-1/2 h-[3px] bg-foreground" />
+            </span>
+            <span className="relative font-mono font-bold text-3xl uppercase tracking-tighter text-muted-foreground">
+              FATS
+              <span className="absolute left-[-8%] right-[-8%] top-1/2 h-[3px] bg-foreground" />
             </span>
           </div>
+          <span className="font-mono font-black text-7xl md:text-8xl uppercase tracking-tighter leading-none text-foreground">
+            PROTEIN
+          </span>
         </div>
       ),
       cta: 'NEXT',
     },
     {
-      content: (
-        <div className="flex-1 flex flex-col px-8 pt-20">
-          <h1 className={headline}>ZERO<br />FRICTION.</h1>
-          <p className={`${subtext} mt-6 max-w-xs`}>
-            SNAP A PHOTO AND LET AI EXTRACT THE PROTEIN. OR USE 1-TAP QUICK-ADD FOR YOUR DAILY STAPLES. LOG IN SECONDS, NOT MINUTES.
-          </p>
-          <div className="flex-1 flex items-center justify-center">
-            <div className="flex flex-col gap-3 w-48">
-              {['+30G', '+40G', '+50G'].map((label) => (
-                <div
-                  key={label}
-                  className="border-2 border-foreground bg-background py-4 text-center font-mono font-bold text-2xl tracking-tighter text-foreground"
-                >
-                  {label}
-                </div>
-              ))}
+      headline: <>ZERO<br />FRICTION.</>,
+      sub: 'SNAP A PHOTO AND LET AI EXTRACT THE PROTEIN. OR USE 1-TAP QUICK-ADD FOR YOUR DAILY STAPLES. LOG IN SECONDS, NOT MINUTES.',
+      visual: (
+        <div className="flex flex-col gap-3 w-48">
+          {['+30G', '+40G', '+50G'].map((label) => (
+            <div
+              key={label}
+              className="border-2 border-foreground bg-background py-4 text-center font-mono font-bold text-2xl tracking-tighter text-foreground"
+            >
+              {label}
             </div>
-          </div>
+          ))}
         </div>
       ),
       cta: 'NEXT',
     },
     {
-      content: (
-        <div className="flex-1 flex flex-col px-8 pt-20">
-          <h1 className={headline}>FORGE<br />DISCIPLINE.</h1>
-          <p className={`${subtext} mt-6 max-w-xs`}>
-            CONSISTENCY IS THE ONLY HACK. HIT YOUR TARGET DAILY, BUILD YOUR STREAK, AND UNLOCK YOUR PHYSICAL TRAJECTORY.
-          </p>
-          <div className="flex-1 flex flex-col items-center justify-center gap-5">
-            <div className="flex gap-2">
-              {Array.from({ length: 7 }).map((_, i) => (
-                <div key={i} className="w-9 h-9 border-2 border-foreground bg-background" />
-              ))}
-            </div>
-            <span className="font-mono font-bold text-sm uppercase tracking-widest text-foreground">
-              STREAK ACTIVE
-            </span>
+      headline: <>FORGE<br />DISCIPLINE.</>,
+      sub: 'CONSISTENCY IS THE ONLY HACK. HIT YOUR TARGET DAILY, BUILD YOUR STREAK, AND UNLOCK YOUR PHYSICAL TRAJECTORY.',
+      visual: (
+        <div className="flex flex-col items-center gap-5">
+          <div className="flex gap-2">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div key={i} className="w-9 h-9 border-2 border-foreground bg-background" />
+            ))}
           </div>
+          <span className="font-mono font-bold text-sm uppercase tracking-widest text-foreground">
+            STREAK ACTIVE
+          </span>
         </div>
       ),
       cta: "LET'S GO",
@@ -200,14 +213,26 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
-            className="absolute inset-0 flex flex-col touch-pan-y cursor-grab active:cursor-grabbing"
+            className="absolute inset-0 flex flex-col items-center justify-between px-8 py-20 touch-pan-y cursor-grab active:cursor-grabbing"
           >
-            {current.content}
+            {/* Top: Headline + subtext, centered */}
+            <div className="flex flex-col items-center gap-6 w-full">
+              <h1 className={headline}>{current.headline}</h1>
+              <p className={subtext}>{current.sub}</p>
+            </div>
+
+            {/* Middle: Central visual, perfectly centered */}
+            <div className="flex-1 w-full flex items-center justify-center">
+              {current.visual}
+            </div>
+
+            {/* Spacer to balance — bottom controls live outside motion div */}
+            <div className="h-2" />
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Pagination — sharp tappable squares */}
+      {/* Pagination — sharp tappable squares, centered */}
       <div className="flex justify-center gap-2 pb-6">
         {Array.from({ length: TOTAL }).map((_, i) => (
           <button
@@ -221,10 +246,10 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
         ))}
       </div>
 
-      {/* CTA — solid black block, no brackets */}
+      {/* CTA — solid black block, full width, centered text */}
       <button
         onClick={next}
-        className="w-full bg-foreground text-background py-5 font-mono font-bold uppercase tracking-widest text-sm hover:opacity-90 transition-opacity"
+        className="w-full bg-foreground text-background py-5 font-mono font-bold uppercase tracking-widest text-sm text-center hover:opacity-90 transition-opacity"
       >
         {current.cta}
       </button>
