@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
+import quickAddVideo from '/onboarding-quickadd.mp4.asset.json';
 
 interface WelcomeCarouselProps {
   onComplete: () => void;
@@ -143,15 +144,16 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
       headline: <>ZERO<br />FRICTION.</>,
       sub: 'SNAP A PHOTO AND LET AI EXTRACT THE PROTEIN. OR USE 1-TAP QUICK-ADD FOR YOUR DAILY STAPLES. LOG IN SECONDS, NOT MINUTES.',
       visual: (
-        <div className="flex flex-col gap-3 w-48">
-          {['+30G', '+40G', '+50G'].map((label) => (
-            <div
-              key={label}
-              className="border-2 border-foreground bg-background py-4 text-center font-mono font-bold text-2xl tracking-tighter text-foreground"
-            >
-              {label}
-            </div>
-          ))}
+        <div className="border-2 border-foreground bg-background w-[240px] aspect-[3/4] overflow-hidden">
+          <video
+            src={quickAddVideo.url}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className="w-full h-full object-cover"
+          />
         </div>
       ),
       cta: 'NEXT',
