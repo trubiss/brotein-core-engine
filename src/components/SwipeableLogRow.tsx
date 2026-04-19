@@ -8,8 +8,8 @@ interface Props {
   children: ReactNode;
 }
 
-const REVEAL = 80; // px width of delete action
-const THRESHOLD = -50;
+const REVEAL = 56; // px — slim, icon-only
+const THRESHOLD = -36;
 
 export default function SwipeableLogRow({ onTap, onDelete, children }: Props) {
   const x = useMotionValue(0);
@@ -42,15 +42,14 @@ export default function SwipeableLogRow({ onTap, onDelete, children }: Props) {
   };
 
   return (
-    <div className="relative overflow-hidden border-b-2 border-foreground">
-      {/* Delete action behind — solid black, white icon, brutalist */}
+    <div className="relative overflow-hidden border-b border-border">
+      {/* Slim icon-only delete reveal */}
       <button
         onClick={onDelete}
-        className="absolute inset-y-0 right-0 w-[80px] bg-foreground text-background flex items-center justify-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-widest active:bg-foreground/90"
+        className="absolute inset-y-0 right-0 w-[56px] bg-foreground text-background flex items-center justify-center active:bg-foreground/90"
         aria-label="Delete"
       >
-        <Trash2 size={14} strokeWidth={2.5} />
-        <span>DEL</span>
+        <Trash2 size={15} strokeWidth={2.5} />
       </button>
 
       <motion.div
