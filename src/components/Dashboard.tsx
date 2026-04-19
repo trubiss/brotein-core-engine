@@ -100,11 +100,16 @@ export default function Dashboard({ onNavigate }: Props) {
 
   const log = async (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
     try {
-      await addLog(user.uid, { foodName, proteinGrams, mealType });
-      toast.success(`+${proteinGrams}G LOGGED`);
+      await addLog(user.uid, { foodName, proteinGrams, mealType }, viewDate);
+      toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Failed to log');
     }
+  };
+
+  const handleDelete = async (id: string) => {
+    try { await deleteLog(user.uid, id); toast.success('DELETED'); }
+    catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Delete failed'); }
   };
 
   return (
