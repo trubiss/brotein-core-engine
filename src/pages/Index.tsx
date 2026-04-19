@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import SignInScreen from '@/components/SignInScreen';
 import OnboardingFlow from '@/components/OnboardingFlow';
+import WelcomeCarousel from '@/components/WelcomeCarousel';
 import Dashboard from '@/components/Dashboard';
 import HistoryScreen from '@/components/HistoryScreen';
 import ProfileScreen from '@/components/ProfileScreen';
@@ -19,6 +20,14 @@ const pageVariants = {
 const Index = () => {
   const { user, profile, loading } = useAuth();
   const [page, setPage] = useState<Page>('dashboard');
+  const [welcomeSeen, setWelcomeSeen] = useState<boolean>(() =>
+    typeof window !== 'undefined' && localStorage.getItem('brotein_welcome_seen') === '1'
+  );
+
+  const completeWelcome = () => {
+    localStorage.setItem('brotein_welcome_seen', '1');
+    setWelcomeSeen(true);
+  };
 
   if (loading) {
     return (
@@ -29,6 +38,7 @@ const Index = () => {
     );
   }
 
+  if (!welcomeSeen) return <WelcomeCarousel onComplete={completeWelcome} />;
   if (!user) return <SignInScreen />;
   if (!profile) return <OnboardingFlow />;
 
