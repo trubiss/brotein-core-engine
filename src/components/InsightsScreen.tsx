@@ -141,6 +141,55 @@ export default function InsightsScreen({ onBack }: Props) {
         </div>
       </motion.div>
 
+      {/* AI ACCURACY (last 7 days) */}
+      <motion.div variants={fadeUp} className="mb-8">
+        <div className="flex items-center gap-2 mb-2">
+          <Camera size={12} strokeWidth={2.5} />
+          <p className="label-spaced !mb-0">AI ACCURACY · 7D</p>
+        </div>
+        <div className="border-2 border-foreground p-4">
+          {aiAccuracy.totalScans === 0 ? (
+            <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground text-center py-3">
+              NO AI SCANS THIS WEEK — TRY THE CAMERA IN QUICK LOG
+            </p>
+          ) : (
+            <>
+              <div className="flex items-baseline justify-between mb-3 gap-2 min-w-0">
+                <p className="font-display text-5xl font-black leading-none">
+                  {aiAccuracy.acceptanceRate}<span className="text-xl">%</span>
+                </p>
+                <div className="text-right shrink-0">
+                  <p className="text-[10px] font-bold tracking-[0.2em] uppercase">ACCEPTED</p>
+                  <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                    {aiAccuracy.acceptedScans}/{aiAccuracy.totalScans} SCANS
+                  </p>
+                </div>
+              </div>
+              <div className="progress-bar-track">
+                <div
+                  className="progress-bar-fill"
+                  style={{ width: `${aiAccuracy.acceptanceRate}%`, transition: 'width 0.6s ease-out' }}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-border">
+                <div className="min-w-0">
+                  <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">AVG GRAM ERROR</p>
+                  <p className="font-display text-2xl font-black leading-none">
+                    ±{aiAccuracy.avgGramError}<span className="text-sm">G</span>
+                  </p>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-1">AVG % OFF</p>
+                  <p className="font-display text-2xl font-black leading-none">
+                    ±{aiAccuracy.avgGramErrorPct}<span className="text-sm">%</span>
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </motion.div>
+
       {/* ACHIEVEMENTS */}
       <motion.div variants={fadeUp}>
         <p className="label-spaced">ACHIEVEMENTS</p>
