@@ -25,28 +25,53 @@ const fadeUp = {
 export default function Dashboard({ onNavigate }: Props) {
   const { user, profile } = useAuth();
   const [today, setToday] = useState(todayKey());
+  const [viewDate, setViewDate] = useState(todayKey());
   const [logs, setLogs] = useState<FoodLog[]>([]);
   const [summary, setSummary] = useState<DailySummary | null>(null);
   const [streak, setStreak] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [showScan, setShowScan] = useState(false);
+  const [editing, setEditing] = useState<FoodLog | null>(null);
+
+  const isToday = viewDate === today;
 
   // Roll over at midnight
   useEffect(() => {
     const id = setInterval(() => {
       const k = todayKey();
-      if (k !== today) setToday(k);
+      if (k !== today) {
+        setViewDate(prev => (prev === today ? k : prev));
+        setToday(k);
+      }
     }, 30_000);
     return () => clearInterval(id);
   }, [today]);
 
   useEffect(() => {
     if (!user) return;
-    const u1 = watchLogsForDate(user.uid, today, setLogs);
-    const u2 = watchSummary(user.uid, today, setSummary);
+    const u1 = watchLogsForDate(user.uid, viewDate, setLogs);
+    const u2 = watchSummary(user.uid, viewDate, setSummary);
     const u3 = watchAllSummaries(user.uid, all => setStreak(computeStreak(all)));
     return () => { u1(); u2(); u3(); };
-  }, [user, today]);
+  }, [user, viewDate]);
+
+  const shiftDate = (days: number) => {
+    const [y, m, d] = viewDate.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    dt.setDate(dt.getDate() + days);
+    const next = todayKey(dt);
+    if (next > today) return; // do not allow future
+    setViewDate(next);
+  };
+
+  const dateLabel = (() => {
+    if (isToday) return 'TODAY';
+    const [y, m, d] = viewDate.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    const yest = new Date(); yest.setDate(yest.getDate() - 1);
+    if (todayKey(dt) === todayKey(yest)) return 'YESTERDAY';
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+  })();
 
   // In-app reminder evaluator: checks every minute and surfaces toasts.
   // Push notifications can replace `toast` later without touching the logic.
