@@ -245,8 +245,8 @@ export default function Dashboard({ onNavigate }: Props) {
       <div className="section-divider" />
 
       <motion.div variants={fadeUp} className="mb-4">
-        <div className="flex justify-between items-center mb-6 gap-2 min-w-0">
-          <p className="label-spaced mb-0 truncate">TODAY TIMELINE</p>
+        <div className="flex justify-between items-center mb-2 gap-2 min-w-0">
+          <p className="label-spaced mb-0 truncate">{isToday ? 'TODAY' : dateLabel} TIMELINE</p>
           <button
             className="text-[10px] font-display tracking-[0.2em] font-bold uppercase border-b-2 border-foreground pb-0.5 active:opacity-60 shrink-0"
             onClick={() => onNavigate('history')}
@@ -254,11 +254,18 @@ export default function Dashboard({ onNavigate }: Props) {
             VIEW ALL
           </button>
         </div>
+        <p className="text-[9px] text-muted-foreground tracking-[0.25em] uppercase mb-4">
+          TAP TO EDIT · SWIPE LEFT TO DELETE
+        </p>
         {logs.length === 0 ? (
           <div className="border-t-2 border-foreground py-10 text-center">
-            <p className="text-sm uppercase tracking-[0.15em] mb-2">NO PROTEIN LOGGED TODAY</p>
-            <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mb-6">ADD YOUR FIRST INTAKE</p>
-            <button className="btn-outline" onClick={() => setShowModal(true)}>+ ADD FIRST LOG</button>
+            <p className="text-sm uppercase tracking-[0.15em] mb-2">
+              {isToday ? 'NO PROTEIN LOGGED TODAY' : `NO LOGS ON ${dateLabel}`}
+            </p>
+            <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mb-6">
+              {isToday ? 'ADD YOUR FIRST INTAKE' : 'BACKFILL THIS DAY'}
+            </p>
+            <button className="btn-outline" onClick={() => setShowModal(true)}>+ ADD LOG</button>
           </div>
         ) : (
           <div className="border-t-2 border-foreground">
@@ -268,18 +275,21 @@ export default function Dashboard({ onNavigate }: Props) {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.04, duration: 0.25 }}
-                className="flex items-start gap-3 py-4 border-b border-border min-w-0"
               >
-                <span className="font-display text-[11px] font-bold whitespace-nowrap pt-0.5 w-12 shrink-0">
-                  {new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm uppercase tracking-[0.12em] truncate">{l.foodName}</p>
-                  {l.mealType && (
-                    <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-0.5">{l.mealType}</p>
-                  )}
-                </div>
-                <span className="font-display text-sm font-bold whitespace-nowrap shrink-0">{l.proteinGrams}G</span>
+                <SwipeableLogRow onTap={() => setEditing(l)} onDelete={() => handleDelete(l.id)}>
+                  <div className="flex items-start gap-3 py-4 px-1 min-w-0">
+                    <span className="font-display text-[11px] font-bold whitespace-nowrap pt-0.5 w-12 shrink-0">
+                      {new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm uppercase tracking-[0.12em] truncate">{l.foodName}</p>
+                      {l.mealType && (
+                        <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-0.5">{l.mealType}</p>
+                      )}
+                    </div>
+                    <span className="font-display text-sm font-bold whitespace-nowrap shrink-0">{l.proteinGrams}G</span>
+                  </div>
+                </SwipeableLogRow>
               </motion.div>
             ))}
           </div>
