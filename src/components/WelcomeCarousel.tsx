@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera } from 'lucide-react';
+import { Camera, ArrowLeft } from 'lucide-react';
 
 interface WelcomeCarouselProps {
   onComplete: () => void;
@@ -115,6 +115,17 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+      {/* BACK */}
+      {step > 0 && (
+        <button
+          onClick={prev}
+          aria-label="Back"
+          className="absolute top-6 left-6 z-10 text-foreground hover:opacity-60 transition-opacity"
+        >
+          <ArrowLeft className="w-5 h-5" strokeWidth={2.5} />
+        </button>
+      )}
+
       {/* SKIP */}
       <button
         onClick={onComplete}
