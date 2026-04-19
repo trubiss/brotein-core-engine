@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 interface WelcomeCarouselProps {
   onComplete: () => void;
@@ -17,6 +17,12 @@ const TOTAL = 4;
 export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
+
+  const goTo = (target: number) => {
+    if (target === step) return;
+    setDirection(target > step ? 1 : -1);
+    setStep(target);
+  };
 
   const next = () => {
     if (step === TOTAL - 1) {
@@ -43,31 +49,67 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
     else if (offset.x > SWIPE_THRESHOLD || velocity.x > 500) prev();
   };
 
-  const headline = 'font-mono font-black text-5xl md:text-6xl uppercase tracking-tighter leading-[0.9] text-foreground';
-  const subtext = 'font-sans text-xs uppercase tracking-widest text-muted-foreground leading-relaxed';
+  const headline =
+    'font-mono font-black text-5xl md:text-6xl uppercase tracking-tighter leading-[0.9] text-foreground';
+  const subtext =
+    'font-sans text-xs uppercase tracking-widest text-muted-foreground leading-relaxed';
 
   const screens = [
     {
       content: (
-        <div className="flex-1 flex flex-col justify-center px-8">
+        <div className="flex-1 flex flex-col px-8 pt-20">
           <h1 className={headline}>TRACKING<br />SUCKS.</h1>
-          <p className={`${subtext} mt-8 max-w-xs`}>
+          <p className={`${subtext} mt-6 max-w-xs`}>
             DIET APPS ARE BLOATED. YOU DON'T NEED A SPREADSHEET TO BUILD MUSCLE. YOU JUST NEED TO HIT YOUR TARGET.
           </p>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="relative w-56 h-56">
+              {/* Faint blurred pie chart */}
+              <div
+                className="absolute inset-0 rounded-full opacity-20 blur-md"
+                style={{
+                  background:
+                    'conic-gradient(hsl(var(--foreground)) 0deg 110deg, hsl(var(--muted-foreground)) 110deg 200deg, hsl(var(--foreground)) 200deg 270deg, hsl(var(--muted-foreground)) 270deg 360deg)',
+                }}
+              />
+              {/* Massive sharp X */}
+              <svg
+                viewBox="0 0 100 100"
+                className="absolute inset-0 w-full h-full text-foreground"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="10"
+                strokeLinecap="square"
+              >
+                <line x1="10" y1="10" x2="90" y2="90" />
+                <line x1="90" y1="10" x2="10" y2="90" />
+              </svg>
+            </div>
+          </div>
         </div>
       ),
       cta: 'NEXT',
     },
     {
       content: (
-        <div className="flex-1 flex flex-col px-8 pt-16">
+        <div className="flex-1 flex flex-col px-8 pt-20">
           <h1 className={headline}>ONE<br />METRIC.</h1>
           <p className={`${subtext} mt-6 max-w-xs`}>
             CUT THE NOISE. STOP TRACKING MACROS YOU DON'T CARE ABOUT. FOCUS EXCLUSIVELY ON THE ONLY MACRONUTRIENT THAT DRIVES GROWTH.
           </p>
-          <div className="flex-1 flex items-center justify-center">
-            <span className="font-mono font-black text-[8rem] md:text-[10rem] tracking-tighter leading-none text-foreground">
-              126G
+          <div className="flex-1 flex flex-col items-center justify-center gap-4">
+            <div className="flex flex-col items-center gap-1">
+              <span className="relative font-mono font-bold text-3xl uppercase tracking-tighter text-muted-foreground">
+                CARBS
+                <span className="absolute left-[-8%] right-[-8%] top-1/2 h-[3px] bg-foreground" />
+              </span>
+              <span className="relative font-mono font-bold text-3xl uppercase tracking-tighter text-muted-foreground">
+                FATS
+                <span className="absolute left-[-8%] right-[-8%] top-1/2 h-[3px] bg-foreground" />
+              </span>
+            </div>
+            <span className="font-mono font-black text-7xl md:text-8xl uppercase tracking-tighter leading-none text-foreground">
+              PROTEIN
             </span>
           </div>
         </div>
@@ -76,14 +118,21 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
     },
     {
       content: (
-        <div className="flex-1 flex flex-col px-8 pt-16">
+        <div className="flex-1 flex flex-col px-8 pt-20">
           <h1 className={headline}>ZERO<br />FRICTION.</h1>
           <p className={`${subtext} mt-6 max-w-xs`}>
             SNAP A PHOTO AND LET AI EXTRACT THE PROTEIN. OR USE 1-TAP QUICK-ADD FOR YOUR DAILY STAPLES. LOG IN SECONDS, NOT MINUTES.
           </p>
           <div className="flex-1 flex items-center justify-center">
-            <div className="w-32 h-32 border-2 border-foreground bg-foreground flex items-center justify-center">
-              <Camera className="w-14 h-14 text-background" strokeWidth={2.5} />
+            <div className="flex flex-col gap-3 w-48">
+              {['+30G', '+40G', '+50G'].map((label) => (
+                <div
+                  key={label}
+                  className="border-2 border-foreground bg-background py-4 text-center font-mono font-bold text-2xl tracking-tighter text-foreground"
+                >
+                  {label}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -92,18 +141,20 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
     },
     {
       content: (
-        <div className="flex-1 flex flex-col px-8 pt-16">
+        <div className="flex-1 flex flex-col px-8 pt-20">
           <h1 className={headline}>FORGE<br />DISCIPLINE.</h1>
           <p className={`${subtext} mt-6 max-w-xs`}>
             CONSISTENCY IS THE ONLY HACK. HIT YOUR TARGET DAILY, BUILD YOUR STREAK, AND UNLOCK YOUR PHYSICAL TRAJECTORY.
           </p>
-          <div className="flex-1 flex flex-col items-center justify-center gap-4">
+          <div className="flex-1 flex flex-col items-center justify-center gap-5">
             <div className="flex gap-2">
               {Array.from({ length: 7 }).map((_, i) => (
-                <div key={i} className="w-9 h-9 border-2 border-foreground" />
+                <div key={i} className="w-9 h-9 border-2 border-foreground bg-background" />
               ))}
             </div>
-            <span className="text-3xl">🔥</span>
+            <span className="font-mono font-bold text-sm uppercase tracking-widest text-foreground">
+              STREAK ACTIVE
+            </span>
           </div>
         </div>
       ),
@@ -156,22 +207,26 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
         </AnimatePresence>
       </div>
 
-      {/* Pagination */}
+      {/* Pagination — sharp tappable squares */}
       <div className="flex justify-center gap-2 pb-6">
         {Array.from({ length: TOTAL }).map((_, i) => (
-          <div
+          <button
             key={i}
-            className={`w-3 h-3 border-2 border-foreground ${i === step ? 'bg-foreground' : 'bg-background'}`}
+            onClick={() => goTo(i)}
+            aria-label={`Go to screen ${i + 1}`}
+            className={`w-3 h-3 border-2 border-foreground transition-colors ${
+              i === step ? 'bg-foreground' : 'bg-background hover:bg-muted'
+            }`}
           />
         ))}
       </div>
 
-      {/* CTA */}
+      {/* CTA — solid black block, no brackets */}
       <button
         onClick={next}
         className="w-full bg-foreground text-background py-5 font-mono font-bold uppercase tracking-widest text-sm hover:opacity-90 transition-opacity"
       >
-        [ {current.cta} ]
+        {current.cta}
       </button>
     </div>
   );
