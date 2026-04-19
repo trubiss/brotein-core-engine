@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import { watchAllLogs, deleteLog, updateLog } from '@/lib/firestore';
 import { FoodLog, MealType } from '@/lib/types';
-import { ArrowLeft, Pencil, Trash2, Search } from 'lucide-react';
+import { ArrowLeft, Search } from 'lucide-react';
 import QuickLogModal from './QuickLogModal';
+import SwipeableLogRow from './SwipeableLogRow';
 import { toast } from 'sonner';
 
 interface Props { onBack: () => void; }
@@ -68,8 +69,7 @@ export default function HistoryScreen({ onBack }: Props) {
   const dates = Object.keys(grouped).sort().reverse();
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this log?')) return;
-    try { await deleteLog(user.uid, id); toast.success('Deleted'); }
+    try { await deleteLog(user.uid, id); toast.success('DELETED'); }
     catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Delete failed'); }
   };
 
