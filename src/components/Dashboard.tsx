@@ -126,31 +126,32 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
       </motion.div>
 
-      {/* Date navigator */}
-      <motion.div variants={fadeUp} className="flex items-center justify-between mb-8 border-2 border-foreground">
-        <button
-          onClick={() => shiftDate(-1)}
-          className="p-3 active:scale-95 transition-transform border-r-2 border-foreground"
-          aria-label="Previous day"
-        >
-          <ChevronLeft size={18} strokeWidth={2.5} />
-        </button>
-        <div className="flex-1 text-center px-2 min-w-0">
-          <p className="font-display text-sm font-bold tracking-[0.25em] uppercase truncate">{dateLabel}</p>
-        </div>
-        <button
-          onClick={() => shiftDate(1)}
-          disabled={isToday}
-          className="p-3 active:scale-95 transition-transform border-l-2 border-foreground disabled:opacity-25"
-          aria-label="Next day"
-        >
-          <ChevronRight size={18} strokeWidth={2.5} />
-        </button>
-      </motion.div>
-
       <motion.div variants={fadeUp} className="mb-4 min-w-0">
-        <p className="label-spaced">FUEL STATUS</p>
-        <p className="text-7xl font-black font-display tracking-tighter leading-none mt-2">{remaining}g</p>
+        {/* Inline date control — sits with FUEL STATUS, owns the day's context */}
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <p className="label-spaced mb-0">FUEL STATUS</p>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={() => shiftDate(-1)}
+              className="p-1 active:opacity-50 transition-opacity"
+              aria-label="Previous day"
+            >
+              <ChevronLeft size={14} strokeWidth={2.5} />
+            </button>
+            <span className="font-display text-[10px] font-bold tracking-[0.25em] uppercase min-w-[68px] text-center">
+              {dateLabel}
+            </span>
+            <button
+              onClick={() => shiftDate(1)}
+              disabled={isToday}
+              className="p-1 active:opacity-50 transition-opacity disabled:opacity-20"
+              aria-label="Next day"
+            >
+              <ChevronRight size={14} strokeWidth={2.5} />
+            </button>
+          </div>
+        </div>
+        <p className="text-7xl font-black font-display tracking-tighter leading-none">{remaining}g</p>
         <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-[0.25em]">
           REMAINING {isToday ? 'TODAY' : `· ${dateLabel}`}
         </p>
@@ -161,6 +162,7 @@ export default function Dashboard({ onNavigate }: Props) {
           </div>
         )}
       </motion.div>
+
 
       <div className="section-divider" />
 
