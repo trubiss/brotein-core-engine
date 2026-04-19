@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, TrendingUp, TrendingDown, Minus, Lock, Check } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Minus, Lock, Check, Camera } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { watchAllSummaries, computeStreak } from '@/lib/firestore';
-import { DailySummary } from '@/lib/types';
-import { computeAnalytics, computeAchievements } from '@/lib/analytics';
+import { watchAllSummaries, watchAllLogs, computeStreak } from '@/lib/firestore';
+import { DailySummary, FoodLog } from '@/lib/types';
+import { computeAnalytics, computeAchievements, computeAiAccuracy } from '@/lib/analytics';
 
 interface Props { onBack: () => void; }
 
@@ -19,14 +19,18 @@ const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 export default function InsightsScreen({ onBack }: Props) {
   const { user, profile } = useAuth();
   const [summaries, setSummaries] = useState<DailySummary[]>([]);
+  const [logs, setLogs] = useState<FoodLog[]>([]);
 
   useEffect(() => {
     if (!user) return;
-    return watchAllSummaries(user.uid, setSummaries);
+    const u1 = watchAllSummaries(user.uid, setSummaries);
+    const u2 = watchAllLogs(user.uid, setLogs);
+    return () => { u1(); u2(); };
   }, [user]);
 
   const target = profile?.dailyProtein ?? 0;
   const analytics = useMemo(() => computeAnalytics(summaries, target), [summaries, target]);
+  const aiAccuracy = useMemo(() => computeAiAccuracy(logs), [logs]);
   const currentStreak = useMemo(() => computeStreak(summaries), [summaries]);
   const achievements = useMemo(() => computeAchievements({
     currentStreak,
