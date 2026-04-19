@@ -120,6 +120,19 @@ export default function ProfileScreen({ onBack }: Props) {
       </div>
 
       <ReminderSettingsPanel />
+
+      <motion.div variants={fadeUp} className="mt-12 pt-8 border-t-2 border-foreground">
+        <p className="label-spaced">ONBOARDING</p>
+        <button
+          className="w-full mt-2 p-4 border-2 border-foreground font-mono font-bold text-xs uppercase tracking-widest active:scale-[0.98] transition-transform"
+          onClick={() => {
+            localStorage.removeItem('brotein_welcome_seen');
+            location.reload();
+          }}
+        >
+          REPLAY WELCOME TOUR
+        </button>
+      </motion.div>
     </motion.div>
   );
 }
