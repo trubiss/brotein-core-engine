@@ -325,7 +325,7 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
             {/* Top: Headline + subtext, centered */}
             <div className="flex flex-col items-center gap-6 w-full">
               <h1 className={headline}>{current.headline}</h1>
-              <p className={subtext}>{current.sub}</p>
+              <p className={current.subClass ?? subtext}>{current.sub}</p>
             </div>
 
             {/* Middle: Central visual, perfectly centered */}
