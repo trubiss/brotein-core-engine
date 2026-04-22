@@ -239,20 +239,45 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
       headline: <>ONE<br />METRIC.</>,
       sub: "CUT THE NOISE. STOP TRACKING MACROS YOU DON'T CARE ABOUT. FOCUS EXCLUSIVELY ON THE ONLY MACRONUTRIENT THAT DRIVES GROWTH.",
       visual: (
-        <div className="flex flex-col items-center gap-4">
-          <div className="flex flex-col items-center gap-1">
-            <span className="relative font-mono font-bold text-3xl uppercase tracking-tighter text-muted-foreground">
-              CARBS
-              <span className="absolute left-[-8%] right-[-8%] top-1/2 h-[3px] bg-foreground" />
-            </span>
-            <span className="relative font-mono font-bold text-3xl uppercase tracking-tighter text-muted-foreground">
-              FATS
-              <span className="absolute left-[-8%] right-[-8%] top-1/2 h-[3px] bg-foreground" />
-            </span>
-          </div>
-          <span className="font-mono font-black text-7xl md:text-8xl uppercase tracking-tighter leading-none text-foreground">
+        <div className="flex flex-col items-center gap-10">
+          <motion.span
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 0.4, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="relative font-mono font-light text-3xl uppercase tracking-tight text-muted-foreground"
+          >
+            CARBS
+            <motion.span
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.4, delay: 0.5, ease: 'easeOut' }}
+              style={{ transformOrigin: 'left' }}
+              className="absolute left-[-10%] right-[-10%] top-1/2 h-[2px] bg-muted-foreground/70"
+            />
+          </motion.span>
+          <motion.span
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 0.4, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="relative font-mono font-light text-3xl uppercase tracking-tight text-muted-foreground"
+          >
+            FATS
+            <motion.span
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.4, delay: 0.7, ease: 'easeOut' }}
+              style={{ transformOrigin: 'left' }}
+              className="absolute left-[-10%] right-[-10%] top-1/2 h-[2px] bg-muted-foreground/70"
+            />
+          </motion.span>
+          <motion.span
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 1.0, ease: [0.2, 0.8, 0.2, 1] }}
+            className="font-mono font-black text-7xl md:text-8xl uppercase tracking-tighter leading-none text-foreground mt-2"
+          >
             PROTEIN
-          </span>
+          </motion.span>
         </div>
       ),
       cta: 'NEXT',
