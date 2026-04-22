@@ -236,22 +236,21 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
       cta: 'NEXT',
     },
     {
-      headline: <>ONE<br />METRIC.</>,
-      sub: "CUT THE NOISE. STOP TRACKING MACROS YOU DON'T CARE ABOUT. FOCUS EXCLUSIVELY ON THE ONLY MACRONUTRIENT THAT DRIVES GROWTH.",
+      headline: <span className="font-sans font-bold text-4xl md:text-5xl tracking-tight normal-case text-foreground">One metric.</span>,
+      sub: "Cut the noise. Stop tracking macros you don't care about. Focus exclusively on the only macronutrient that drives growth.",
+      subClass: 'font-sans text-base normal-case tracking-normal text-muted-foreground leading-relaxed text-center max-w-[68%]',
       visual: (
-        <div className="flex flex-col items-center gap-4">
-          <div className="flex flex-col items-center gap-1">
-            <span className="relative font-mono font-bold text-3xl uppercase tracking-tighter text-muted-foreground">
-              CARBS
-              <span className="absolute left-[-8%] right-[-8%] top-1/2 h-[3px] bg-foreground" />
-            </span>
-            <span className="relative font-mono font-bold text-3xl uppercase tracking-tighter text-muted-foreground">
-              FATS
-              <span className="absolute left-[-8%] right-[-8%] top-1/2 h-[3px] bg-foreground" />
-            </span>
-          </div>
-          <span className="font-mono font-black text-7xl md:text-8xl uppercase tracking-tighter leading-none text-foreground">
-            PROTEIN
+        <div className="flex flex-col items-center gap-10">
+          <span className="relative font-sans font-light text-2xl tracking-tight text-muted-foreground/60">
+            Carbs
+            <span className="absolute left-[-10%] right-[-10%] top-1/2 h-px bg-muted-foreground/50" />
+          </span>
+          <span className="relative font-sans font-light text-2xl tracking-tight text-muted-foreground/60">
+            Fats
+            <span className="absolute left-[-10%] right-[-10%] top-1/2 h-px bg-muted-foreground/50" />
+          </span>
+          <span className="font-sans font-bold text-7xl md:text-8xl tracking-tight leading-none text-foreground mt-2">
+            Protein
           </span>
         </div>
       ),
