@@ -226,7 +226,7 @@ export default function WelcomeCarousel({ onComplete }: WelcomeCarouselProps) {
   const subtext =
     'font-sans text-xs uppercase tracking-widest text-muted-foreground leading-relaxed text-center max-w-xs';
 
-  type Screen = { headline: React.ReactNode; sub: string; visual: React.ReactNode; cta: string };
+  type Screen = { headline: React.ReactNode; sub: string; visual: React.ReactNode; cta: string; subClass?: string };
 
   const screens: Screen[] = [
     {
