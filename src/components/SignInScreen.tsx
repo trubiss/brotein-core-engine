@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
+import ForgotPasswordFlow from './ForgotPasswordFlow';
 
 export default function SignInScreen() {
   const { signIn, signUp } = useAuth();
@@ -9,6 +10,7 @@ export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [forgot, setForgot] = useState(false);
 
   const canProceed = email && password.length >= 6 && (mode === 'signin' || name);
 
@@ -25,6 +27,10 @@ export default function SignInScreen() {
       setBusy(false);
     }
   };
+
+  if (forgot) {
+    return <ForgotPasswordFlow onBack={() => setForgot(false)} initialEmail={email} />;
+  }
 
   return (
     <div className="screen-container">
@@ -50,6 +56,15 @@ export default function SignInScreen() {
         <div>
           <label className="label-spaced">PASSWORD</label>
           <input className="input-underline" type="password" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
+          {mode === 'signin' && (
+            <button
+              type="button"
+              onClick={() => setForgot(true)}
+              className="mt-3 text-[10px] tracking-[0.3em] uppercase font-bold text-muted-foreground active:opacity-60"
+            >
+              FORGOT PASSWORD?
+            </button>
+          )}
         </div>
       </div>
 
