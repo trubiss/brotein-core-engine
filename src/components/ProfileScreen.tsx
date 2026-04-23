@@ -16,9 +16,9 @@ const fadeUp = {
 const stagger = { animate: { transition: { staggerChildren: 0.06 } } };
 
 const GOAL_OPTIONS: { value: Goal; label: string }[] = [
-  { value: 'hypertrophy', label: 'HYPER' },
-  { value: 'equilibrium', label: 'MAINT' },
-  { value: 'recovery', label: 'RECOV' },
+  { value: 'hypertrophy', label: 'BUILD' },
+  { value: 'equilibrium', label: 'MAINTAIN' },
+  { value: 'recovery', label: 'RECOVER' },
 ];
 
 export default function ProfileScreen({ onBack }: Props) {
@@ -75,13 +75,13 @@ export default function ProfileScreen({ onBack }: Props) {
             </motion.div>
             <motion.div variants={fadeUp}>
               <label className="label-spaced">GOAL</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 {GOAL_OPTIONS.map(g => (
                   <button
                     key={g.value}
                     onClick={() => setGoal(g.value)}
-                    className={`p-3 border-2 text-xs font-bold tracking-widest ${
-                      goal === g.value ? 'border-foreground bg-foreground text-background' : 'border-foreground'
+                    className={`h-14 flex items-center justify-center border-2 border-foreground font-display text-[13px] font-black tracking-[0.18em] uppercase transition-colors active:scale-[0.97] ${
+                      goal === g.value ? 'bg-foreground text-background' : 'bg-background text-foreground'
                     }`}
                   >
                     {g.label}
