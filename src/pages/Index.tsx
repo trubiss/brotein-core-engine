@@ -8,8 +8,16 @@ import Dashboard from '@/components/Dashboard';
 import HistoryScreen from '@/components/HistoryScreen';
 import ProfileScreen from '@/components/ProfileScreen';
 import InsightsScreen from '@/components/InsightsScreen';
+import ResetPasswordScreen from '@/components/ResetPasswordScreen';
 
 type Page = 'dashboard' | 'history' | 'profile' | 'insights';
+
+const getResetCode = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('mode') === 'resetPassword') return params.get('oobCode');
+  return null;
+};
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -20,9 +28,17 @@ const pageVariants = {
 const Index = () => {
   const { user, profile, loading } = useAuth();
   const [page, setPage] = useState<Page>('dashboard');
+  const [resetCode, setResetCode] = useState<string | null>(() => getResetCode());
   const [welcomeSeen, setWelcomeSeen] = useState<boolean>(() =>
     typeof window !== 'undefined' && localStorage.getItem('brotein_welcome_seen') === '1'
   );
+
+  const clearResetCode = () => {
+    setResetCode(null);
+    if (typeof window !== 'undefined') {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  };
 
   const completeWelcome = () => {
     localStorage.setItem('brotein_welcome_seen', '1');
@@ -38,6 +54,7 @@ const Index = () => {
     );
   }
 
+  if (resetCode) return <ResetPasswordScreen oobCode={resetCode} onDone={clearResetCode} />;
   if (!welcomeSeen) return <WelcomeCarousel onComplete={completeWelcome} />;
   if (!user) return <SignInScreen />;
   if (!profile) return <OnboardingFlow />;

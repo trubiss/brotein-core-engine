@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import {
   onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  signOut as fbSignOut, updateProfile, User,
+  signOut as fbSignOut, updateProfile, sendPasswordResetEmail,
+  verifyPasswordResetCode, confirmPasswordReset, User,
 } from 'firebase/auth';
 import { auth } from './firebase';
 import { getProfile } from './firestore';
@@ -15,6 +16,9 @@ interface AuthCtx {
   signIn: (email: string, password: string) => Promise<User>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
+  verifyResetCode: (code: string) => Promise<string>;
+  confirmReset: (code: string, newPassword: string) => Promise<void>;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -56,8 +60,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = async () => {
     if (user) setProfile(await getProfile(user.uid));
   };
+  const sendPasswordReset = async (email: string) => {
+    await sendPasswordResetEmail(auth, email, { url: window.location.origin });
+  };
+  const verifyResetCode = async (code: string) => verifyPasswordResetCode(auth, code);
+  const confirmReset = async (code: string, newPassword: string) => {
+    await confirmPasswordReset(auth, code, newPassword);
+  };
 
-  return <Ctx.Provider value={{ user, profile, loading, signUp, signIn, signOut, refreshProfile }}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider
+      value={{
+        user, profile, loading, signUp, signIn, signOut, refreshProfile,
+        sendPasswordReset, verifyResetCode, confirmReset,
+      }}
+    >
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export function useAuth() {
