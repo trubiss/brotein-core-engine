@@ -348,56 +348,62 @@ export default function Dashboard({ onNavigate }: Props) {
         <Plus size={24} strokeWidth={3} />
       </button>
 
-      {showModal && (
-        <QuickLogModal
-          onSubmit={async ({ foodName, proteinGrams, mealType }) => {
-            await log(foodName, proteinGrams, mealType);
-          }}
-          onScan={() => { setShowModal(false); setShowScan(true); }}
-          onClose={() => setShowModal(false)}
-        />
-      )}
+      {(showModal || showScan || editing) && (
+        <Suspense fallback={null}>
+          {showModal && (
+            <QuickLogModal
+              onSubmit={async ({ foodName, proteinGrams, mealType }) => {
+                await log(foodName, proteinGrams, mealType);
+              }}
+              onScan={() => { setShowModal(false); setShowScan(true); }}
+              onClose={() => setShowModal(false)}
+            />
+          )}
 
-      {showScan && (
-        <FoodScanModal
-          onClose={() => setShowScan(false)}
-          onConfirm={async ({ foodName, proteinGrams, mealType, ai, edited }) => {
-            try {
-              await addLog(user.uid, {
-                foodName,
-                proteinGrams,
-                mealType,
-                date: viewDate,
-                source: 'ai-scan',
-                aiDetectedName: ai.foodName,
-                aiEstimatedGrams: ai.proteinGrams,
-                aiConfidence: ai.confidence,
-                aiPortion: ai.portion,
-                aiEdited: edited,
-              });
-              toast.success(`+${proteinGrams}G LOGGED · AI SCAN`);
-            } catch (e: unknown) {
-              toast.error(e instanceof Error ? e.message : 'Failed to log');
-            }
-          }}
-        />
-      )}
+          {showScan && (
+            <FoodScanModal
+              onClose={() => setShowScan(false)}
+              onConfirm={async ({ foodName, proteinGrams, mealType, ai, edited }) => {
+                try {
+                  await addLog(user.uid, {
+                    foodName,
+                    proteinGrams,
+                    mealType,
+                    date: viewDate,
+                    source: 'ai-scan',
+                    aiDetectedName: ai.foodName,
+                    aiEstimatedGrams: ai.proteinGrams,
+                    aiConfidence: ai.confidence,
+                    aiPortion: ai.portion,
+                    aiEdited: edited,
+                  }, profile.dailyProtein);
+                  setStreakBump(b => b + 1);
+                  toast.success(`+${proteinGrams}G LOGGED · AI SCAN`);
+                } catch (e: unknown) {
+                  toast.error(e instanceof Error ? e.message : 'Failed to log');
+                }
+              }}
+            />
+          )}
 
-      {editing && (
-        <QuickLogModal
-          title="EDIT LOG"
-          submitLabel="SAVE"
-          initial={{ foodName: editing.foodName, proteinGrams: editing.proteinGrams, mealType: editing.mealType }}
-          onSubmit={async ({ foodName, proteinGrams, mealType }) => {
-            try {
-              await updateLog(user.uid, editing.id, { foodName, proteinGrams, mealType });
-              toast.success('UPDATED');
-            } catch (e: unknown) {
-              toast.error(e instanceof Error ? e.message : 'Update failed');
-            }
-          }}
-          onClose={() => setEditing(null)}
-        />
+          {editing && (
+            <QuickLogModal
+              title="EDIT LOG"
+              submitLabel="SAVE"
+              initial={{ foodName: editing.foodName, proteinGrams: editing.proteinGrams, mealType: editing.mealType }}
+              onSubmit={async ({ foodName, proteinGrams, mealType }) => {
+                try {
+                  await updateLog(user.uid, editing.id, { foodName, proteinGrams, mealType }, profile.dailyProtein);
+                  setStreakBump(b => b + 1);
+                  toast.success('UPDATED');
+                } catch (e: unknown) {
+                  toast.error(e instanceof Error ? e.message : 'Update failed');
+                }
+              }}
+              onClose={() => setEditing(null)}
+            />
+          )}
+        </Suspense>
       )}
     </motion.div>
   );
