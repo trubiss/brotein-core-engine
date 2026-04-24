@@ -126,14 +126,18 @@ export async function addLog(
     aiPortion?: string;
     aiEdited?: boolean;
     imageRef?: string;
-  }
+  },
+  dailyProtein?: number,
 ) {
-  const profile = await getProfile(uid);
-  if (!profile) throw new Error('Profile required');
+  let target = dailyProtein;
+  if (target === undefined) {
+    const profile = await getProfile(uid);
+    if (!profile) throw new Error('Profile required');
+    target = profile.dailyProtein;
+  }
   const now = Date.now();
   const date = input.date ?? todayKey();
   const ref = doc(logsCol(uid));
-  // Strip undefined fields — Firestore rejects them.
   const log: FoodLog = Object.fromEntries(
     Object.entries({
       id: ref.id,
@@ -154,34 +158,50 @@ export async function addLog(
     }).filter(([, v]) => v !== undefined)
   ) as unknown as FoodLog;
   await setDoc(ref, log);
-  await recomputeSummary(uid, date, profile.dailyProtein);
+  await recomputeSummary(uid, date, target);
   return log;
 }
 
-export async function updateLog(uid: string, logId: string, patch: Partial<FoodLog>) {
-  const profile = await getProfile(uid);
-  if (!profile) throw new Error('Profile required');
+export async function updateLog(uid: string, logId: string, patch: Partial<FoodLog>, dailyProtein?: number) {
+  let target = dailyProtein;
+  if (target === undefined) {
+    const profile = await getProfile(uid);
+    if (!profile) throw new Error('Profile required');
+    target = profile.dailyProtein;
+  }
   const ref = doc(logsCol(uid), logId);
   const existing = await getDoc(ref);
   if (!existing.exists()) return;
   const data = existing.data() as FoodLog;
   await updateDoc(ref, { ...patch, updatedAt: Date.now() });
   const date = (patch.date as string) ?? data.date;
-  await recomputeSummary(uid, date, profile.dailyProtein);
+  await recomputeSummary(uid, date, target);
   if (patch.date && patch.date !== data.date) {
-    await recomputeSummary(uid, data.date, profile.dailyProtein);
+    await recomputeSummary(uid, data.date, target);
   }
 }
 
-export async function deleteLog(uid: string, logId: string) {
-  const profile = await getProfile(uid);
-  if (!profile) throw new Error('Profile required');
+export async function deleteLog(uid: string, logId: string, dailyProtein?: number) {
+  let target = dailyProtein;
+  if (target === undefined) {
+    const profile = await getProfile(uid);
+    if (!profile) throw new Error('Profile required');
+    target = profile.dailyProtein;
+  }
   const ref = doc(logsCol(uid), logId);
   const existing = await getDoc(ref);
   if (!existing.exists()) return;
   const data = existing.data() as FoodLog;
   await deleteDoc(ref);
-  await recomputeSummary(uid, data.date, profile.dailyProtein);
+  await recomputeSummary(uid, data.date, target);
+}
+
+export async function getRecentSummaries(uid: string, days = 30): Promise<DailySummary[]> {
+  const q = query(summariesCol(uid), orderBy('date', 'desc'), limit(days));
+  const snap = await getDocs(q);
+  const arr: DailySummary[] = [];
+  snap.forEach(d => arr.push(d.data() as DailySummary));
+  return arr;
 }
 
 export function watchLogsForDate(uid: string, date: string, cb: (logs: FoodLog[]) => void) {
