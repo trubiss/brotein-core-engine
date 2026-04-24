@@ -100,4 +100,6 @@ const ProteinPace = forwardRef<HTMLDivElement, Props>(function ProteinPace({ log
       )}
     </motion.div>
   );
-}
+});
+
+export default ProteinPace;
