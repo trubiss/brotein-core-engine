@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import SignInScreen from '@/components/SignInScreen';
 import OnboardingFlow from '@/components/OnboardingFlow';
+import OnboardingStoryFlow from '@/components/OnboardingStoryFlow';
 import WelcomeCarousel from '@/components/WelcomeCarousel';
 import Dashboard from '@/components/Dashboard';
 import ResetPasswordScreen from '@/components/ResetPasswordScreen';
@@ -33,6 +34,14 @@ const Index = () => {
   const [welcomeSeen, setWelcomeSeen] = useState<boolean>(() =>
     typeof window !== 'undefined' && localStorage.getItem('brotein_welcome_seen') === '1'
   );
+  const [storySeen, setStorySeen] = useState<boolean>(() =>
+    typeof window !== 'undefined' && localStorage.getItem('brotein_story_seen') === '1'
+  );
+
+  const completeStory = () => {
+    localStorage.setItem('brotein_story_seen', '1');
+    setStorySeen(true);
+  };
 
   const clearResetCode = () => {
     setResetCode(null);
@@ -58,6 +67,7 @@ const Index = () => {
   if (resetCode) return <ResetPasswordScreen oobCode={resetCode} onDone={clearResetCode} />;
   if (!welcomeSeen) return <WelcomeCarousel onComplete={completeWelcome} />;
   if (!user) return <SignInScreen />;
+  if (!storySeen) return <OnboardingStoryFlow onComplete={completeStory} />;
   if (!profile) return <OnboardingFlow />;
 
   return (
