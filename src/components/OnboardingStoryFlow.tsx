@@ -24,53 +24,58 @@ const TARGET = 150;
 
 function MetricStack() {
   return (
-    <div className="flex flex-col items-center gap-8">
+    <div className="flex flex-col items-center gap-2">
       <motion.span
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 0.4, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="relative font-mono font-light text-3xl uppercase tracking-tight text-muted-foreground"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 0.35, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="relative font-mono font-light text-2xl uppercase tracking-tight text-muted-foreground"
       >
         CARBS
         <motion.span
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
+          transition={{ duration: 0.35, delay: 0.35 }}
           style={{ transformOrigin: 'left' }}
-          className="absolute left-[-10%] right-[-10%] top-1/2 h-[2px] bg-muted-foreground/70"
+          className="absolute left-[-12%] right-[-12%] top-1/2 h-[2px] bg-muted-foreground/70"
         />
       </motion.span>
       <motion.span
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 0.4, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.25 }}
-        className="relative font-mono font-light text-3xl uppercase tracking-tight text-muted-foreground"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.55, ease: [0.2, 0.8, 0.2, 1] }}
+        className="font-mono font-black text-[5.5rem] md:text-[7rem] uppercase tracking-tighter leading-none text-foreground my-1"
+      >
+        PROTEIN
+      </motion.span>
+      <motion.span
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 0.35, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="relative font-mono font-light text-2xl uppercase tracking-tight text-muted-foreground"
       >
         FATS
         <motion.span
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
-          transition={{ duration: 0.4, delay: 0.55 }}
+          transition={{ duration: 0.35, delay: 0.45 }}
           style={{ transformOrigin: 'left' }}
-          className="absolute left-[-10%] right-[-10%] top-1/2 h-[2px] bg-muted-foreground/70"
+          className="absolute left-[-12%] right-[-12%] top-1/2 h-[2px] bg-muted-foreground/70"
         />
-      </motion.span>
-      <motion.span
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.85, ease: [0.2, 0.8, 0.2, 1] }}
-        className="font-mono font-black text-7xl md:text-8xl uppercase tracking-tighter leading-none text-foreground mt-2"
-      >
-        PROTEIN
       </motion.span>
     </div>
   );
 }
 
-function MiniDashboard({ value, target }: { value: number; target: number }) {
+function MiniDashboard({ value, target, flash = 0 }: { value: number; target: number; flash?: number }) {
   const pct = Math.min(100, Math.round((value / target) * 100));
   return (
-    <div className="w-full max-w-xs border-2 border-foreground p-6 bg-background">
+    <motion.div
+      animate={flash > 0 ? { scale: [1, 1.02, 1] } : {}}
+      transition={{ duration: 0.25 }}
+      key={`d-${flash}`}
+      className="w-full max-w-xs border-2 border-foreground p-6 bg-background"
+    >
       <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-3">
         TODAY
       </p>
@@ -86,18 +91,27 @@ function MiniDashboard({ value, target }: { value: number; target: number }) {
         </motion.span>
         <span className="font-mono font-bold text-xl text-muted-foreground">/ {target}G</span>
       </div>
-      <div className="w-full h-2 bg-muted">
+      <div className="w-full h-2 bg-muted relative overflow-hidden">
         <motion.div
           initial={false}
           animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
+          transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
           className="h-full bg-foreground"
         />
+        {flash > 0 && (
+          <motion.div
+            key={`flash-${flash}`}
+            initial={{ opacity: 0.6, x: '-100%' }}
+            animate={{ opacity: 0, x: '100%' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="absolute inset-0 bg-foreground/40"
+          />
+        )}
       </div>
       <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-muted-foreground mt-3">
         {pct}% OF TARGET
       </p>
-    </div>
+    </motion.div>
   );
 }
 
@@ -108,6 +122,19 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
   const [protein, setProtein] = useState(0);
   const [tapped, setTapped] = useState(0);
 
+  const estimateGap = useMemo(() => {
+    switch (answers.estimate) {
+      case 'low':
+        return '60–90G';
+      case 'mid':
+        return '30–60G';
+      case 'high':
+        return '10–30G';
+      default:
+        return '30–60G';
+    }
+  }, [answers.estimate]);
+
   const screens: Screen[] = useMemo(
     () => [
       // SECTION 1 — Problem
@@ -116,19 +143,21 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
         headline: <>YOU'RE NOT<br />HITTING YOUR<br />PROTEIN.</>,
         cta: 'CONTINUE',
       },
+      // SECTION 1b — Consequence (single, punchy)
       {
         kind: 'statement',
-        headline: <>THAT'S WHY<br />YOU'RE NOT<br />SEEING<br />RESULTS.</>,
+        headline: <>NO PROTEIN.<br />NO RESULTS.</>,
+        sub: 'MUSCLE, RECOVERY, FAT LOSS — ALL DEPEND ON IT.',
         cta: 'CONTINUE',
       },
+      // SECTION 1c — Focus
       {
         kind: 'statement',
-        headline: <>ONE<br />METRIC.</>,
-        sub: 'CUT THE NOISE. ONE NUMBER DRIVES GROWTH.',
+        headline: <>ONLY ONE<br />NUMBER<br />MATTERS.</>,
         visual: <MetricStack />,
         cta: 'CONTINUE',
       },
-      // SECTION 2 — Reflection
+      // SECTION 2 — Personalization
       {
         kind: 'question',
         key: 'struggle',
@@ -140,11 +169,6 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
         ],
       },
       {
-        kind: 'statement',
-        headline: <>MOST PEOPLE<br />LIKE YOU MISS<br />THEIR TARGET<br />EVERY DAY.</>,
-        cta: 'CONTINUE',
-      },
-      {
         kind: 'question',
         key: 'estimate',
         headline: <>HOW MUCH<br />PROTEIN DO<br />YOU EAT<br />PER DAY?</>,
@@ -154,15 +178,20 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
           { value: 'high', label: '120G+' },
         ],
       },
-      // SECTION 3 — Aha
+      // SECTION 3 — Personalized aha
       {
         kind: 'statement',
-        headline: <>TO BUILD<br />MUSCLE,<br />YOU NEED<br />120G+ DAILY.</>,
+        headline: (
+          <>
+            YOU'RE LIKELY<br />UNDER-EATING<br />PROTEIN BY<br />{estimateGap} DAILY.
+          </>
+        ),
+        sub: 'BASED ON WHAT YOU JUST TOLD US.',
         cta: 'CONTINUE',
       },
       {
         kind: 'statement',
-        headline: <>THAT GAP<br />IS WHY<br />PROGRESS<br />FEELS SLOW.</>,
+        headline: <>THAT GAP<br />IS HOLDING<br />YOU BACK.</>,
         cta: 'SHOW ME THE FIX',
       },
       // SECTION 4 — Product
@@ -184,8 +213,8 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
         headline: protein >= TARGET ? <>YOU'RE<br />ON TRACK.</> : <>YOU'RE<br />BEHIND<br />TODAY.</>,
         sub:
           protein >= TARGET
-            ? 'KEEP THIS RHYTHM AND THE STREAK BUILDS ITSELF.'
-            : 'BROTEIN TELLS YOU EXACTLY HOW MUCH MORE YOU NEED, IN REAL TIME.',
+            ? 'KEEP THIS RHYTHM. THE STREAK BUILDS ITSELF.'
+            : 'BROTEIN SHOWS YOU EXACTLY HOW MUCH MORE YOU NEED — IN REAL TIME.',
         cta: 'CONTINUE',
       },
       // SECTION 5 — Commitment
@@ -202,7 +231,7 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
       // SECTION 6 — Future
       {
         kind: 'statement',
-        headline: <>IN 30 DAYS,<br />YOU BUILD<br />A REAL<br />PROTEIN HABIT.</>,
+        headline: <>IN 30 DAYS,<br />HITTING YOUR<br />PROTEIN BECOMES<br />AUTOMATIC.</>,
         cta: 'CONTINUE',
       },
       {
@@ -210,9 +239,15 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
         headline: <>LESS THAN<br />10 SECONDS<br />PER MEAL.</>,
         cta: 'CONTINUE',
       },
+      // SECTION 6b — Pre-paywall commitment transition
       {
         kind: 'statement',
-        headline: <>MOST USERS<br />HIT THEIR<br />TARGET WITHIN<br />DAYS.</>,
+        headline: (
+          <>
+            YOU ALREADY<br />KNOW WHAT<br />TO DO.
+          </>
+        ),
+        sub: 'NOW YOU JUST NEED TO STAY CONSISTENT.',
         cta: 'CONTINUE',
       },
       // SECTION 7 — Paywall intro
@@ -223,7 +258,7 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
         cta: 'START FREE TRIAL',
       },
     ],
-    [protein]
+    [protein, estimateGap]
   );
 
   const TOTAL = screens.length;
@@ -333,13 +368,17 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
 
               {current.kind === 'interactive-add' && (
                 <div className="w-full flex flex-col items-center gap-8">
-                  <MiniDashboard value={protein} target={TARGET} />
-                  <button
+                  <MiniDashboard value={protein} target={TARGET} flash={tapped} />
+                  <motion.button
                     onClick={handleAdd}
-                    className="w-full max-w-xs border-2 border-foreground py-6 font-mono font-black uppercase tracking-widest text-base bg-background hover:bg-foreground hover:text-background transition-colors active:scale-[0.98]"
+                    whileTap={{ scale: 0.96 }}
+                    animate={tapped > 0 ? { scale: [1, 1.04, 1] } : {}}
+                    transition={{ duration: 0.18 }}
+                    key={`btn-${tapped}`}
+                    className="w-full max-w-xs border-2 border-foreground py-6 font-mono font-black uppercase tracking-widest text-base bg-background hover:bg-foreground hover:text-background transition-colors"
                   >
                     + 20G PROTEIN
-                  </button>
+                  </motion.button>
                   <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
                     {tapped === 0 ? 'TAP TO LOG' : `${tapped} LOG${tapped > 1 ? 'S' : ''} TODAY`}
                   </p>
