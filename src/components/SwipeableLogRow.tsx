@@ -66,4 +66,6 @@ const SwipeableLogRow = forwardRef<HTMLDivElement, Props>(function SwipeableLogR
       </motion.div>
     </div>
   );
-}
+});
+
+export default SwipeableLogRow;
