@@ -176,7 +176,6 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
           dragConstraints={{ top: 0, bottom: 0 }}
           dragElastic={{ top: 0, bottom: 0.6 }}
           onDragEnd={handleDragEnd}
-          _dragX={undefined}
           className="px-6 pt-6 pb-2 cursor-grab active:cursor-grabbing touch-none"
         >
           <div className="w-12 h-1 bg-foreground/30 mx-auto mb-5 rounded-full" />
