@@ -70,10 +70,12 @@ const Index = () => {
         exit="exit"
         transition={{ duration: 0.25, ease: 'easeOut' }}
       >
-        {page === 'history' && <HistoryScreen onBack={() => setPage('dashboard')} />}
-        {page === 'profile' && <ProfileScreen onBack={() => setPage('dashboard')} />}
-        {page === 'insights' && <InsightsScreen onBack={() => setPage('dashboard')} />}
-        {page === 'dashboard' && <Dashboard onNavigate={setPage} />}
+        <Suspense fallback={null}>
+          {page === 'history' && <HistoryScreen onBack={() => setPage('dashboard')} />}
+          {page === 'profile' && <ProfileScreen onBack={() => setPage('dashboard')} />}
+          {page === 'insights' && <InsightsScreen onBack={() => setPage('dashboard')} />}
+          {page === 'dashboard' && <Dashboard onNavigate={setPage} />}
+        </Suspense>
       </motion.div>
     </AnimatePresence>
   );
