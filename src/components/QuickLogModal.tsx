@@ -46,6 +46,12 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   }, [tab]);
 
   useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = original; };
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     const u1 = watchFavorites(user.uid, setFavorites);
     const u2 = watchRecentLogs(user.uid, setRecents, 30);
