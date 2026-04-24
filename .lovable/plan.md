@@ -1,63 +1,76 @@
+## Problem
 
-Replace Screen 4's seven thin-lined squares with a heavy, animated bar-chart graphic that fills bottom-to-top, then stamps "100% TARGET" across in white.
+Two issues are bundled in your report:
 
-### Component: `TargetBars` (new, inline in `WelcomeCarousel.tsx`)
+1. **"Protein flashes the old value, then snaps to 0"** on first open.
+   Root cause: the Dashboard subscribes to `watchSummary(today)` and `watchLogsForDate(today)` via Firestore. Firestore instantly serves a **cached** snapshot from the previous session before the network response arrives. The cached doc is from yesterday's date key (or a stale `dailySummary`), so the big number momentarily shows the old `consumed` / `remaining`, then the real snapshot for today arrives and resets to the correct value. Visually this reads as "started at the old number, jumped to 0".
 
-Layout (perfectly centered):
-- Container: `w-[280px] h-[180px]` flex column, items-center.
-- Bars row: 7 thick black vertical bars, `w-8` each, `gap-1.5`, aligned to a shared baseline.
-- Baseline: a heavy `h-[6px] w-full bg-foreground` strip directly under the bars (no gap).
-- Overlaid "100% TARGET" text absolutely positioned across the middle of the bars.
+2. **General sluggishness on first paint.**
+   - Three live Firestore listeners spin up before the first frame (`watchLogsForDate`, `watchSummary`, `watchAllSummaries`) and one of them (`watchAllSummaries`) downloads the **entire** dailySummaries collection forever just to compute a streak.
+   - The Dashboard renders a heavy stack (progress bar animation, ProteinPace, Streak, Timeline with per-row motion, floating button) all wrapped in `motion.div` with stagger — the initial animation runs even on cold load.
+   - Two ref warnings in console: `ProteinPace` and `SwipeableLogRow` aren't `forwardRef`, so framer-motion stagger drops refs and re-validates every render — minor but noisy.
+   - `addLog` does a `getProfile` round-trip on every quick-add even though the profile is already in memory via `useAuth`.
 
-### Animation (Framer Motion, runs once on mount via `key={step}` remount)
+## Fix plan
 
-Bars:
-- Each bar uses `transform-origin: bottom` and animates `scaleY` from `0` → `1`.
-- Staggered start: bar `i` delay = `0.1 * i` (Day 1 → Day 7, sequential as requested).
-- Each bar duration: `0.45s`, `ease: [0.65, 0, 0.35, 1]` (sharp brutalist easing).
-- Total ~1.75s (within 1.5–2s window).
+### 1. Kill the stale-value flash (the headline bug)
 
-Text "100% TARGET":
-- Hidden initially (`opacity: 0`).
-- Fades in sharply at delay `~1.8s` with duration `0.2s`.
-- Style inherits headline font: `font-mono font-black uppercase tracking-tighter text-background` (white on black bars), sized `text-2xl`, centered absolutely across the bar group.
+In `src/components/Dashboard.tsx`:
 
-### Code sketch
+- **Reset local state immediately when `viewDate` (or `user`) changes**, before the Firestore listener fires:
+  ```ts
+  useEffect(() => {
+    if (!user) return;
+    setLogs([]);          // clear stale logs from previous day/session
+    setSummary(null);     // forces remaining = target until real data lands
+    const u1 = watchLogsForDate(user.uid, viewDate, setLogs);
+    const u2 = watchSummary(user.uid, viewDate, setSummary);
+    const u3 = watchAllSummaries(user.uid, all => setStreak(computeStreak(all)));
+    return () => { u1(); u2(); u3(); };
+  }, [user, viewDate]);
+  ```
+- **Hide the big number until the first real snapshot arrives** with a `summaryReady` flag set inside the `watchSummary` callback. Until then, render a thin skeleton (single underscore or the target itself) — no jumping number.
+- Same treatment for the progress bar `animate={{ width }}` so it doesn't animate from a stale fill.
 
-```tsx
-function TargetBars() {
-  return (
-    <div className="flex flex-col items-center">
-      <div className="relative">
-        <div className="flex items-end gap-1.5 h-[180px]">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ scaleY: 0 }}
-              animate={{ scaleY: 1 }}
-              transition={{ duration: 0.45, delay: i * 0.1, ease: [0.65, 0, 0.35, 1] }}
-              style={{ transformOrigin: 'bottom' }}
-              className="w-8 h-full bg-foreground"
-            />
-          ))}
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2, delay: 1.8 }}
-            className="absolute inset-0 flex items-center justify-center font-mono font-black uppercase tracking-tighter text-background text-2xl pointer-events-none"
-          >
-            100% TARGET
-          </motion.span>
-        </div>
-        <div className="h-[6px] w-full bg-foreground" />
-      </div>
-    </div>
-  );
-}
-```
+This single change eliminates the "old value → 0" flash in all cases (cold load, day rollover, account switch).
 
-Replace the existing Screen 4 `visual` (lines 164–175) with `<TargetBars />`. Remove the "STREAK ACTIVE" sub-label (replaced by the in-bar "100% TARGET" stamp per spec).
+### 2. Make the cold load actually fast
 
-### Notes
-- Animation re-triggers each time user lands on Screen 4 because the slide is keyed by `step` and remounts.
-- Pagination dots, CTA "LET'S GO", headline, and subtext remain unchanged.
+In `src/components/Dashboard.tsx` and `src/lib/firestore.ts`:
+
+- **Stop downloading the full summaries collection just for the streak.** Replace `watchAllSummaries` with a one-shot `getDocs` limited to the last 30 days, ordered by date desc, run once on mount and re-run only when a log is added/edited/deleted. Streak rarely needs >30 days of context.
+- **Defer non-critical listeners.** Mount `watchLogsForDate` + `watchSummary` immediately; defer the streak fetch behind `requestIdleCallback` (fallback `setTimeout(…, 0)`).
+- **Skip the entry stagger animation on first mount when there's no data yet** — show content instantly, animate only on subsequent transitions. This removes the "fade-in feels slow" perception.
+- **Memoize derived values** (`progress`, `suggestions`, sorted timeline) with `useMemo` so re-renders from the streak listener don't re-sort logs.
+- **Avoid the per-add `getProfile` round-trip** in `addLog`/`updateLog`/`deleteLog`: accept `dailyProtein` as a parameter from the caller (we already have `profile.dailyProtein` in Dashboard via `useAuth`). Saves one network hop per quick-add.
+
+### 3. Fix the React ref warnings (minor but real)
+
+- Wrap `ProteinPace` and `SwipeableLogRow` in `React.forwardRef` (or remove the `motion.div` wrapper around `SwipeableLogRow` — the rows already animate themselves). This silences the warning loop and lets framer-motion skip its dev-mode validator.
+
+### 4. Lighter initial render
+
+- Lazy-load `FoodScanModal` and `QuickLogModal` with `React.lazy` — they're only needed after a tap, but they currently pull `firebase/firestore` query helpers and a 200+ item food database into the initial bundle.
+- Lazy-load `InsightsScreen`, `HistoryScreen`, `ProfileScreen` in `src/pages/Index.tsx` — none are needed for the first paint of the Dashboard.
+
+### 5. Auth bootstrap
+
+In `src/lib/auth.tsx` (read first to confirm): if it currently waits for both `onAuthStateChanged` **and** a `getProfile` round-trip before showing anything, switch the loading screen to release as soon as auth resolves, and let the Dashboard handle the brief "loading profile" state inline. This usually shaves 200–600ms off perceived startup.
+
+## Files touched
+
+- `src/components/Dashboard.tsx` — clear-on-viewDate-change, summaryReady flag, memoization, defer streak, drop initial stagger when empty, pass `dailyProtein` to mutations
+- `src/lib/firestore.ts` — `getRecentSummaries(uid, days)` one-shot helper; `addLog`/`updateLog`/`deleteLog` accept `dailyProtein` instead of re-fetching profile
+- `src/components/ProteinPace.tsx` — `forwardRef`
+- `src/components/SwipeableLogRow.tsx` — `forwardRef` (or unwrap parent motion)
+- `src/pages/Index.tsx` — `React.lazy` for non-initial screens
+- `src/lib/auth.tsx` — only if profile fetch is gating the loading screen unnecessarily
+
+## What you'll feel
+
+- Big protein number renders **once**, with the correct value — no flash, no jump back to 0.
+- Dashboard paints faster on cold open (fewer listeners, smaller bundle, no full-summaries download).
+- Quick-add latency drops by one Firestore round-trip.
+- Console warnings gone.
+
+No schema or backend changes required.
