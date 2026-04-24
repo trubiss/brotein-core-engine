@@ -125,11 +125,16 @@ export default function Dashboard({ onNavigate }: Props) {
   const target = profile.dailyProtein;
   const remaining = Math.max(0, target - consumed);
   const progress = Math.min(100, (consumed / target) * 100);
-  const suggestions = getSuggestions(remaining);
+  const suggestions = useMemo(() => getSuggestions(remaining), [remaining]);
+  const sortedLogs = useMemo(
+    () => [...logs].sort((a, b) => a.timestamp - b.timestamp),
+    [logs],
+  );
 
   const log = async (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
     try {
-      await addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate });
+      await addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate }, profile.dailyProtein);
+      setStreakBump(b => b + 1);
       toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Failed to log');
@@ -137,8 +142,11 @@ export default function Dashboard({ onNavigate }: Props) {
   };
 
   const handleDelete = async (id: string) => {
-    try { await deleteLog(user.uid, id); toast.success('DELETED'); }
-    catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Delete failed'); }
+    try {
+      await deleteLog(user.uid, id, profile.dailyProtein);
+      setStreakBump(b => b + 1);
+      toast.success('DELETED');
+    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Delete failed'); }
   };
 
   return (
