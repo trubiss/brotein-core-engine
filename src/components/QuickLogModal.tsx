@@ -141,16 +141,52 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
     </button>
   );
 
+  const y = useMotionValue(0);
+  const overlayOpacity = useTransform(y, [0, 300], [1, 0]);
+
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    if (info.offset.y > 120 || info.velocity.y > 500) {
+      onClose();
+    } else {
+      y.set(0);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
-      <div className="absolute inset-0 bg-foreground/50 animate-in fade-in duration-200" onClick={onClose} />
-      <div className="relative bg-background w-full max-w-md p-6 border-t-2 border-foreground animate-in slide-in-from-bottom duration-300 max-h-[92vh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="w-12 h-0.5 bg-foreground/30 mx-auto mb-6" />
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-black tracking-[0.1em]">{title}</h2>
-          <button onClick={onClose} className="p-1.5 border-2 border-foreground active:scale-95"><X size={14} /></button>
-        </div>
+      <motion.div
+        className="absolute inset-0 bg-foreground/50"
+        style={{ opacity: overlayOpacity }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      />
+      <motion.div
+        className="relative bg-background w-full max-w-md border-t-2 border-foreground max-h-[92vh] overflow-hidden flex flex-col"
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+        style={{ y }}
+      >
+        {/* Drag handle area — drag from here to dismiss */}
+        <motion.div
+          drag="y"
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={{ top: 0, bottom: 0.6 }}
+          onDragEnd={handleDragEnd}
+          _dragX={undefined}
+          className="px-6 pt-6 pb-2 cursor-grab active:cursor-grabbing touch-none"
+        >
+          <div className="w-12 h-1 bg-foreground/30 mx-auto mb-5 rounded-full" />
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black tracking-[0.1em]">{title}</h2>
+            <button onClick={onClose} className="p-1.5 border-2 border-foreground active:scale-95"><X size={14} /></button>
+          </div>
+        </motion.div>
 
+        <div className="px-6 pb-[max(1rem,env(safe-area-inset-bottom))] overflow-y-auto flex-1 pt-3">
         {!initial && onScan && (
           <button
             onClick={onScan}
