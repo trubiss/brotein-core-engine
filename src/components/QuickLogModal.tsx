@@ -370,7 +370,8 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
             </div>
           </>
         )}
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 }
