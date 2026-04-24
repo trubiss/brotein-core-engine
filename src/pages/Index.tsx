@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import SignInScreen from '@/components/SignInScreen';
 import OnboardingFlow from '@/components/OnboardingFlow';
 import WelcomeCarousel from '@/components/WelcomeCarousel';
 import Dashboard from '@/components/Dashboard';
-import HistoryScreen from '@/components/HistoryScreen';
-import ProfileScreen from '@/components/ProfileScreen';
-import InsightsScreen from '@/components/InsightsScreen';
 import ResetPasswordScreen from '@/components/ResetPasswordScreen';
+
+const HistoryScreen = lazy(() => import('@/components/HistoryScreen'));
+const ProfileScreen = lazy(() => import('@/components/ProfileScreen'));
+const InsightsScreen = lazy(() => import('@/components/InsightsScreen'));
 
 type Page = 'dashboard' | 'history' | 'profile' | 'insights';
 
@@ -69,10 +70,12 @@ const Index = () => {
         exit="exit"
         transition={{ duration: 0.25, ease: 'easeOut' }}
       >
-        {page === 'history' && <HistoryScreen onBack={() => setPage('dashboard')} />}
-        {page === 'profile' && <ProfileScreen onBack={() => setPage('dashboard')} />}
-        {page === 'insights' && <InsightsScreen onBack={() => setPage('dashboard')} />}
-        {page === 'dashboard' && <Dashboard onNavigate={setPage} />}
+        <Suspense fallback={null}>
+          {page === 'history' && <HistoryScreen onBack={() => setPage('dashboard')} />}
+          {page === 'profile' && <ProfileScreen onBack={() => setPage('dashboard')} />}
+          {page === 'insights' && <InsightsScreen onBack={() => setPage('dashboard')} />}
+          {page === 'dashboard' && <Dashboard onNavigate={setPage} />}
+        </Suspense>
       </motion.div>
     </AnimatePresence>
   );

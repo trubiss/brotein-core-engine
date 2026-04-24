@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle } from 'lucide-react';
 import { FoodLog } from '@/lib/types';
@@ -10,7 +10,7 @@ interface Props {
   target: number;
 }
 
-export default function ProteinPace({ logs, consumed, target }: Props) {
+const ProteinPace = forwardRef<HTMLDivElement, Props>(function ProteinPace({ logs, consumed, target }, ref) {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
@@ -27,6 +27,7 @@ export default function ProteinPace({ logs, consumed, target }: Props) {
 
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -99,4 +100,6 @@ export default function ProteinPace({ logs, consumed, target }: Props) {
       )}
     </motion.div>
   );
-}
+});
+
+export default ProteinPace;

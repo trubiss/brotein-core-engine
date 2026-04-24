@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
-import { addLog, watchLogsForDate, watchSummary, watchAllSummaries, computeStreak, updateLog, deleteLog } from '@/lib/firestore';
+import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak, updateLog, deleteLog } from '@/lib/firestore';
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 import { getSuggestions } from '@/lib/suggestions';
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
-import QuickLogModal from './QuickLogModal';
 import ProteinPace from './ProteinPace';
-import FoodScanModal from './FoodScanModal';
 import SwipeableLogRow from './SwipeableLogRow';
 import { User, Plus, BarChart3, Camera, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+
+const QuickLogModal = lazy(() => import('./QuickLogModal'));
+const FoodScanModal = lazy(() => import('./FoodScanModal'));
 
 interface Props {
   onNavigate: (page: 'history' | 'profile' | 'insights') => void;
@@ -28,10 +29,12 @@ export default function Dashboard({ onNavigate }: Props) {
   const [viewDate, setViewDate] = useState(todayKey());
   const [logs, setLogs] = useState<FoodLog[]>([]);
   const [summary, setSummary] = useState<DailySummary | null>(null);
+  const [summaryReady, setSummaryReady] = useState(false);
   const [streak, setStreak] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [showScan, setShowScan] = useState(false);
   const [editing, setEditing] = useState<FoodLog | null>(null);
+  const [streakBump, setStreakBump] = useState(0);
 
   const isToday = viewDate === today;
 
@@ -49,11 +52,37 @@ export default function Dashboard({ onNavigate }: Props) {
 
   useEffect(() => {
     if (!user) return;
+    // Reset state immediately so stale cached values from a previous day/session
+    // don't flash before the live snapshot arrives.
+    setLogs([]);
+    setSummary(null);
+    setSummaryReady(false);
     const u1 = watchLogsForDate(user.uid, viewDate, setLogs);
-    const u2 = watchSummary(user.uid, viewDate, setSummary);
-    const u3 = watchAllSummaries(user.uid, all => setStreak(computeStreak(all)));
-    return () => { u1(); u2(); u3(); };
+    const u2 = watchSummary(user.uid, viewDate, s => {
+      setSummary(s);
+      setSummaryReady(true);
+    });
+    return () => { u1(); u2(); };
   }, [user, viewDate]);
+
+  // Streak: one-shot, deferred to idle, refetched after mutations.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const run = () => {
+      getRecentSummaries(user.uid, 30)
+        .then(all => { if (!cancelled) setStreak(computeStreak(all)); })
+        .catch(() => {});
+    };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
+    const id = w.requestIdleCallback ? w.requestIdleCallback(run) : window.setTimeout(run, 0);
+    return () => {
+      cancelled = true;
+      const w2 = window as Window & { cancelIdleCallback?: (id: number) => void };
+      if (w2.cancelIdleCallback) w2.cancelIdleCallback(id as number);
+      else clearTimeout(id as number);
+    };
+  }, [user, streakBump]);
 
   const shiftDate = (days: number) => {
     const [y, m, d] = viewDate.split('-').map(Number);
@@ -96,11 +125,16 @@ export default function Dashboard({ onNavigate }: Props) {
   const target = profile.dailyProtein;
   const remaining = Math.max(0, target - consumed);
   const progress = Math.min(100, (consumed / target) * 100);
-  const suggestions = getSuggestions(remaining);
+  const suggestions = useMemo(() => getSuggestions(remaining), [remaining]);
+  const sortedLogs = useMemo(
+    () => [...logs].sort((a, b) => a.timestamp - b.timestamp),
+    [logs],
+  );
 
   const log = async (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
     try {
-      await addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate });
+      await addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate }, profile.dailyProtein);
+      setStreakBump(b => b + 1);
       toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Failed to log');
@@ -108,8 +142,11 @@ export default function Dashboard({ onNavigate }: Props) {
   };
 
   const handleDelete = async (id: string) => {
-    try { await deleteLog(user.uid, id); toast.success('DELETED'); }
-    catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Delete failed'); }
+    try {
+      await deleteLog(user.uid, id, profile.dailyProtein);
+      setStreakBump(b => b + 1);
+      toast.success('DELETED');
+    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Delete failed'); }
   };
 
   return (
@@ -151,11 +188,15 @@ export default function Dashboard({ onNavigate }: Props) {
             </button>
           </div>
         </div>
-        <p className="text-7xl font-black font-display tracking-tighter leading-none">{remaining}g</p>
+        {summaryReady ? (
+          <p className="text-7xl font-black font-display tracking-tighter leading-none">{remaining}g</p>
+        ) : (
+          <p className="text-7xl font-black font-display tracking-tighter leading-none opacity-30">—</p>
+        )}
         <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-[0.25em]">
           REMAINING {isToday ? 'TODAY' : `· ${dateLabel}`}
         </p>
-        {logs.length === 0 && isToday && (
+        {summaryReady && logs.length === 0 && isToday && (
           <div className="mt-4 border-2 border-foreground p-3">
             <p className="text-[10px] tracking-[0.2em] uppercase font-bold">NO LOGS YET TODAY</p>
             <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mt-1">ADD YOUR FIRST MEAL TO GET STARTED</p>
@@ -271,7 +312,7 @@ export default function Dashboard({ onNavigate }: Props) {
           </div>
         ) : (
           <div className="border-t-2 border-foreground">
-            {[...logs].sort((a, b) => a.timestamp - b.timestamp).map((l, i) => (
+            {sortedLogs.map((l, i) => (
               <motion.div
                 key={l.id}
                 initial={{ opacity: 0, x: -8 }}
@@ -307,56 +348,62 @@ export default function Dashboard({ onNavigate }: Props) {
         <Plus size={24} strokeWidth={3} />
       </button>
 
-      {showModal && (
-        <QuickLogModal
-          onSubmit={async ({ foodName, proteinGrams, mealType }) => {
-            await log(foodName, proteinGrams, mealType);
-          }}
-          onScan={() => { setShowModal(false); setShowScan(true); }}
-          onClose={() => setShowModal(false)}
-        />
-      )}
+      {(showModal || showScan || editing) && (
+        <Suspense fallback={null}>
+          {showModal && (
+            <QuickLogModal
+              onSubmit={async ({ foodName, proteinGrams, mealType }) => {
+                await log(foodName, proteinGrams, mealType);
+              }}
+              onScan={() => { setShowModal(false); setShowScan(true); }}
+              onClose={() => setShowModal(false)}
+            />
+          )}
 
-      {showScan && (
-        <FoodScanModal
-          onClose={() => setShowScan(false)}
-          onConfirm={async ({ foodName, proteinGrams, mealType, ai, edited }) => {
-            try {
-              await addLog(user.uid, {
-                foodName,
-                proteinGrams,
-                mealType,
-                date: viewDate,
-                source: 'ai-scan',
-                aiDetectedName: ai.foodName,
-                aiEstimatedGrams: ai.proteinGrams,
-                aiConfidence: ai.confidence,
-                aiPortion: ai.portion,
-                aiEdited: edited,
-              });
-              toast.success(`+${proteinGrams}G LOGGED · AI SCAN`);
-            } catch (e: unknown) {
-              toast.error(e instanceof Error ? e.message : 'Failed to log');
-            }
-          }}
-        />
-      )}
+          {showScan && (
+            <FoodScanModal
+              onClose={() => setShowScan(false)}
+              onConfirm={async ({ foodName, proteinGrams, mealType, ai, edited }) => {
+                try {
+                  await addLog(user.uid, {
+                    foodName,
+                    proteinGrams,
+                    mealType,
+                    date: viewDate,
+                    source: 'ai-scan',
+                    aiDetectedName: ai.foodName,
+                    aiEstimatedGrams: ai.proteinGrams,
+                    aiConfidence: ai.confidence,
+                    aiPortion: ai.portion,
+                    aiEdited: edited,
+                  }, profile.dailyProtein);
+                  setStreakBump(b => b + 1);
+                  toast.success(`+${proteinGrams}G LOGGED · AI SCAN`);
+                } catch (e: unknown) {
+                  toast.error(e instanceof Error ? e.message : 'Failed to log');
+                }
+              }}
+            />
+          )}
 
-      {editing && (
-        <QuickLogModal
-          title="EDIT LOG"
-          submitLabel="SAVE"
-          initial={{ foodName: editing.foodName, proteinGrams: editing.proteinGrams, mealType: editing.mealType }}
-          onSubmit={async ({ foodName, proteinGrams, mealType }) => {
-            try {
-              await updateLog(user.uid, editing.id, { foodName, proteinGrams, mealType });
-              toast.success('UPDATED');
-            } catch (e: unknown) {
-              toast.error(e instanceof Error ? e.message : 'Update failed');
-            }
-          }}
-          onClose={() => setEditing(null)}
-        />
+          {editing && (
+            <QuickLogModal
+              title="EDIT LOG"
+              submitLabel="SAVE"
+              initial={{ foodName: editing.foodName, proteinGrams: editing.proteinGrams, mealType: editing.mealType }}
+              onSubmit={async ({ foodName, proteinGrams, mealType }) => {
+                try {
+                  await updateLog(user.uid, editing.id, { foodName, proteinGrams, mealType }, profile.dailyProtein);
+                  setStreakBump(b => b + 1);
+                  toast.success('UPDATED');
+                } catch (e: unknown) {
+                  toast.error(e instanceof Error ? e.message : 'Update failed');
+                }
+              }}
+              onClose={() => setEditing(null)}
+            />
+          )}
+        </Suspense>
       )}
     </motion.div>
   );
