@@ -368,13 +368,17 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
 
               {current.kind === 'interactive-add' && (
                 <div className="w-full flex flex-col items-center gap-8">
-                  <MiniDashboard value={protein} target={TARGET} />
-                  <button
+                  <MiniDashboard value={protein} target={TARGET} flash={tapped} />
+                  <motion.button
                     onClick={handleAdd}
-                    className="w-full max-w-xs border-2 border-foreground py-6 font-mono font-black uppercase tracking-widest text-base bg-background hover:bg-foreground hover:text-background transition-colors active:scale-[0.98]"
+                    whileTap={{ scale: 0.96 }}
+                    animate={tapped > 0 ? { scale: [1, 1.04, 1] } : {}}
+                    transition={{ duration: 0.18 }}
+                    key={`btn-${tapped}`}
+                    className="w-full max-w-xs border-2 border-foreground py-6 font-mono font-black uppercase tracking-widest text-base bg-background hover:bg-foreground hover:text-background transition-colors"
                   >
                     + 20G PROTEIN
-                  </button>
+                  </motion.button>
                   <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
                     {tapped === 0 ? 'TAP TO LOG' : `${tapped} LOG${tapped > 1 ? 'S' : ''} TODAY`}
                   </p>
