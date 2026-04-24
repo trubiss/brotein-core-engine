@@ -29,10 +29,12 @@ export default function Dashboard({ onNavigate }: Props) {
   const [viewDate, setViewDate] = useState(todayKey());
   const [logs, setLogs] = useState<FoodLog[]>([]);
   const [summary, setSummary] = useState<DailySummary | null>(null);
+  const [summaryReady, setSummaryReady] = useState(false);
   const [streak, setStreak] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [showScan, setShowScan] = useState(false);
   const [editing, setEditing] = useState<FoodLog | null>(null);
+  const [streakBump, setStreakBump] = useState(0);
 
   const isToday = viewDate === today;
 
@@ -50,11 +52,37 @@ export default function Dashboard({ onNavigate }: Props) {
 
   useEffect(() => {
     if (!user) return;
+    // Reset state immediately so stale cached values from a previous day/session
+    // don't flash before the live snapshot arrives.
+    setLogs([]);
+    setSummary(null);
+    setSummaryReady(false);
     const u1 = watchLogsForDate(user.uid, viewDate, setLogs);
-    const u2 = watchSummary(user.uid, viewDate, setSummary);
-    const u3 = watchAllSummaries(user.uid, all => setStreak(computeStreak(all)));
-    return () => { u1(); u2(); u3(); };
+    const u2 = watchSummary(user.uid, viewDate, s => {
+      setSummary(s);
+      setSummaryReady(true);
+    });
+    return () => { u1(); u2(); };
   }, [user, viewDate]);
+
+  // Streak: one-shot, deferred to idle, refetched after mutations.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const run = () => {
+      getRecentSummaries(user.uid, 30)
+        .then(all => { if (!cancelled) setStreak(computeStreak(all)); })
+        .catch(() => {});
+    };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
+    const id = w.requestIdleCallback ? w.requestIdleCallback(run) : window.setTimeout(run, 0);
+    return () => {
+      cancelled = true;
+      const w2 = window as Window & { cancelIdleCallback?: (id: number) => void };
+      if (w2.cancelIdleCallback) w2.cancelIdleCallback(id as number);
+      else clearTimeout(id as number);
+    };
+  }, [user, streakBump]);
 
   const shiftDate = (days: number) => {
     const [y, m, d] = viewDate.split('-').map(Number);
