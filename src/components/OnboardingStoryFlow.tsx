@@ -67,10 +67,15 @@ function MetricStack() {
   );
 }
 
-function MiniDashboard({ value, target }: { value: number; target: number }) {
+function MiniDashboard({ value, target, flash = 0 }: { value: number; target: number; flash?: number }) {
   const pct = Math.min(100, Math.round((value / target) * 100));
   return (
-    <div className="w-full max-w-xs border-2 border-foreground p-6 bg-background">
+    <motion.div
+      animate={flash > 0 ? { scale: [1, 1.02, 1] } : {}}
+      transition={{ duration: 0.25 }}
+      key={`d-${flash}`}
+      className="w-full max-w-xs border-2 border-foreground p-6 bg-background"
+    >
       <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-3">
         TODAY
       </p>
@@ -86,18 +91,27 @@ function MiniDashboard({ value, target }: { value: number; target: number }) {
         </motion.span>
         <span className="font-mono font-bold text-xl text-muted-foreground">/ {target}G</span>
       </div>
-      <div className="w-full h-2 bg-muted">
+      <div className="w-full h-2 bg-muted relative overflow-hidden">
         <motion.div
           initial={false}
           animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
+          transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
           className="h-full bg-foreground"
         />
+        {flash > 0 && (
+          <motion.div
+            key={`flash-${flash}`}
+            initial={{ opacity: 0.6, x: '-100%' }}
+            animate={{ opacity: 0, x: '100%' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="absolute inset-0 bg-foreground/40"
+          />
+        )}
       </div>
       <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-muted-foreground mt-3">
         {pct}% OF TARGET
       </p>
-    </div>
+    </motion.div>
   );
 }
 
