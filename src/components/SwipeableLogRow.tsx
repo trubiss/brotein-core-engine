@@ -1,4 +1,4 @@
-import { useRef, useState, ReactNode } from 'react';
+import { forwardRef, useRef, useState, ReactNode } from 'react';
 import { motion, useMotionValue, PanInfo } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 
@@ -11,7 +11,7 @@ interface Props {
 const REVEAL = 56; // px — slim, icon-only
 const THRESHOLD = -36;
 
-export default function SwipeableLogRow({ onTap, onDelete, children }: Props) {
+const SwipeableLogRow = forwardRef<HTMLDivElement, Props>(function SwipeableLogRow({ onTap, onDelete, children }, ref) {
   const x = useMotionValue(0);
   const [open, setOpen] = useState(false);
   const dragged = useRef(false);
