@@ -188,11 +188,15 @@ export default function Dashboard({ onNavigate }: Props) {
             </button>
           </div>
         </div>
-        <p className="text-7xl font-black font-display tracking-tighter leading-none">{remaining}g</p>
+        {summaryReady ? (
+          <p className="text-7xl font-black font-display tracking-tighter leading-none">{remaining}g</p>
+        ) : (
+          <p className="text-7xl font-black font-display tracking-tighter leading-none opacity-30">—</p>
+        )}
         <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-[0.25em]">
           REMAINING {isToday ? 'TODAY' : `· ${dateLabel}`}
         </p>
-        {logs.length === 0 && isToday && (
+        {summaryReady && logs.length === 0 && isToday && (
           <div className="mt-4 border-2 border-foreground p-3">
             <p className="text-[10px] tracking-[0.2em] uppercase font-bold">NO LOGS YET TODAY</p>
             <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mt-1">ADD YOUR FIRST MEAL TO GET STARTED</p>
