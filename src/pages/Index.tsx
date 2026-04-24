@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import SignInScreen from '@/components/SignInScreen';
 import OnboardingFlow from '@/components/OnboardingFlow';
 import WelcomeCarousel from '@/components/WelcomeCarousel';
 import Dashboard from '@/components/Dashboard';
-import HistoryScreen from '@/components/HistoryScreen';
-import ProfileScreen from '@/components/ProfileScreen';
-import InsightsScreen from '@/components/InsightsScreen';
 import ResetPasswordScreen from '@/components/ResetPasswordScreen';
+
+const HistoryScreen = lazy(() => import('@/components/HistoryScreen'));
+const ProfileScreen = lazy(() => import('@/components/ProfileScreen'));
+const InsightsScreen = lazy(() => import('@/components/InsightsScreen'));
 
 type Page = 'dashboard' | 'history' | 'profile' | 'insights';
 
