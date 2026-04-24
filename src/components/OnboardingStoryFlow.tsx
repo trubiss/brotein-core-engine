@@ -24,44 +24,44 @@ const TARGET = 150;
 
 function MetricStack() {
   return (
-    <div className="flex flex-col items-center gap-8">
+    <div className="flex flex-col items-center gap-2">
       <motion.span
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 0.4, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="relative font-mono font-light text-3xl uppercase tracking-tight text-muted-foreground"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 0.35, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="relative font-mono font-light text-2xl uppercase tracking-tight text-muted-foreground"
       >
         CARBS
         <motion.span
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
+          transition={{ duration: 0.35, delay: 0.35 }}
           style={{ transformOrigin: 'left' }}
-          className="absolute left-[-10%] right-[-10%] top-1/2 h-[2px] bg-muted-foreground/70"
+          className="absolute left-[-12%] right-[-12%] top-1/2 h-[2px] bg-muted-foreground/70"
         />
       </motion.span>
       <motion.span
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 0.4, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.25 }}
-        className="relative font-mono font-light text-3xl uppercase tracking-tight text-muted-foreground"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.55, ease: [0.2, 0.8, 0.2, 1] }}
+        className="font-mono font-black text-[5.5rem] md:text-[7rem] uppercase tracking-tighter leading-none text-foreground my-1"
+      >
+        PROTEIN
+      </motion.span>
+      <motion.span
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 0.35, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="relative font-mono font-light text-2xl uppercase tracking-tight text-muted-foreground"
       >
         FATS
         <motion.span
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
-          transition={{ duration: 0.4, delay: 0.55 }}
+          transition={{ duration: 0.35, delay: 0.45 }}
           style={{ transformOrigin: 'left' }}
-          className="absolute left-[-10%] right-[-10%] top-1/2 h-[2px] bg-muted-foreground/70"
+          className="absolute left-[-12%] right-[-12%] top-1/2 h-[2px] bg-muted-foreground/70"
         />
-      </motion.span>
-      <motion.span
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.85, ease: [0.2, 0.8, 0.2, 1] }}
-        className="font-mono font-black text-7xl md:text-8xl uppercase tracking-tighter leading-none text-foreground mt-2"
-      >
-        PROTEIN
       </motion.span>
     </div>
   );
