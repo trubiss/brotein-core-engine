@@ -42,7 +42,7 @@ const SwipeableLogRow = forwardRef<HTMLDivElement, Props>(function SwipeableLogR
   };
 
   return (
-    <div className="relative overflow-hidden border-b border-border">
+    <div ref={ref} className="relative overflow-hidden border-b border-border">
       {/* Slim icon-only delete reveal */}
       <button
         onClick={onDelete}
