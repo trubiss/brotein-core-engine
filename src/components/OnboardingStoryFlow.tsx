@@ -122,6 +122,19 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
   const [protein, setProtein] = useState(0);
   const [tapped, setTapped] = useState(0);
 
+  const estimateGap = useMemo(() => {
+    switch (answers.estimate) {
+      case 'low':
+        return '60–90G';
+      case 'mid':
+        return '30–60G';
+      case 'high':
+        return '10–30G';
+      default:
+        return '30–60G';
+    }
+  }, [answers.estimate]);
+
   const screens: Screen[] = useMemo(
     () => [
       // SECTION 1 — Problem
@@ -130,19 +143,21 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
         headline: <>YOU'RE NOT<br />HITTING YOUR<br />PROTEIN.</>,
         cta: 'CONTINUE',
       },
+      // SECTION 1b — Consequence (single, punchy)
       {
         kind: 'statement',
-        headline: <>THAT'S WHY<br />YOU'RE NOT<br />SEEING<br />RESULTS.</>,
+        headline: <>NO PROTEIN.<br />NO RESULTS.</>,
+        sub: 'MUSCLE, RECOVERY, FAT LOSS — ALL DEPEND ON IT.',
         cta: 'CONTINUE',
       },
+      // SECTION 1c — Focus
       {
         kind: 'statement',
-        headline: <>ONE<br />METRIC.</>,
-        sub: 'CUT THE NOISE. ONE NUMBER DRIVES GROWTH.',
+        headline: <>ONLY ONE<br />NUMBER<br />MATTERS.</>,
         visual: <MetricStack />,
         cta: 'CONTINUE',
       },
-      // SECTION 2 — Reflection
+      // SECTION 2 — Personalization
       {
         kind: 'question',
         key: 'struggle',
@@ -154,11 +169,6 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
         ],
       },
       {
-        kind: 'statement',
-        headline: <>MOST PEOPLE<br />LIKE YOU MISS<br />THEIR TARGET<br />EVERY DAY.</>,
-        cta: 'CONTINUE',
-      },
-      {
         kind: 'question',
         key: 'estimate',
         headline: <>HOW MUCH<br />PROTEIN DO<br />YOU EAT<br />PER DAY?</>,
@@ -168,15 +178,20 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
           { value: 'high', label: '120G+' },
         ],
       },
-      // SECTION 3 — Aha
+      // SECTION 3 — Personalized aha
       {
         kind: 'statement',
-        headline: <>TO BUILD<br />MUSCLE,<br />YOU NEED<br />120G+ DAILY.</>,
+        headline: (
+          <>
+            YOU'RE LIKELY<br />UNDER-EATING<br />PROTEIN BY<br />{estimateGap} DAILY.
+          </>
+        ),
+        sub: 'BASED ON WHAT YOU JUST TOLD US.',
         cta: 'CONTINUE',
       },
       {
         kind: 'statement',
-        headline: <>THAT GAP<br />IS WHY<br />PROGRESS<br />FEELS SLOW.</>,
+        headline: <>THAT GAP<br />IS HOLDING<br />YOU BACK.</>,
         cta: 'SHOW ME THE FIX',
       },
       // SECTION 4 — Product
@@ -198,8 +213,8 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
         headline: protein >= TARGET ? <>YOU'RE<br />ON TRACK.</> : <>YOU'RE<br />BEHIND<br />TODAY.</>,
         sub:
           protein >= TARGET
-            ? 'KEEP THIS RHYTHM AND THE STREAK BUILDS ITSELF.'
-            : 'BROTEIN TELLS YOU EXACTLY HOW MUCH MORE YOU NEED, IN REAL TIME.',
+            ? 'KEEP THIS RHYTHM. THE STREAK BUILDS ITSELF.'
+            : 'BROTEIN SHOWS YOU EXACTLY HOW MUCH MORE YOU NEED — IN REAL TIME.',
         cta: 'CONTINUE',
       },
       // SECTION 5 — Commitment
@@ -216,7 +231,7 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
       // SECTION 6 — Future
       {
         kind: 'statement',
-        headline: <>IN 30 DAYS,<br />YOU BUILD<br />A REAL<br />PROTEIN HABIT.</>,
+        headline: <>IN 30 DAYS,<br />HITTING YOUR<br />PROTEIN BECOMES<br />AUTOMATIC.</>,
         cta: 'CONTINUE',
       },
       {
@@ -224,9 +239,15 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
         headline: <>LESS THAN<br />10 SECONDS<br />PER MEAL.</>,
         cta: 'CONTINUE',
       },
+      // SECTION 6b — Pre-paywall commitment transition
       {
         kind: 'statement',
-        headline: <>MOST USERS<br />HIT THEIR<br />TARGET WITHIN<br />DAYS.</>,
+        headline: (
+          <>
+            YOU ALREADY<br />KNOW WHAT<br />TO DO.
+          </>
+        ),
+        sub: 'NOW YOU JUST NEED TO STAY CONSISTENT.',
         cta: 'CONTINUE',
       },
       // SECTION 7 — Paywall intro
@@ -237,7 +258,7 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
         cta: 'START FREE TRIAL',
       },
     ],
-    [protein]
+    [protein, estimateGap]
   );
 
   const TOTAL = screens.length;
