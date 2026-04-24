@@ -312,7 +312,7 @@ export default function Dashboard({ onNavigate }: Props) {
           </div>
         ) : (
           <div className="border-t-2 border-foreground">
-            {[...logs].sort((a, b) => a.timestamp - b.timestamp).map((l, i) => (
+            {sortedLogs.map((l, i) => (
               <motion.div
                 key={l.id}
                 initial={{ opacity: 0, x: -8 }}
