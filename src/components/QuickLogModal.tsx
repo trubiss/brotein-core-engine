@@ -130,6 +130,20 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
     }
   };
 
+  const quickAdd = async (foodName: string, proteinGrams: number, mt?: MealType) => {
+    if (busy) return;
+    try {
+      if ('vibrate' in navigator) navigator.vibrate?.(8);
+    } catch { /* noop */ }
+    try {
+      await onSubmit({ foodName, proteinGrams, mealType: mt });
+      toast.success(`+${proteinGrams}G ADDED`, { duration: 1400 });
+      onClose();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Log failed');
+    }
+  };
+
   const TabBtn = ({ id, label }: { id: Tab; label: string }) => (
     <button
       onClick={() => setTab(id)}
