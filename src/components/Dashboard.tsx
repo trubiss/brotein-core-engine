@@ -268,7 +268,7 @@ export default function Dashboard({ onNavigate }: Props) {
 
       <div className="section-divider" />
 
-      <ProteinPace logs={logs} consumed={consumed} target={target} />
+      <ProteinPace consumed={consumed} target={target} />
 
       <div className="section-divider" />
 
