@@ -119,29 +119,23 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!canLog || busy) return;
-    setBusy(true);
-    try {
-      await onSubmit({ foodName: name.trim(), proteinGrams: Number(protein), mealType });
-      onClose();
-    } finally {
-      setBusy(false);
-    }
+    // Fire-and-forget for instant UI. Errors surface via toast inside onSubmit.
+    const payload = { foodName: name.trim(), proteinGrams: Number(protein), mealType };
+    Promise.resolve(onSubmit(payload)).catch((e) => {
+      toast.error(e instanceof Error ? e.message : 'Log failed');
+    });
+    onClose();
   };
 
-  const quickAdd = async (foodName: string, proteinGrams: number, mt?: MealType) => {
-    if (busy) return;
-    try {
-      if ('vibrate' in navigator) navigator.vibrate?.(8);
-    } catch { /* noop */ }
-    try {
-      await onSubmit({ foodName, proteinGrams, mealType: mt });
-      toast.success(`+${proteinGrams}G ADDED`, { duration: 1400 });
-      onClose();
-    } catch (e: unknown) {
+  const quickAdd = (foodName: string, proteinGrams: number, mt?: MealType) => {
+    try { if ('vibrate' in navigator) navigator.vibrate?.(8); } catch { /* noop */ }
+    toast.success(`+${proteinGrams}G ADDED`, { duration: 1200 });
+    Promise.resolve(onSubmit({ foodName, proteinGrams, mealType: mt })).catch((e) => {
       toast.error(e instanceof Error ? e.message : 'Log failed');
-    }
+    });
+    onClose();
   };
 
   const TabBtn = ({ id, label }: { id: Tab; label: string }) => (
