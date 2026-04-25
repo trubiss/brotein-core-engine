@@ -175,12 +175,16 @@ export async function updateLog(uid: string, logId: string, patch: Partial<FoodL
   const existing = await getDoc(ref);
   if (!existing.exists()) return;
   const data = existing.data() as FoodLog;
-  await updateDoc(ref, { ...patch, updatedAt: Date.now() });
   const date = (patch.date as string) ?? data.date;
-  await recomputeSummary(uid, date, target);
-  if (patch.date && patch.date !== data.date) {
-    await recomputeSummary(uid, data.date, target);
-  }
+  // Fire-and-forget for instant UI; onSnapshot reflects local writes immediately.
+  updateDoc(ref, { ...patch, updatedAt: Date.now() })
+    .then(() => recomputeSummary(uid, date, target!))
+    .then(() => {
+      if (patch.date && patch.date !== data.date) {
+        return recomputeSummary(uid, data.date, target!);
+      }
+    })
+    .catch(() => { /* surfaced elsewhere */ });
 }
 
 export async function deleteLog(uid: string, logId: string, dailyProtein?: number) {
@@ -194,8 +198,9 @@ export async function deleteLog(uid: string, logId: string, dailyProtein?: numbe
   const existing = await getDoc(ref);
   if (!existing.exists()) return;
   const data = existing.data() as FoodLog;
-  await deleteDoc(ref);
-  await recomputeSummary(uid, data.date, target);
+  deleteDoc(ref)
+    .then(() => recomputeSummary(uid, data.date, target!))
+    .catch(() => { /* surfaced elsewhere */ });
 }
 
 export async function getRecentSummaries(uid: string, days = 30): Promise<DailySummary[]> {
