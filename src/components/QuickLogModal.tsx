@@ -4,7 +4,7 @@ import { MealType, FoodLog } from '@/lib/types';
 import { FOOD_DATABASE, searchFoods, FoodItem } from '@/lib/foods';
 import { useAuth } from '@/lib/auth';
 import { watchFavorites, watchRecentLogs, addFavorite, removeFavorite, FavoriteFood } from '@/lib/firestore';
-import { Search, Star, X, Camera } from 'lucide-react';
+import { Search, Star, X, Camera, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
