@@ -288,19 +288,30 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
                 <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase">YOUR LATEST FOODS WILL APPEAR HERE</p>
               </div>
             ) : dedupedRecents.map(r => (
-              <button
+              <div
                 key={r.id}
-                onClick={() => pickRecent(r)}
-                className="w-full flex items-center justify-between gap-3 py-3 border-b border-border min-w-0 active:bg-foreground/5"
+                className="flex items-stretch gap-2 border-b border-border min-w-0"
               >
-                <div className="min-w-0 text-left">
-                  <p className="text-sm uppercase tracking-[0.12em] truncate">{r.foodName}</p>
-                  <p className="text-[10px] text-muted-foreground tracking-wider uppercase">
-                    {r.mealType ? `${r.mealType} · ` : ''}{new Date(r.timestamp).toLocaleDateString()}
-                  </p>
-                </div>
-                <span className="font-display text-sm font-bold whitespace-nowrap shrink-0">{r.proteinGrams}G</span>
-              </button>
+                <button
+                  onClick={() => pickRecent(r)}
+                  className="flex-1 flex items-center justify-between gap-3 py-3 pr-2 min-w-0 active:bg-foreground/5 text-left"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm uppercase tracking-[0.12em] truncate">{r.foodName}</p>
+                    <p className="text-[10px] text-muted-foreground tracking-wider uppercase">
+                      {r.mealType ? `${r.mealType} · ` : ''}{r.proteinGrams}G PROTEIN
+                    </p>
+                  </div>
+                </button>
+                <motion.button
+                  whileTap={{ scale: 1.08 }}
+                  onClick={(e) => { e.stopPropagation(); quickAdd(r.foodName, r.proteinGrams, r.mealType); }}
+                  className="my-2 w-11 h-11 border-2 border-foreground flex items-center justify-center shrink-0 bg-background active:bg-foreground active:text-background"
+                  aria-label={`Add ${r.proteinGrams}g ${r.foodName}`}
+                >
+                  <Plus size={16} strokeWidth={3} />
+                </motion.button>
+              </div>
             ))}
           </div>
         )}
