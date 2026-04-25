@@ -157,8 +157,10 @@ export async function addLog(
       updatedAt: now,
     }).filter(([, v]) => v !== undefined)
   ) as unknown as FoodLog;
-  await setDoc(ref, log);
-  await recomputeSummary(uid, date, target);
+  // Don't await — Firestore's local cache emits the change to onSnapshot
+  // listeners synchronously, so the UI updates instantly. Server sync and
+  // summary recompute happen in the background.
+  setDoc(ref, log).then(() => recomputeSummary(uid, date, target!)).catch(() => { /* surfaced elsewhere */ });
   return log;
 }
 
