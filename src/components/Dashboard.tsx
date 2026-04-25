@@ -131,14 +131,15 @@ export default function Dashboard({ onNavigate }: Props) {
     [logs],
   );
 
-  const log = async (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
-    try {
-      await addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate }, profile.dailyProtein);
-      setStreakBump(b => b + 1);
-      toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`);
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Failed to log');
-    }
+  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
+    // Optimistic: toast immediately, write in background. Firestore's local cache
+    // will reflect the new log via onSnapshot before the server round-trip completes.
+    toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`);
+    setStreakBump(b => b + 1);
+    return addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate }, profile.dailyProtein)
+      .catch((e: unknown) => {
+        toast.error(e instanceof Error ? e.message : 'Failed to log');
+      });
   };
 
   const handleDelete = async (id: string) => {
