@@ -239,13 +239,6 @@ export default function Dashboard({ onNavigate }: Props) {
             QUICK ADD +
           </button>
         </div>
-        <button
-          className="w-full mt-2 bg-background text-foreground px-4 py-4 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform border-2 border-foreground"
-          onClick={() => setShowScan(true)}
-        >
-          <Camera size={16} strokeWidth={2.5} />
-          <span className="text-xs font-bold tracking-[0.2em] uppercase font-display">SCAN FOOD WITH AI</span>
-        </button>
       </motion.div>
 
       {suggestions.length > 0 && (
