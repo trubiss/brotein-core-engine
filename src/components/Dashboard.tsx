@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak, updateLog, deleteLog } from '@/lib/firestore';
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
@@ -7,11 +7,32 @@ import { getSuggestions } from '@/lib/suggestions';
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 import ProteinPace from './ProteinPace';
 import SwipeableLogRow from './SwipeableLogRow';
-import { User, Plus, BarChart3, Camera, ChevronLeft, ChevronRight } from 'lucide-react';
+import { User, Plus, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
+
+/** Counter that tweens between values for a satisfying count-up/down on log. */
+function AnimatedGrams({ value }: { value: number }) {
+  const mv = useMotionValue(value);
+  const display = useTransform(mv, (v) => `${Math.round(v)}g`);
+  const prev = useRef(value);
+  useEffect(() => {
+    const controls = animate(mv, value, {
+      duration: 0.45,
+      ease: 'easeOut',
+      from: prev.current,
+    });
+    prev.current = value;
+    return controls.stop;
+  }, [value, mv]);
+  return (
+    <motion.p className="text-7xl font-black font-display tracking-tighter leading-none">
+      {display}
+    </motion.p>
+  );
+}
 
 interface Props {
   onNavigate: (page: 'history' | 'profile' | 'insights') => void;
