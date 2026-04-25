@@ -190,19 +190,28 @@ export default function Dashboard({ onNavigate }: Props) {
           </div>
         </div>
         {summaryReady ? (
-          <p className="text-7xl font-black font-display tracking-tighter leading-none">{remaining}g</p>
+          <AnimatedGrams value={remaining} />
         ) : (
           <p className="text-7xl font-black font-display tracking-tighter leading-none opacity-30">—</p>
         )}
         <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-[0.25em]">
           REMAINING {isToday ? 'TODAY' : `· ${dateLabel}`}
         </p>
-        {summaryReady && logs.length === 0 && isToday && (
-          <div className="mt-4 border-2 border-foreground p-3">
-            <p className="text-[10px] tracking-[0.2em] uppercase font-bold">NO LOGS YET TODAY</p>
-            <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mt-1">ADD YOUR FIRST MEAL TO GET STARTED</p>
-          </div>
-        )}
+      </motion.div>
+
+      {/* One-tap quick add — primary action on home */}
+      <motion.div variants={fadeUp} className="mt-6 mb-2 grid grid-cols-3 gap-2">
+        {[20, 30, 40].map(g => (
+          <motion.button
+            key={g}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => log(`+${g}g protein`, g)}
+            className="border-2 border-foreground bg-foreground text-background py-5 font-display font-black text-lg tracking-[0.08em] active:opacity-90"
+            aria-label={`Quick add ${g} grams`}
+          >
+            +{g}G
+          </motion.button>
+        ))}
       </motion.div>
 
 
