@@ -3,12 +3,12 @@ import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak, updateLog, deleteLog } from '@/lib/firestore';
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
-import { getSuggestions } from '@/lib/suggestions';
+
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
-import ProteinPace from './ProteinPace';
 import SwipeableLogRow from './SwipeableLogRow';
 import { User, Plus, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { computePace } from '@/lib/pace';
 
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
@@ -145,12 +145,28 @@ export default function Dashboard({ onNavigate }: Props) {
   const consumed = summary?.consumedProtein ?? 0;
   const target = profile.dailyProtein;
   const remaining = Math.max(0, target - consumed);
-  const progress = Math.min(100, (consumed / target) * 100);
-  const suggestions = useMemo(() => getSuggestions(remaining), [remaining]);
+  const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
   const sortedLogs = useMemo(
     () => [...logs].sort((a, b) => a.timestamp - b.timestamp),
     [logs],
   );
+
+  // Action-driven status copy. Direct, no passive language.
+  const status = (() => {
+    if (consumed >= target) {
+      return { headline: 'LOCKED IN', sub: 'TARGET HIT.' };
+    }
+    if (pace.status === 'ahead') {
+      return { headline: 'AHEAD OF PACE', sub: "YOU'RE CRUSHING IT. KEEP GOING." };
+    }
+    if (pace.status === 'behind') {
+      const need = Math.max(0, target - consumed);
+      // Deadline = end of active eating window (22:00). Show as HH:MM.
+      return { headline: 'BEHIND', sub: `NEED ${need}G BEFORE 22:00` };
+    }
+    return { headline: 'ON TRACK', sub: 'STAY CONSISTENT.' };
+  })();
+
 
   const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
     // Optimistic: toast immediately, write in background. Firestore's local cache
@@ -185,9 +201,9 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
       </motion.div>
 
-      <motion.div variants={fadeUp} className="mb-4 min-w-0">
+      <motion.div variants={fadeUp} className="mb-3 min-w-0">
         {/* Inline date control — sits with FUEL STATUS, owns the day's context */}
-        <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="flex items-center justify-between gap-3 mb-2">
           <p className="label-spaced mb-0">FUEL STATUS</p>
           <div className="flex items-center gap-1 shrink-0">
             <button
@@ -215,13 +231,29 @@ export default function Dashboard({ onNavigate }: Props) {
         ) : (
           <p className="text-7xl font-black font-display tracking-tighter leading-none opacity-30">—</p>
         )}
-        <p className="text-[10px] text-muted-foreground mt-3 uppercase tracking-[0.25em]">
+        <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-[0.25em]">
           REMAINING {isToday ? 'TODAY' : `· ${dateLabel}`}
         </p>
       </motion.div>
 
-      {/* One-tap quick add — primary action on home */}
-      <motion.div variants={fadeUp} className="mt-6 mb-2 grid grid-cols-3 gap-2">
+      {/* Status — direct, action-based. Pulses when headline changes. */}
+      <motion.div
+        key={status.headline}
+        initial={{ scale: 1 }}
+        animate={{ scale: [1, 1.05, 1] }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="mb-3 min-w-0"
+      >
+        <p className="font-display text-base font-black tracking-[0.15em] truncate">
+          {status.headline}
+        </p>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground mt-1 truncate">
+          {status.sub}
+        </p>
+      </motion.div>
+
+      {/* One-tap quick add — primary action on home, tightly bound to the number */}
+      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-2 mb-2">
         {[20, 30, 40].map(g => (
           <motion.button
             key={g}
@@ -234,62 +266,6 @@ export default function Dashboard({ onNavigate }: Props) {
           </motion.button>
         ))}
       </motion.div>
-
-
-      <div className="section-divider" />
-
-      <motion.div variants={fadeUp} className="card-brutal mb-4">
-        <div className="flex justify-between items-baseline mb-6 gap-2 min-w-0">
-          <p className="label-spaced mb-0 truncate">PROGRESS</p>
-          <p className="font-display text-sm font-bold whitespace-nowrap">{consumed} / {target}G</p>
-        </div>
-        <div className="progress-bar-track mb-4">
-          <motion.div
-            className="progress-bar-fill"
-            initial={false}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-          />
-        </div>
-        <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
-          <span>{remaining}G REMAINING</span>
-          <span>{Math.round(progress)}%</span>
-        </div>
-        <div className="mt-8">
-          <button className="btn-primary w-full" onClick={() => setShowModal(true)}>
-            QUICK ADD +
-          </button>
-        </div>
-      </motion.div>
-
-      {suggestions.length > 0 && (
-        <>
-          <div className="section-divider" />
-          <motion.div variants={fadeUp}>
-            <p className="label-spaced">SMART SUGGESTIONS</p>
-            <div className="border-t-2 border-foreground">
-              {suggestions.map(s => (
-                <div key={s.name} className="flex items-center justify-between gap-3 py-3 border-b border-border min-w-0">
-                  <div className="min-w-0">
-                    <p className="text-sm uppercase tracking-[0.12em] truncate">{s.name}</p>
-                    <p className="text-[10px] text-muted-foreground tracking-wider">~{s.protein}G PROTEIN</p>
-                  </div>
-                  <button
-                    onClick={() => log(s.name, s.protein)}
-                    className="border-2 border-foreground px-3 py-1.5 text-[10px] font-bold tracking-widest active:scale-95 transition-transform shrink-0"
-                  >
-                    +{s.protein}G
-                  </button>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </>
-      )}
-
-      <div className="section-divider" />
-
-      <ProteinPace consumed={consumed} target={target} />
 
       <div className="section-divider" />
 
