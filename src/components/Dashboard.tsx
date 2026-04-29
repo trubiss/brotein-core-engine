@@ -5,7 +5,7 @@ import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStre
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
-import SwipeableLogRow from './SwipeableLogRow';
+
 import { User, Plus, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { computePace } from '@/lib/pace';
@@ -54,7 +54,7 @@ export default function Dashboard({ onNavigate }: Props) {
   const [streak, setStreak] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [showScan, setShowScan] = useState(false);
-  const [editing, setEditing] = useState<FoodLog | null>(null);
+  
   const [streakBump, setStreakBump] = useState(0);
 
   const isToday = viewDate === today;
@@ -146,10 +146,6 @@ export default function Dashboard({ onNavigate }: Props) {
   const target = profile.dailyProtein;
   const remaining = Math.max(0, target - consumed);
   const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
-  const sortedLogs = useMemo(
-    () => [...logs].sort((a, b) => a.timestamp - b.timestamp),
-    [logs],
-  );
 
   // Action-driven status copy. Direct, no passive language.
   const status = (() => {
@@ -179,13 +175,6 @@ export default function Dashboard({ onNavigate }: Props) {
       });
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteLog(user.uid, id, profile.dailyProtein);
-      setStreakBump(b => b + 1);
-      toast.success('DELETED');
-    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Delete failed'); }
-  };
 
   return (
     <motion.div className="screen-container pb-32" variants={stagger} initial="initial" animate="animate">
