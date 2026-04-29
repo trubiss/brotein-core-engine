@@ -33,9 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       try {
         if (u) {
-          const p = await getProfile(u.uid);
           setUser(u);
-          setProfile(p);
+          try {
+            const p = await getProfile(u.uid);
+            setProfile(p);
+          } catch (err) {
+            console.error('getProfile failed (continuing without profile):', err);
+            setProfile(null);
+          }
         } else {
           setUser(null);
           setProfile(null);
@@ -58,7 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   const signOut = async () => { await fbSignOut(auth); };
   const refreshProfile = async () => {
-    if (user) setProfile(await getProfile(user.uid));
+    if (user) {
+      try { setProfile(await getProfile(user.uid)); }
+      catch (err) { console.error('refreshProfile failed:', err); }
+    }
   };
   const sendPasswordReset = async (email: string) => {
     await sendPasswordResetEmail(auth, email, { url: window.location.origin });
