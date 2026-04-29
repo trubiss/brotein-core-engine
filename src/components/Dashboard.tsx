@@ -28,7 +28,7 @@ function AnimatedGrams({ value }: { value: number }) {
     return controls.stop;
   }, [value, mv]);
   return (
-    <motion.p className="text-7xl font-black font-display tracking-tighter leading-none">
+    <motion.p className="text-[5.5rem] font-black font-display leading-[0.95]" style={{ letterSpacing: '-0.04em' }}>
       {display}
     </motion.p>
   );
@@ -190,10 +190,10 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
       </motion.div>
 
-      <motion.div variants={fadeUp} className="mb-3 min-w-0">
+      <motion.div variants={fadeUp} className="mb-2 min-w-0">
         {/* Inline date control — sits with FUEL STATUS, owns the day's context */}
-        <div className="flex items-center justify-between gap-3 mb-2">
-          <p className="label-spaced mb-0">FUEL STATUS</p>
+        <div className="flex items-center justify-between gap-3 mb-1">
+          <p className="label-spaced mb-0 opacity-40 tracking-[0.25em]">FUEL STATUS</p>
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => shiftDate(-1)}
@@ -202,7 +202,7 @@ export default function Dashboard({ onNavigate }: Props) {
             >
               <ChevronLeft size={14} strokeWidth={2.5} />
             </button>
-            <span className="font-display text-[10px] font-bold tracking-[0.25em] uppercase min-w-[68px] text-center">
+            <span className="font-display text-[10px] font-bold tracking-[0.2em] uppercase min-w-[68px] text-center">
               {dateLabel}
             </span>
             <button
@@ -218,40 +218,40 @@ export default function Dashboard({ onNavigate }: Props) {
         {summaryReady ? (
           <AnimatedGrams value={remaining} />
         ) : (
-          <p className="text-7xl font-black font-display tracking-tighter leading-none opacity-30">—</p>
+          <p className="text-[5.5rem] font-black font-display leading-[0.95] opacity-30" style={{ letterSpacing: '-0.04em' }}>—</p>
         )}
-        <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-[0.25em]">
+        <p className="text-[10px] text-muted-foreground/70 mt-1 uppercase tracking-[0.2em]">
           REMAINING {isToday ? 'TODAY' : `· ${dateLabel}`}
         </p>
       </motion.div>
 
-      {/* Status — direct, action-based. Pulses when headline changes. */}
+      {/* Status — direct, action-based. Pulses when headline changes. Tightly grouped as one unit. */}
       <motion.div
         key={status.headline}
         initial={{ scale: 1 }}
         animate={{ scale: [1, 1.04, 1] }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="mb-6 min-w-0"
+        className="mb-7 min-w-0"
       >
-        <p className="font-display text-base font-black tracking-[0.15em] truncate">
+        <p className="font-display text-lg font-black tracking-[0.12em] truncate leading-tight">
           {status.headline}
         </p>
-        <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground mt-1 truncate">
+        <p className="text-[10px] tracking-[0.18em] uppercase text-muted-foreground/70 mt-0.5 truncate leading-tight">
           {status.sub}
         </p>
       </motion.div>
 
       {/* Boxed progress card — primary tool panel */}
-      <motion.div variants={fadeUp} className="border-2 border-foreground p-5 mb-5">
-        <div className="flex items-center justify-between mb-3 min-w-0">
-          <p className="label-spaced mb-0">PROGRESS</p>
-          <p className="font-display text-xs font-black tracking-[0.05em] shrink-0">
+      <motion.div variants={fadeUp} className="border border-foreground/70 p-4 mb-3">
+        <div className="flex items-baseline justify-between mb-2 min-w-0">
+          <p className="font-display text-[10px] font-bold tracking-[0.2em] uppercase text-muted-foreground mb-0">PROGRESS</p>
+          <p className="font-display text-xs font-black tracking-[0.04em] shrink-0">
             {consumed} / {target}G
           </p>
         </div>
 
         {/* Progress bar */}
-        <div className="h-2 w-full bg-foreground/10 mb-2 overflow-hidden">
+        <div className="h-[10px] w-full bg-foreground/10 mb-1.5 overflow-hidden">
           <motion.div
             className="h-full bg-foreground"
             initial={false}
@@ -260,11 +260,11 @@ export default function Dashboard({ onNavigate }: Props) {
           />
         </div>
 
-        <div className="flex items-center justify-between mb-5 min-w-0">
-          <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground truncate">
+        <div className="flex items-center justify-between mb-4 min-w-0">
+          <p className="text-[9px] tracking-[0.18em] uppercase text-muted-foreground/60 truncate">
             {remaining}G REMAINING
           </p>
-          <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground shrink-0">
+          <p className="text-[9px] tracking-[0.18em] uppercase text-muted-foreground/60 shrink-0">
             {target > 0 ? Math.min(100, Math.round((consumed / target) * 100)) : 0}%
           </p>
         </div>
@@ -272,27 +272,27 @@ export default function Dashboard({ onNavigate }: Props) {
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowModal(true)}
-          className="w-full bg-foreground text-background py-4 font-display font-black text-sm tracking-[0.15em] mb-2 active:opacity-90"
+          className="w-full bg-foreground text-background py-3.5 font-display font-black text-sm tracking-[0.12em] mb-2.5 active:opacity-90"
         >
           QUICK ADD +
         </motion.button>
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowScan(true)}
-          className="w-full border-2 border-foreground py-4 font-display font-black text-sm tracking-[0.15em] active:bg-foreground/5"
+          className="w-full border border-foreground/80 py-3.5 font-display font-black text-sm tracking-[0.12em] active:bg-foreground/5"
         >
           SCAN FOOD WITH AI
         </motion.button>
       </motion.div>
 
-      {/* Secondary one-tap shortcuts */}
-      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-2 mb-5">
+      {/* Secondary one-tap shortcuts — feel like extensions of the card */}
+      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-1.5 mb-8">
         {[20, 30, 40].map(g => (
           <motion.button
             key={g}
             whileTap={{ scale: 0.96 }}
             onClick={() => log(`+${g}g protein`, g)}
-            className="border-2 border-foreground py-3 font-display font-black text-base tracking-[0.08em] active:bg-foreground/5"
+            className="border border-foreground/70 py-2.5 font-display font-black text-base tracking-[0.06em] active:bg-foreground/5"
             aria-label={`Quick add ${g} grams`}
           >
             +{g}G
@@ -300,9 +300,9 @@ export default function Dashboard({ onNavigate }: Props) {
         ))}
       </motion.div>
 
-      {/* Minimal streak — low visual weight */}
+      {/* Minimal streak — low visual weight, breathes above */}
       <motion.div variants={fadeUp} className="mb-2">
-        <p className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+        <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55">
           STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'}
         </p>
       </motion.div>
