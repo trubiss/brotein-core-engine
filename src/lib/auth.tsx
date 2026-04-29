@@ -63,7 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   const signOut = async () => { await fbSignOut(auth); };
   const refreshProfile = async () => {
-    if (user) setProfile(await getProfile(user.uid));
+    if (user) {
+      try { setProfile(await getProfile(user.uid)); }
+      catch (err) { console.error('refreshProfile failed:', err); }
+    }
   };
   const sendPasswordReset = async (email: string) => {
     await sendPasswordResetEmail(auth, email, { url: window.location.origin });
