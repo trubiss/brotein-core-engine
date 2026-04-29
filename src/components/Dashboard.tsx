@@ -272,7 +272,7 @@ export default function Dashboard({ onNavigate }: Props) {
         <Plus size={24} strokeWidth={3} />
       </button>
 
-      {(showModal || showScan || editing) && (
+      {(showModal || showScan) && (
         <Suspense fallback={null}>
           {showModal && (
             <QuickLogModal
@@ -307,24 +307,6 @@ export default function Dashboard({ onNavigate }: Props) {
                   toast.error(e instanceof Error ? e.message : 'Failed to log');
                 }
               }}
-            />
-          )}
-
-          {editing && (
-            <QuickLogModal
-              title="EDIT LOG"
-              submitLabel="SAVE"
-              initial={{ foodName: editing.foodName, proteinGrams: editing.proteinGrams, mealType: editing.mealType }}
-              onSubmit={async ({ foodName, proteinGrams, mealType }) => {
-                try {
-                  await updateLog(user.uid, editing.id, { foodName, proteinGrams, mealType }, profile.dailyProtein);
-                  setStreakBump(b => b + 1);
-                  toast.success('UPDATED');
-                } catch (e: unknown) {
-                  toast.error(e instanceof Error ? e.message : 'Update failed');
-                }
-              }}
-              onClose={() => setEditing(null)}
             />
           )}
         </Suspense>
