@@ -253,7 +253,7 @@ export default function Dashboard({ onNavigate }: Props) {
       </motion.div>
 
       {/* One-tap quick add — primary action on home, tightly bound to the number */}
-      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-2 mb-2">
+      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-2 mb-10">
         {[20, 30, 40].map(g => (
           <motion.button
             key={g}
@@ -267,76 +267,11 @@ export default function Dashboard({ onNavigate }: Props) {
         ))}
       </motion.div>
 
-      <div className="section-divider" />
-
+      {/* Minimal streak — low visual weight */}
       <motion.div variants={fadeUp} className="mb-4">
-        <p className="label-spaced">CURRENT STREAK</p>
-        {streak > 0 ? (
-          <p className="text-4xl font-black font-display mb-6">{streak} DAYS</p>
-        ) : (
-          <p className="text-sm font-bold uppercase tracking-[0.15em] mb-6">LOG TODAY TO START YOUR STREAK 🔥</p>
-        )}
-        <div className="flex gap-2">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className={`day-box ${i < streak ? 'day-box-filled' : ''}`}>
-              {i < streak ? '✓' : ''}
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      <div className="section-divider" />
-
-      <motion.div variants={fadeUp} className="mb-4">
-        <div className="flex justify-between items-center mb-2 gap-2 min-w-0">
-          <p className="label-spaced mb-0 truncate">{isToday ? 'TODAY' : dateLabel} TIMELINE</p>
-          <button
-            className="text-[10px] font-display tracking-[0.2em] font-bold uppercase border-b-2 border-foreground pb-0.5 active:opacity-60 shrink-0"
-            onClick={() => onNavigate('history')}
-          >
-            VIEW ALL
-          </button>
-        </div>
-        <p className="text-[9px] text-muted-foreground tracking-[0.25em] uppercase mb-4">
-          TAP TO EDIT · SWIPE LEFT TO DELETE
+        <p className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+          STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'}
         </p>
-        {logs.length === 0 ? (
-          <div className="border-t-2 border-foreground py-10 text-center">
-            <p className="text-sm uppercase tracking-[0.15em] mb-2">
-              {isToday ? 'NO PROTEIN LOGGED TODAY' : `NO LOGS ON ${dateLabel}`}
-            </p>
-            <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mb-6">
-              {isToday ? 'ADD YOUR FIRST INTAKE' : 'BACKFILL THIS DAY'}
-            </p>
-            <button className="btn-outline" onClick={() => setShowModal(true)}>+ ADD LOG</button>
-          </div>
-        ) : (
-          <div className="border-t-2 border-foreground">
-            {sortedLogs.map((l, i) => (
-              <motion.div
-                key={l.id}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.04, duration: 0.25 }}
-              >
-                <SwipeableLogRow onTap={() => setEditing(l)} onDelete={() => handleDelete(l.id)}>
-                  <div className="flex items-start gap-3 py-4 px-1 min-w-0">
-                    <span className="font-display text-[11px] font-bold whitespace-nowrap pt-0.5 w-12 shrink-0">
-                      {new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm uppercase tracking-[0.12em] truncate">{l.foodName}</p>
-                      {l.mealType && (
-                        <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-0.5">{l.mealType}</p>
-                      )}
-                    </div>
-                    <span className="font-display text-sm font-bold whitespace-nowrap shrink-0">{l.proteinGrams}G</span>
-                  </div>
-                </SwipeableLogRow>
-              </motion.div>
-            ))}
-          </div>
-        )}
       </motion.div>
 
       {/* Floating + */}
