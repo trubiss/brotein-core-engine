@@ -145,12 +145,28 @@ export default function Dashboard({ onNavigate }: Props) {
   const consumed = summary?.consumedProtein ?? 0;
   const target = profile.dailyProtein;
   const remaining = Math.max(0, target - consumed);
-  const progress = Math.min(100, (consumed / target) * 100);
-  const suggestions = useMemo(() => getSuggestions(remaining), [remaining]);
+  const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
   const sortedLogs = useMemo(
     () => [...logs].sort((a, b) => a.timestamp - b.timestamp),
     [logs],
   );
+
+  // Action-driven status copy. Direct, no passive language.
+  const status = (() => {
+    if (consumed >= target) {
+      return { headline: 'LOCKED IN', sub: 'TARGET HIT.' };
+    }
+    if (pace.status === 'ahead') {
+      return { headline: 'AHEAD OF PACE', sub: "YOU'RE CRUSHING IT. KEEP GOING." };
+    }
+    if (pace.status === 'behind') {
+      const need = Math.max(0, target - consumed);
+      // Deadline = end of active eating window (22:00). Show as HH:MM.
+      return { headline: 'BEHIND', sub: `NEED ${need}G BEFORE 22:00` };
+    }
+    return { headline: 'ON TRACK', sub: 'STAY CONSISTENT.' };
+  })();
+
 
   const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
     // Optimistic: toast immediately, write in background. Firestore's local cache
