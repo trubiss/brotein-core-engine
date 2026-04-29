@@ -5,10 +5,10 @@ import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStre
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 import { getSuggestions } from '@/lib/suggestions';
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
-import ProteinPace from './ProteinPace';
 import SwipeableLogRow from './SwipeableLogRow';
 import { User, Plus, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { computePace } from '@/lib/pace';
 
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
