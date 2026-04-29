@@ -1,11 +1,11 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
-import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak, updateLog, deleteLog } from '@/lib/firestore';
+import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak } from '@/lib/firestore';
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
-import SwipeableLogRow from './SwipeableLogRow';
+
 import { User, Plus, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { computePace } from '@/lib/pace';
@@ -54,7 +54,7 @@ export default function Dashboard({ onNavigate }: Props) {
   const [streak, setStreak] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [showScan, setShowScan] = useState(false);
-  const [editing, setEditing] = useState<FoodLog | null>(null);
+  
   const [streakBump, setStreakBump] = useState(0);
 
   const isToday = viewDate === today;
@@ -146,10 +146,6 @@ export default function Dashboard({ onNavigate }: Props) {
   const target = profile.dailyProtein;
   const remaining = Math.max(0, target - consumed);
   const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
-  const sortedLogs = useMemo(
-    () => [...logs].sort((a, b) => a.timestamp - b.timestamp),
-    [logs],
-  );
 
   // Action-driven status copy. Direct, no passive language.
   const status = (() => {
@@ -179,13 +175,6 @@ export default function Dashboard({ onNavigate }: Props) {
       });
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteLog(user.uid, id, profile.dailyProtein);
-      setStreakBump(b => b + 1);
-      toast.success('DELETED');
-    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Delete failed'); }
-  };
 
   return (
     <motion.div className="screen-container pb-32" variants={stagger} initial="initial" animate="animate">
@@ -253,7 +242,7 @@ export default function Dashboard({ onNavigate }: Props) {
       </motion.div>
 
       {/* One-tap quick add — primary action on home, tightly bound to the number */}
-      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-2 mb-2">
+      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-2 mb-10">
         {[20, 30, 40].map(g => (
           <motion.button
             key={g}
@@ -267,76 +256,11 @@ export default function Dashboard({ onNavigate }: Props) {
         ))}
       </motion.div>
 
-      <div className="section-divider" />
-
+      {/* Minimal streak — low visual weight */}
       <motion.div variants={fadeUp} className="mb-4">
-        <p className="label-spaced">CURRENT STREAK</p>
-        {streak > 0 ? (
-          <p className="text-4xl font-black font-display mb-6">{streak} DAYS</p>
-        ) : (
-          <p className="text-sm font-bold uppercase tracking-[0.15em] mb-6">LOG TODAY TO START YOUR STREAK 🔥</p>
-        )}
-        <div className="flex gap-2">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className={`day-box ${i < streak ? 'day-box-filled' : ''}`}>
-              {i < streak ? '✓' : ''}
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      <div className="section-divider" />
-
-      <motion.div variants={fadeUp} className="mb-4">
-        <div className="flex justify-between items-center mb-2 gap-2 min-w-0">
-          <p className="label-spaced mb-0 truncate">{isToday ? 'TODAY' : dateLabel} TIMELINE</p>
-          <button
-            className="text-[10px] font-display tracking-[0.2em] font-bold uppercase border-b-2 border-foreground pb-0.5 active:opacity-60 shrink-0"
-            onClick={() => onNavigate('history')}
-          >
-            VIEW ALL
-          </button>
-        </div>
-        <p className="text-[9px] text-muted-foreground tracking-[0.25em] uppercase mb-4">
-          TAP TO EDIT · SWIPE LEFT TO DELETE
+        <p className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+          STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'}
         </p>
-        {logs.length === 0 ? (
-          <div className="border-t-2 border-foreground py-10 text-center">
-            <p className="text-sm uppercase tracking-[0.15em] mb-2">
-              {isToday ? 'NO PROTEIN LOGGED TODAY' : `NO LOGS ON ${dateLabel}`}
-            </p>
-            <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mb-6">
-              {isToday ? 'ADD YOUR FIRST INTAKE' : 'BACKFILL THIS DAY'}
-            </p>
-            <button className="btn-outline" onClick={() => setShowModal(true)}>+ ADD LOG</button>
-          </div>
-        ) : (
-          <div className="border-t-2 border-foreground">
-            {sortedLogs.map((l, i) => (
-              <motion.div
-                key={l.id}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.04, duration: 0.25 }}
-              >
-                <SwipeableLogRow onTap={() => setEditing(l)} onDelete={() => handleDelete(l.id)}>
-                  <div className="flex items-start gap-3 py-4 px-1 min-w-0">
-                    <span className="font-display text-[11px] font-bold whitespace-nowrap pt-0.5 w-12 shrink-0">
-                      {new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm uppercase tracking-[0.12em] truncate">{l.foodName}</p>
-                      {l.mealType && (
-                        <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-0.5">{l.mealType}</p>
-                      )}
-                    </div>
-                    <span className="font-display text-sm font-bold whitespace-nowrap shrink-0">{l.proteinGrams}G</span>
-                  </div>
-                </SwipeableLogRow>
-              </motion.div>
-            ))}
-          </div>
-        )}
       </motion.div>
 
       {/* Floating + */}
@@ -348,7 +272,7 @@ export default function Dashboard({ onNavigate }: Props) {
         <Plus size={24} strokeWidth={3} />
       </button>
 
-      {(showModal || showScan || editing) && (
+      {(showModal || showScan) && (
         <Suspense fallback={null}>
           {showModal && (
             <QuickLogModal
@@ -383,24 +307,6 @@ export default function Dashboard({ onNavigate }: Props) {
                   toast.error(e instanceof Error ? e.message : 'Failed to log');
                 }
               }}
-            />
-          )}
-
-          {editing && (
-            <QuickLogModal
-              title="EDIT LOG"
-              submitLabel="SAVE"
-              initial={{ foodName: editing.foodName, proteinGrams: editing.proteinGrams, mealType: editing.mealType }}
-              onSubmit={async ({ foodName, proteinGrams, mealType }) => {
-                try {
-                  await updateLog(user.uid, editing.id, { foodName, proteinGrams, mealType }, profile.dailyProtein);
-                  setStreakBump(b => b + 1);
-                  toast.success('UPDATED');
-                } catch (e: unknown) {
-                  toast.error(e instanceof Error ? e.message : 'Update failed');
-                }
-              }}
-              onClose={() => setEditing(null)}
             />
           )}
         </Suspense>
