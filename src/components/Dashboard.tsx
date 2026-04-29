@@ -3,7 +3,7 @@ import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak, updateLog, deleteLog } from '@/lib/firestore';
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
-import { getSuggestions } from '@/lib/suggestions';
+
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 import SwipeableLogRow from './SwipeableLogRow';
 import { User, Plus, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
