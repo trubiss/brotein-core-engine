@@ -28,7 +28,7 @@ function AnimatedGrams({ value }: { value: number }) {
     return controls.stop;
   }, [value, mv]);
   return (
-    <motion.p className="text-7xl font-black font-display tracking-tighter leading-none">
+    <motion.p className="text-[5.5rem] font-black font-display leading-[0.95]" style={{ letterSpacing: '-0.04em' }}>
       {display}
     </motion.p>
   );
