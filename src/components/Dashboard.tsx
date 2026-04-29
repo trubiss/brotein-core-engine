@@ -258,20 +258,56 @@ export default function Dashboard({ onNavigate }: Props) {
       </motion.div>
 
       {/* Minimal streak — low visual weight */}
-      <motion.div variants={fadeUp} className="mb-4">
+      <motion.div variants={fadeUp} className="mb-6">
         <p className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
           STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'}
         </p>
       </motion.div>
 
-      {/* Floating + */}
-      <button
-        onClick={() => setShowModal(true)}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-foreground text-background border-2 border-foreground flex items-center justify-center active:scale-95 transition-transform shadow-lg"
-        aria-label="Add log"
-      >
-        <Plus size={24} strokeWidth={3} />
-      </button>
+      {/* RECENT — tap to re-log, swipe left to delete */}
+      <motion.div variants={fadeUp} className="mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="label-spaced mb-0">RECENT</p>
+          <button
+            onClick={() => setShowModal(true)}
+            className="text-[10px] tracking-[0.25em] uppercase font-bold active:opacity-50"
+            aria-label="Add custom log"
+          >
+            + ADD
+          </button>
+        </div>
+        {logs.length === 0 ? (
+          <p className="text-[11px] tracking-[0.15em] uppercase text-muted-foreground py-3">
+            NO LOGS YET — TAP +20G TO START
+          </p>
+        ) : (
+          <div className="border-t border-border">
+            {logs.slice(0, 5).map(l => (
+              <SwipeableLogRow
+                key={l.id}
+                onTap={() => log(l.foodName, l.proteinGrams, l.mealType)}
+                onDelete={() => {
+                  deleteLog(user.uid, l.id, profile.dailyProtein)
+                    .then(() => {
+                      setStreakBump(b => b + 1);
+                      toast.success('REMOVED');
+                    })
+                    .catch((e: unknown) => toast.error(e instanceof Error ? e.message : 'Failed to delete'));
+                }}
+              >
+                <div className="flex items-center justify-between py-3 px-1">
+                  <span className="font-display text-sm font-bold uppercase tracking-[0.05em] truncate pr-3">
+                    {l.foodName}
+                  </span>
+                  <span className="font-display text-sm font-black tracking-tight shrink-0">
+                    +{l.proteinGrams}G
+                  </span>
+                </div>
+              </SwipeableLogRow>
+            ))}
+          </div>
+        )}
+      </motion.div>
 
       {(showModal || showScan) && (
         <Suspense fallback={null}>
