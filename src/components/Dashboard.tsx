@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
-import { addLog, deleteLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak } from '@/lib/firestore';
+import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak } from '@/lib/firestore';
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
@@ -9,7 +9,6 @@ import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 import { User, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { computePace } from '@/lib/pace';
-import SwipeableLogRow from './SwipeableLogRow';
 
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
@@ -230,9 +229,9 @@ export default function Dashboard({ onNavigate }: Props) {
       <motion.div
         key={status.headline}
         initial={{ scale: 1 }}
-        animate={{ scale: [1, 1.05, 1] }}
+        animate={{ scale: [1, 1.04, 1] }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="mb-3 min-w-0"
+        className="mb-6 min-w-0"
       >
         <p className="font-display text-base font-black tracking-[0.15em] truncate">
           {status.headline}
@@ -242,14 +241,58 @@ export default function Dashboard({ onNavigate }: Props) {
         </p>
       </motion.div>
 
-      {/* One-tap quick add — primary action on home, tightly bound to the number */}
-      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-2 mb-10">
+      {/* Boxed progress card — primary tool panel */}
+      <motion.div variants={fadeUp} className="border-2 border-foreground p-5 mb-5">
+        <div className="flex items-center justify-between mb-3 min-w-0">
+          <p className="label-spaced mb-0">PROGRESS</p>
+          <p className="font-display text-xs font-black tracking-[0.05em] shrink-0">
+            {consumed} / {target}G
+          </p>
+        </div>
+
+        {/* Progress bar */}
+        <div className="h-2 w-full bg-foreground/10 mb-2 overflow-hidden">
+          <motion.div
+            className="h-full bg-foreground"
+            initial={false}
+            animate={{ width: `${Math.min(100, target > 0 ? (consumed / target) * 100 : 0)}%` }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between mb-5 min-w-0">
+          <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground truncate">
+            {remaining}G REMAINING
+          </p>
+          <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground shrink-0">
+            {target > 0 ? Math.min(100, Math.round((consumed / target) * 100)) : 0}%
+          </p>
+        </div>
+
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShowModal(true)}
+          className="w-full bg-foreground text-background py-4 font-display font-black text-sm tracking-[0.15em] mb-2 active:opacity-90"
+        >
+          QUICK ADD +
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShowScan(true)}
+          className="w-full border-2 border-foreground py-4 font-display font-black text-sm tracking-[0.15em] active:bg-foreground/5"
+        >
+          SCAN FOOD WITH AI
+        </motion.button>
+      </motion.div>
+
+      {/* Secondary one-tap shortcuts */}
+      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-2 mb-5">
         {[20, 30, 40].map(g => (
           <motion.button
             key={g}
             whileTap={{ scale: 0.96 }}
             onClick={() => log(`+${g}g protein`, g)}
-            className="border-2 border-foreground bg-foreground text-background py-5 font-display font-black text-lg tracking-[0.08em] active:opacity-90"
+            className="border-2 border-foreground py-3 font-display font-black text-base tracking-[0.08em] active:bg-foreground/5"
             aria-label={`Quick add ${g} grams`}
           >
             +{g}G
@@ -258,55 +301,10 @@ export default function Dashboard({ onNavigate }: Props) {
       </motion.div>
 
       {/* Minimal streak — low visual weight */}
-      <motion.div variants={fadeUp} className="mb-6">
+      <motion.div variants={fadeUp} className="mb-2">
         <p className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
           STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'}
         </p>
-      </motion.div>
-
-      {/* RECENT — tap to re-log, swipe left to delete */}
-      <motion.div variants={fadeUp} className="mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <p className="label-spaced mb-0">RECENT</p>
-          <button
-            onClick={() => setShowModal(true)}
-            className="text-[10px] tracking-[0.25em] uppercase font-bold active:opacity-50"
-            aria-label="Add custom log"
-          >
-            + ADD
-          </button>
-        </div>
-        {logs.length === 0 ? (
-          <p className="text-[11px] tracking-[0.15em] uppercase text-muted-foreground py-3">
-            NO LOGS YET — TAP +20G TO START
-          </p>
-        ) : (
-          <div className="border-t border-border">
-            {logs.slice(0, 5).map(l => (
-              <SwipeableLogRow
-                key={l.id}
-                onTap={() => log(l.foodName, l.proteinGrams, l.mealType)}
-                onDelete={() => {
-                  deleteLog(user.uid, l.id, profile.dailyProtein)
-                    .then(() => {
-                      setStreakBump(b => b + 1);
-                      toast.success('REMOVED');
-                    })
-                    .catch((e: unknown) => toast.error(e instanceof Error ? e.message : 'Failed to delete'));
-                }}
-              >
-                <div className="flex items-center justify-between py-3 px-1">
-                  <span className="font-display text-sm font-bold uppercase tracking-[0.05em] truncate pr-3">
-                    {l.foodName}
-                  </span>
-                  <span className="font-display text-sm font-black tracking-tight shrink-0">
-                    +{l.proteinGrams}G
-                  </span>
-                </div>
-              </SwipeableLogRow>
-            ))}
-          </div>
-        )}
       </motion.div>
 
       {(showModal || showScan) && (
