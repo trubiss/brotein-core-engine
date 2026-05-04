@@ -20,7 +20,7 @@ function AnimatedGrams({ value }: { value: number }) {
   const prev = useRef(value);
   useEffect(() => {
     const controls = animate(mv, value, {
-      duration: 0.45,
+      duration: 0.2,
       ease: 'easeOut',
       from: prev.current,
     });
@@ -38,10 +38,16 @@ interface Props {
   onNavigate: (page: 'history' | 'profile' | 'insights') => void;
 }
 
-const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
+const stagger = { animate: { transition: { staggerChildren: 0.02 } } };
 const fadeUp = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } },
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.18, ease: 'easeOut' as const } },
+};
+
+const haptic = () => {
+  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    try { navigator.vibrate(8); } catch { /* noop */ }
+  }
 };
 
 export default function Dashboard({ onNavigate }: Props) {
@@ -167,7 +173,8 @@ export default function Dashboard({ onNavigate }: Props) {
   const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
     // Optimistic: toast immediately, write in background. Firestore's local cache
     // will reflect the new log via onSnapshot before the server round-trip completes.
-    toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`);
+    haptic();
+    toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
     return addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate }, profile.dailyProtein)
       .catch((e: unknown) => {
@@ -229,8 +236,8 @@ export default function Dashboard({ onNavigate }: Props) {
       <motion.div
         key={status.headline}
         initial={{ scale: 1 }}
-        animate={{ scale: [1, 1.04, 1] }}
-        transition={{ duration: 0.35, ease: 'easeOut' }}
+        animate={{ scale: [1, 1.02, 1] }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
         className="mb-7 min-w-0"
       >
         <p className="font-display text-lg font-black tracking-[0.12em] truncate leading-tight">
@@ -256,7 +263,7 @@ export default function Dashboard({ onNavigate }: Props) {
             className="h-full bg-foreground"
             initial={false}
             animate={{ width: `${Math.min(100, target > 0 ? (consumed / target) * 100 : 0)}%` }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
           />
         </div>
 
@@ -271,14 +278,16 @@ export default function Dashboard({ onNavigate }: Props) {
 
         <motion.button
           whileTap={{ scale: 0.98 }}
-          onClick={() => setShowModal(true)}
+          transition={{ duration: 0.06 }}
+          onClick={() => { haptic(); setShowModal(true); }}
           className="w-full bg-foreground text-background py-3.5 font-display font-black text-sm tracking-[0.12em] mb-2.5 active:opacity-90"
         >
           QUICK ADD +
         </motion.button>
         <motion.button
           whileTap={{ scale: 0.98 }}
-          onClick={() => setShowScan(true)}
+          transition={{ duration: 0.06 }}
+          onClick={() => { haptic(); setShowScan(true); }}
           className="w-full border border-foreground/80 py-3.5 font-display font-black text-sm tracking-[0.12em] active:bg-foreground/5"
         >
           SCAN FOOD WITH AI
@@ -291,6 +300,7 @@ export default function Dashboard({ onNavigate }: Props) {
           <motion.button
             key={g}
             whileTap={{ scale: 0.96 }}
+            transition={{ duration: 0.06 }}
             onClick={() => log(`+${g}g protein`, g)}
             className="border border-foreground/70 py-2.5 font-display font-black text-base tracking-[0.06em] active:bg-foreground/5"
             aria-label={`Quick add ${g} grams`}

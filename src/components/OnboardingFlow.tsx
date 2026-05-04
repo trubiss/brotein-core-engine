@@ -89,7 +89,7 @@ export default function OnboardingFlow() {
           initial="enter"
           animate="center"
           exit="exit"
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
           className="flex-1 flex flex-col"
         >
           {screens[step]}
