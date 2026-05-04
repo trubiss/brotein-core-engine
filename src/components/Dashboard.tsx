@@ -20,7 +20,7 @@ function AnimatedGrams({ value }: { value: number }) {
   const prev = useRef(value);
   useEffect(() => {
     const controls = animate(mv, value, {
-      duration: 0.45,
+      duration: 0.2,
       ease: 'easeOut',
       from: prev.current,
     });
