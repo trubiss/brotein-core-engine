@@ -236,8 +236,8 @@ export default function Dashboard({ onNavigate }: Props) {
       <motion.div
         key={status.headline}
         initial={{ scale: 1 }}
-        animate={{ scale: [1, 1.04, 1] }}
-        transition={{ duration: 0.35, ease: 'easeOut' }}
+        animate={{ scale: [1, 1.02, 1] }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
         className="mb-7 min-w-0"
       >
         <p className="font-display text-lg font-black tracking-[0.12em] truncate leading-tight">
