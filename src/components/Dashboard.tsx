@@ -263,7 +263,7 @@ export default function Dashboard({ onNavigate }: Props) {
             className="h-full bg-foreground"
             initial={false}
             animate={{ width: `${Math.min(100, target > 0 ? (consumed / target) * 100 : 0)}%` }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
           />
         </div>
 
