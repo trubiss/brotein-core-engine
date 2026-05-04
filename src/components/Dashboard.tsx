@@ -38,10 +38,16 @@ interface Props {
   onNavigate: (page: 'history' | 'profile' | 'insights') => void;
 }
 
-const stagger = { animate: { transition: { staggerChildren: 0.07 } } };
+const stagger = { animate: { transition: { staggerChildren: 0.02 } } };
 const fadeUp = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } },
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.18, ease: 'easeOut' as const } },
+};
+
+const haptic = () => {
+  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    try { navigator.vibrate(8); } catch { /* noop */ }
+  }
 };
 
 export default function Dashboard({ onNavigate }: Props) {
