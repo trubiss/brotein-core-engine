@@ -173,7 +173,8 @@ export default function Dashboard({ onNavigate }: Props) {
   const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
     // Optimistic: toast immediately, write in background. Firestore's local cache
     // will reflect the new log via onSnapshot before the server round-trip completes.
-    toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`);
+    haptic();
+    toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
     return addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate }, profile.dailyProtein)
       .catch((e: unknown) => {
