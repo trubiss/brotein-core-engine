@@ -203,6 +203,15 @@ export default function Dashboard({ onNavigate }: Props) {
   };
 
 
+  const showPaywall = !trialActive && shouldShowPaywall({ logsCount: totalLogs });
+  if (showPaywall) {
+    return (
+      <Suspense fallback={null}>
+        <Paywall streak={streak} onStart={() => { startTrial(); setTrialActive(true); }} />
+      </Suspense>
+    );
+  }
+
   return (
     <motion.div className="screen-container pb-32" variants={stagger} initial="initial" animate="animate">
       <motion.div variants={fadeUp} className="flex items-center justify-between mb-12 min-w-0">
