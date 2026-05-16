@@ -19,7 +19,7 @@ import { track } from './track';
 // TODO: swap to live key (appl_…) from RevenueCat → Project Settings → API Keys before App Store submission.
 const REVENUECAT_IOS_API_KEY = 'test_LIpJqqukaFfMTNtAlMEpeYIfIsw';
 const REVENUECAT_ANDROID_API_KEY = ''; // fill in if/when Android ships
-const ENTITLEMENT_ID = 'pro';
+const ENTITLEMENT_ID = 'Brotein Pro';
 const OFFERING_ID = 'default';
 
 let initPromise: Promise<void> | null = null;
