@@ -30,7 +30,7 @@ function AnimatedGrams({ value }: { value: number }) {
     return controls.stop;
   }, [value, mv]);
   return (
-    <motion.p className="text-[5.5rem] font-black font-display leading-[0.95]" style={{ letterSpacing: '-0.04em' }}>
+    <motion.p className="text-[clamp(4rem,11vw,5.5rem)] font-black font-display leading-none" style={{ letterSpacing: '-0.04em' }}>
       {display}
     </motion.p>
   );
@@ -226,7 +226,7 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
       </motion.div>
 
-      <motion.div variants={fadeUp} className="mb-2 min-w-0">
+      <motion.div variants={fadeUp} className="mb-6 min-w-0">
         {/* Inline date control — sits with FUEL STATUS, owns the day's context */}
         <div className="flex items-center justify-between gap-3 mb-1">
           <p className="label-spaced mb-0 opacity-40 tracking-[0.25em]">FUEL STATUS</p>
@@ -254,9 +254,9 @@ export default function Dashboard({ onNavigate }: Props) {
         {summaryReady ? (
           <AnimatedGrams value={remaining} />
         ) : (
-          <p className="text-[5.5rem] font-black font-display leading-[0.95] opacity-30" style={{ letterSpacing: '-0.04em' }}>—</p>
+          <p className="text-[clamp(4rem,11vw,5.5rem)] font-black font-display leading-none opacity-30" style={{ letterSpacing: '-0.04em' }}>—</p>
         )}
-        <p className="text-[10px] text-muted-foreground/70 mt-1 uppercase tracking-[0.2em]">
+        <p className="text-[10px] text-muted-foreground/70 mt-5 uppercase tracking-[0.2em]">
           REMAINING {isToday ? 'TODAY' : `· ${dateLabel}`}
         </p>
       </motion.div>

@@ -21,14 +21,14 @@ export default function Paywall({ streak = 0, onStart }: Props) {
     <div className="fixed inset-0 z-50 bg-background text-foreground overflow-y-auto">
       <div className="min-h-full flex flex-col px-6 py-10 max-w-[440px] mx-auto">
         {/* Brand mark */}
-        <p className="label-spaced mb-12 opacity-40 tracking-[0.3em] text-center">BROTEIN</p>
+        <p className="label-spaced mb-8 opacity-40 tracking-[0.3em] text-center">BROTEIN</p>
 
         {/* Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
-          className="font-display font-black text-[2.6rem] leading-[0.95] text-center"
+          className="font-display font-black text-[clamp(2.25rem,7vw,2.6rem)] leading-[1.05] text-center"
           style={{ letterSpacing: '-0.03em' }}
         >
           STOP GUESSING.<br />START GROWING.
