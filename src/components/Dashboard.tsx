@@ -226,7 +226,7 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
       </motion.div>
 
-      <motion.div variants={fadeUp} className="mb-2 min-w-0">
+      <motion.div variants={fadeUp} className="mb-6 min-w-0">
         {/* Inline date control — sits with FUEL STATUS, owns the day's context */}
         <div className="flex items-center justify-between gap-3 mb-1">
           <p className="label-spaced mb-0 opacity-40 tracking-[0.25em]">FUEL STATUS</p>
