@@ -41,6 +41,16 @@ export default function OnboardingFlow() {
   };
   const update = (partial: Partial<OnboardingData>) => setData(prev => ({ ...prev, ...partial }));
 
+  const completeFrom = (path: 'auto' | 'manual') => async () => {
+    track('onboarding_complete', {
+      path,
+      goal: data.goal,
+      activity_level: data.activityLevel,
+      weight: data.weight,
+    });
+    await refreshProfile();
+  };
+
   const profileBase = {
     name: user?.displayName ?? 'Athlete',
     email: user?.email ?? '',
