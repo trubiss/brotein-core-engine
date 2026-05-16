@@ -1,21 +1,62 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-
-const haptic = () => {
-  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-    try { navigator.vibrate(8); } catch { /* noop */ }
-  }
-};
+import { toast } from 'sonner';
+import { isIOS, isNative, tapHaptic } from '@/lib/native';
+import { getYearlyOffer, purchaseYearly, restorePurchases, type NativeOffer } from '@/lib/iap';
 
 interface Props {
   streak?: number;
+  /** Called when entitlement is granted (either via StoreKit on iOS, or web fallback trial). */
   onStart: () => void;
 }
 
 export default function Paywall({ streak = 0, onStart }: Props) {
-  const handle = () => {
-    haptic();
-    onStart();
+  const native = isNative() && isIOS();
+  const [offer, setOffer] = useState<NativeOffer | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!native) return;
+    let cancelled = false;
+    void getYearlyOffer().then(o => { if (!cancelled) setOffer(o); }).catch(() => { /* keep fallback */ });
+    return () => { cancelled = true; };
+  }, [native]);
+
+  const handle = async () => {
+    void tapHaptic();
+    if (!native) { onStart(); return; }
+    if (busy) return;
+    setBusy(true);
+    try {
+      const ok = await purchaseYearly();
+      if (ok) onStart();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Purchase failed');
+    } finally {
+      setBusy(false);
+    }
   };
+
+  const restore = async () => {
+    if (!native || busy) return;
+    setBusy(true);
+    try {
+      const ok = await restorePurchases();
+      if (ok) { toast.success('Purchases restored'); onStart(); }
+      else toast.message('No active subscription found');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Restore failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const priceLine = offer?.priceString ?? '$39';
+  const ctaLabel = busy
+    ? 'WORKING…'
+    : native
+      ? (offer?.introPriceString ? 'START 7-DAY TRIAL' : `SUBSCRIBE ${priceLine}/YR`)
+      : 'START 7-DAY TRIAL';
 
   return (
     <div className="fixed inset-0 z-50 bg-background text-foreground overflow-y-auto">
@@ -63,25 +104,39 @@ export default function Paywall({ streak = 0, onStart }: Props) {
         {/* Price block */}
         <div className="mt-12 text-center">
           <p className="font-display font-black text-4xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
-            $39 <span className="opacity-50 font-normal text-2xl">/ YEAR</span>
+            {priceLine} <span className="opacity-50 font-normal text-2xl">/ YEAR</span>
           </p>
-          <p className="mt-2 label-spaced opacity-60 tracking-[0.25em]">7-DAY FREE TRIAL</p>
-          <p className="mt-1 text-[11px] opacity-40">Less than $4/month</p>
+          <p className="mt-2 label-spaced opacity-60 tracking-[0.25em]">
+            {native && offer?.introPriceString ? '7-DAY FREE TRIAL' : native ? 'BILLED YEARLY' : '7-DAY FREE TRIAL'}
+          </p>
+          {!native && <p className="mt-1 text-[11px] opacity-40">Less than $4/month</p>}
         </div>
 
         {/* CTA */}
         <motion.button
           onClick={handle}
+          disabled={busy}
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
           className="mt-8 w-full bg-foreground text-background font-black tracking-[0.15em] text-sm py-5 active:opacity-90"
+          style={{ opacity: busy ? 0.5 : 1 }}
         >
-          START 7-DAY TRIAL
+          {ctaLabel}
         </motion.button>
+
+        {native && (
+          <button
+            onClick={restore}
+            disabled={busy}
+            className="mt-3 w-full text-[10px] tracking-[0.3em] uppercase font-bold text-muted-foreground active:opacity-60"
+          >
+            RESTORE PURCHASES
+          </button>
+        )}
 
         {/* Footer micro-text */}
         <p className="mt-4 mb-2 text-center text-[10px] opacity-40 tracking-[0.15em] uppercase">
-          Cancel anytime · Charged after trial ends
+          {native ? 'Cancel in Settings · Auto-renews yearly' : 'Cancel anytime · Charged after trial ends'}
         </p>
       </div>
     </div>
