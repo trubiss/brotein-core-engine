@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (u) {
           setUser(u);
           identifyUser(u.uid);
+          void import('./iap').then(m => m.identifyPurchaser(u.uid)).catch(() => {});
           try {
             const p = await getProfile(u.uid);
             setProfile(p);
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null);
           setProfile(null);
           identifyUser(null);
+          void import('./iap').then(m => m.identifyPurchaser(null)).catch(() => {});
         }
       } finally {
         setLoading(false);
