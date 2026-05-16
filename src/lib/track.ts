@@ -10,7 +10,7 @@ type AnalyticsModule = typeof import('firebase/analytics');
 let analyticsPromise: Promise<Analytics | null> | null = null;
 let mod: AnalyticsModule | null = null;
 
-const measurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID as string | undefined;
+const measurementId = 'G-016Z9P0KKE';
 const isDev = import.meta.env.DEV;
 
 async function getAnalytics(): Promise<Analytics | null> {
