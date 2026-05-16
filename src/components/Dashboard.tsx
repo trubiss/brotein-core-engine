@@ -30,7 +30,7 @@ function AnimatedGrams({ value }: { value: number }) {
     return controls.stop;
   }, [value, mv]);
   return (
-    <motion.p className="text-[5rem] font-black font-display leading-none" style={{ letterSpacing: '-0.04em' }}>
+    <motion.p className="text-[clamp(4rem,11vw,5.5rem)] font-black font-display leading-none" style={{ letterSpacing: '-0.04em' }}>
       {display}
     </motion.p>
   );
