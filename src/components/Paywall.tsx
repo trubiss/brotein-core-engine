@@ -28,7 +28,7 @@ export default function Paywall({ streak = 0, onStart }: Props) {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
-          className="font-display font-black text-[2.6rem] leading-[0.95] text-center"
+          className="font-display font-black text-[clamp(2.25rem,7vw,2.6rem)] leading-[1.05] text-center"
           style={{ letterSpacing: '-0.03em' }}
         >
           STOP GUESSING.<br />START GROWING.
