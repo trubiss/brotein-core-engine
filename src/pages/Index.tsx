@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/auth';
 import SignInScreen from '@/components/SignInScreen';
 import OnboardingFlow from '@/components/OnboardingFlow';
 import OnboardingStoryFlow from '@/components/OnboardingStoryFlow';
-import WelcomeCarousel from '@/components/WelcomeCarousel';
+
 import Dashboard from '@/components/Dashboard';
 import ResetPasswordScreen from '@/components/ResetPasswordScreen';
 
