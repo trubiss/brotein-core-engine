@@ -9,9 +9,11 @@ import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 import { User, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { computePace } from '@/lib/pace';
+import { markFirstOpen, shouldShowPaywall, startTrial, isTrialActive } from '@/lib/paywall';
 
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
+const Paywall = lazy(() => import('./Paywall'));
 
 /** Counter that tweens between values for a satisfying count-up/down on log. */
 function AnimatedGrams({ value }: { value: number }) {
@@ -62,6 +64,24 @@ export default function Dashboard({ onNavigate }: Props) {
   const [showScan, setShowScan] = useState(false);
   
   const [streakBump, setStreakBump] = useState(0);
+  const [trialActive, setTrialActive] = useState(() => isTrialActive());
+  const [totalLogs, setTotalLogs] = useState(0);
+
+  useEffect(() => { markFirstOpen(); }, []);
+
+  // Track total log count for paywall trigger (lightweight: piggyback on today's logs + a one-shot recent fetch)
+  useEffect(() => {
+    if (!user || trialActive) return;
+    let cancelled = false;
+    getRecentSummaries(user.uid, 30)
+      .then(all => {
+        if (cancelled) return;
+        const sum = all.reduce((acc, s) => acc + (s.logCount ?? 0), 0);
+        setTotalLogs(sum);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [user, trialActive, streakBump]);
 
   const isToday = viewDate === today;
 
@@ -182,6 +202,15 @@ export default function Dashboard({ onNavigate }: Props) {
       });
   };
 
+
+  const showPaywall = !trialActive && shouldShowPaywall({ logsCount: totalLogs });
+  if (showPaywall) {
+    return (
+      <Suspense fallback={null}>
+        <Paywall streak={streak} onStart={() => { startTrial(); setTrialActive(true); }} />
+      </Suspense>
+    );
+  }
 
   return (
     <motion.div className="screen-container pb-32" variants={stagger} initial="initial" animate="animate">
