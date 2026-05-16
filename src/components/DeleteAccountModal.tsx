@@ -46,6 +46,7 @@ export default function DeleteAccountModal({ open, onClose }: Props) {
       }
       await deleteUserData(user.uid);
       await deleteUser(auth.currentUser);
+      track('account_deleted');
       // Clear local state
       Object.keys(localStorage)
         .filter((k) => k.startsWith('brotein_'))
