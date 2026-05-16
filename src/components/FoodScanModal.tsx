@@ -4,6 +4,7 @@ import { Camera, Upload, X, RefreshCw, Check, Loader2, AlertTriangle } from 'luc
 import { MealType } from '@/lib/types';
 import { scanFoodImage, fileToCompressedDataUrl, ScanResult } from '@/lib/scan';
 import { track } from '@/lib/track';
+import { isNative, takeFoodPhoto, tapHaptic } from '@/lib/native';
 import { toast } from 'sonner';
 
 interface Props {
@@ -63,7 +64,33 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
     }
   };
 
-  const onCamera = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDataUrl = async (dataUrl: string) => {
+    setImageDataUrl(dataUrl);
+    setStage('analyzing');
+    track('ai_scan_started');
+    try {
+      const result = await scanFoodImage(dataUrl);
+      setAi(result);
+      setFoodName(result.foodName);
+      setProtein(String(result.proteinGrams));
+      if (result.mealType) setMealType(result.mealType);
+      track('ai_scan_completed', { ai_grams: result.proteinGrams, confidence: result.confidence });
+      setStage('review');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Scan failed';
+      track('ai_scan_failed', { reason: msg.slice(0, 80) });
+      setErrorMsg(msg);
+      setStage('error');
+    }
+  };
+
+  const onCamera = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    void tapHaptic();
+    if (isNative()) {
+      const dataUrl = await takeFoodPhoto();
+      if (dataUrl) void handleDataUrl(dataUrl);
+      return;
+    }
     const f = e.target.files?.[0]; if (f) void handleFile(f);
   };
   const onUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
