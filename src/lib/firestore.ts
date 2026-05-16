@@ -243,6 +243,18 @@ export function watchAllSummaries(uid: string, cb: (s: DailySummary[]) => void) 
   });
 }
 
+// Permanently delete every doc owned by this user.
+export async function deleteUserData(uid: string): Promise<void> {
+  const deleteCollection = async (col: ReturnType<typeof collection>) => {
+    const snap = await getDocs(col);
+    await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+  };
+  await deleteCollection(logsCol(uid));
+  await deleteCollection(favoritesCol(uid));
+  await deleteCollection(summariesCol(uid));
+  await deleteDoc(userDoc(uid));
+}
+
 // Streak: consecutive days up to today where consumed >= target
 export function computeStreak(summaries: DailySummary[]): number {
   const map = new Map(summaries.map(s => [s.date, s]));
