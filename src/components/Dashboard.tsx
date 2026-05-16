@@ -197,6 +197,7 @@ export default function Dashboard({ onNavigate }: Props) {
     haptic();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
+    track('food_logged', { grams: proteinGrams, meal: mealType ?? 'unspecified', source: 'manual', is_today: isToday });
     return addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate }, profile.dailyProtein)
       .catch((e: unknown) => {
         toast.error(e instanceof Error ? e.message : 'Failed to log');
