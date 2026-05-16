@@ -254,7 +254,7 @@ export default function Dashboard({ onNavigate }: Props) {
         {summaryReady ? (
           <AnimatedGrams value={remaining} />
         ) : (
-          <p className="text-[5.5rem] font-black font-display leading-[0.95] opacity-30" style={{ letterSpacing: '-0.04em' }}>—</p>
+          <p className="text-[clamp(4rem,11vw,5.5rem)] font-black font-display leading-none opacity-30" style={{ letterSpacing: '-0.04em' }}>—</p>
         )}
         <p className="text-[10px] text-muted-foreground/70 mt-1 uppercase tracking-[0.2em]">
           REMAINING {isToday ? 'TODAY' : `· ${dateLabel}`}
