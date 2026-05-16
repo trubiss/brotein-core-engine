@@ -401,6 +401,13 @@ export default function Dashboard({ onNavigate }: Props) {
                     aiEdited: edited,
                   }, profile.dailyProtein);
                   setStreakBump(b => b + 1);
+                  track('ai_scan_logged', {
+                    grams: proteinGrams,
+                    ai_grams: ai.proteinGrams,
+                    confidence: ai.confidence,
+                    edited,
+                    meal: mealType ?? 'unspecified',
+                  });
                   toast.success(`+${proteinGrams}G LOGGED · AI SCAN`);
                 } catch (e: unknown) {
                   toast.error(e instanceof Error ? e.message : 'Failed to log');
