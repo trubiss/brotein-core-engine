@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { updateProfileFields } from '@/lib/firestore';
 import { Goal } from '@/lib/types';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import ReminderSettingsPanel from './ReminderSettingsPanel';
+import DeleteAccountModal from './DeleteAccountModal';
 
 interface Props { onBack: () => void; }
 
@@ -23,10 +25,12 @@ const GOAL_OPTIONS: { value: Goal; label: string }[] = [
 
 export default function ProfileScreen({ onBack }: Props) {
   const { user, profile, refreshProfile, signOut } = useAuth();
+  const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [weight, setWeight] = useState(profile?.weight ?? 0);
   const [goal, setGoal] = useState<Goal>(profile?.goal ?? 'hypertrophy');
   const [busy, setBusy] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   if (!user || !profile) return null;
 
@@ -133,6 +137,34 @@ export default function ProfileScreen({ onBack }: Props) {
           REPLAY ONBOARDING STORY
         </button>
       </motion.div>
+
+      <motion.div variants={fadeUp} className="mt-10 pt-8 border-t-2 border-foreground space-y-3">
+        <p className="label-spaced">LEGAL</p>
+        <button
+          className="w-full p-4 border-2 border-foreground font-mono font-bold text-xs uppercase tracking-widest active:scale-[0.98] transition-transform text-left"
+          onClick={() => navigate('/privacy')}
+        >
+          PRIVACY POLICY
+        </button>
+        <button
+          className="w-full p-4 border-2 border-foreground font-mono font-bold text-xs uppercase tracking-widest active:scale-[0.98] transition-transform text-left"
+          onClick={() => navigate('/terms')}
+        >
+          TERMS OF SERVICE
+        </button>
+      </motion.div>
+
+      <motion.div variants={fadeUp} className="mt-10 pt-8 border-t-2 border-foreground space-y-3">
+        <p className="label-spaced">DANGER ZONE</p>
+        <button
+          className="w-full p-4 border-2 border-destructive text-destructive font-mono font-black text-xs uppercase tracking-widest active:scale-[0.98] transition-transform"
+          onClick={() => setDeleteOpen(true)}
+        >
+          DELETE ACCOUNT
+        </button>
+      </motion.div>
+
+      <DeleteAccountModal open={deleteOpen} onClose={() => setDeleteOpen(false)} />
     </motion.div>
   );
 }
