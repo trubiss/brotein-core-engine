@@ -64,7 +64,9 @@ export function track(event: TrackEvent, params?: Params): void {
     const a = await getAnalytics();
     if (!a || !mod) return;
     try {
-      mod.logEvent(a, event, params as Record<string, unknown> | undefined);
+      // Cast to any: Firebase has strict overloads for reserved event names,
+      // but logEvent accepts arbitrary strings at runtime.
+      (mod.logEvent as unknown as (a: Analytics, e: string, p?: Params) => void)(a, event, params);
     } catch (e) {
       console.warn('[track] logEvent failed', e);
     }
