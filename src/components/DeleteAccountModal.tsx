@@ -5,6 +5,7 @@ import { auth } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
 import { deleteUserData } from '@/lib/firestore';
 import { toast } from 'sonner';
+import { track } from '@/lib/track';
 import { X } from 'lucide-react';
 
 interface Props {
