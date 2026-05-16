@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Upload, X, RefreshCw, Check, Loader2, AlertTriangle } from 'lucide-react';
 import { MealType } from '@/lib/types';
 import { scanFoodImage, fileToCompressedDataUrl, ScanResult } from '@/lib/scan';
+import { track } from '@/lib/track';
 import { toast } from 'sonner';
 
 interface Props {
