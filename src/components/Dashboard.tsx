@@ -113,6 +113,19 @@ export default function Dashboard({ onNavigate }: Props) {
     return () => { u1(); u2(); };
   }, [user, viewDate]);
 
+  // Fire target_hit once per date when the user crosses their daily goal.
+  useEffect(() => {
+    if (!summary?.hitTarget) return;
+    const key = `brotein_target_hit_${summary.date}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, '1');
+    track('target_hit', {
+      date: summary.date,
+      consumed: summary.consumedProtein,
+      target: summary.targetProtein,
+    });
+  }, [summary?.hitTarget, summary?.date, summary?.consumedProtein, summary?.targetProtein]);
+
   // Streak: one-shot, deferred to idle, refetched after mutations.
   useEffect(() => {
     if (!user) return;
