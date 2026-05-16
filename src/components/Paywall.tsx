@@ -21,7 +21,7 @@ export default function Paywall({ streak = 0, onStart }: Props) {
     <div className="fixed inset-0 z-50 bg-background text-foreground overflow-y-auto">
       <div className="min-h-full flex flex-col px-6 py-10 max-w-[440px] mx-auto">
         {/* Brand mark */}
-        <p className="label-spaced mb-12 opacity-40 tracking-[0.3em] text-center">BROTEIN</p>
+        <p className="label-spaced mb-8 opacity-40 tracking-[0.3em] text-center">BROTEIN</p>
 
         {/* Headline */}
         <motion.h1
