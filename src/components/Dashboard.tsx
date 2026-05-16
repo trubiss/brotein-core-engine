@@ -219,10 +219,20 @@ export default function Dashboard({ onNavigate }: Props) {
 
 
   const showPaywall = !trialActive && shouldShowPaywall({ logsCount: totalLogs });
+  useEffect(() => {
+    if (showPaywall) track('paywall_viewed', { logs_count: totalLogs, streak });
+  }, [showPaywall, totalLogs, streak]);
   if (showPaywall) {
     return (
       <Suspense fallback={null}>
-        <Paywall streak={streak} onStart={() => { startTrial(); setTrialActive(true); }} />
+        <Paywall
+          streak={streak}
+          onStart={() => {
+            track('trial_started', { streak, logs_count: totalLogs });
+            startTrial();
+            setTrialActive(true);
+          }}
+        />
       </Suspense>
     );
   }
