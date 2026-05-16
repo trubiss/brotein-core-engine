@@ -256,7 +256,7 @@ export default function Dashboard({ onNavigate }: Props) {
         ) : (
           <p className="text-[clamp(4rem,11vw,5.5rem)] font-black font-display leading-none opacity-30" style={{ letterSpacing: '-0.04em' }}>—</p>
         )}
-        <p className="text-[10px] text-muted-foreground/70 mt-1 uppercase tracking-[0.2em]">
+        <p className="text-[10px] text-muted-foreground/70 mt-5 uppercase tracking-[0.2em]">
           REMAINING {isToday ? 'TODAY' : `· ${dateLabel}`}
         </p>
       </motion.div>
