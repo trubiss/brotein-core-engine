@@ -10,6 +10,7 @@ import { User, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { computePace } from '@/lib/pace';
 import { markFirstOpen, shouldShowPaywall, startTrial, isTrialActive } from '@/lib/paywall';
+import { track } from '@/lib/track';
 
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
