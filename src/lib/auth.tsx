@@ -7,6 +7,7 @@ import {
 import { auth } from './firebase';
 import { getProfile } from './firestore';
 import { UserProfile } from './types';
+import { identifyUser, track } from './track';
 
 interface AuthCtx {
   user: User | null;
