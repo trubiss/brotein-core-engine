@@ -57,7 +57,6 @@ const Index = () => {
   }
 
   if (resetCode) return <ResetPasswordScreen oobCode={resetCode} onDone={clearResetCode} />;
-  if (!welcomeSeen) return <WelcomeCarousel onComplete={completeWelcome} />;
   if (!user) return <SignInScreen />;
   if (!storySeen) return <OnboardingStoryFlow onComplete={completeStory} />;
   if (!profile) return <OnboardingFlow />;
