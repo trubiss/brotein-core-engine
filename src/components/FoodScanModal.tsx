@@ -43,22 +43,9 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   const handleFile = async (file: File) => {
     try {
       const dataUrl = await fileToCompressedDataUrl(file);
-      setImageDataUrl(dataUrl);
-      setStage('analyzing');
-      track('ai_scan_started');
-      const result = await scanFoodImage(dataUrl);
-      setAi(result);
-      setFoodName(result.foodName);
-      setProtein(String(result.proteinGrams));
-      if (result.mealType) setMealType(result.mealType);
-      track('ai_scan_completed', {
-        ai_grams: result.proteinGrams,
-        confidence: result.confidence,
-      });
-      setStage('review');
+      await handleDataUrl(dataUrl);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Scan failed';
-      track('ai_scan_failed', { reason: msg.slice(0, 80) });
       setErrorMsg(msg);
       setStage('error');
     }
