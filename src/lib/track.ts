@@ -49,6 +49,8 @@ export type TrackEvent =
   | 'ai_scan_logged'
   | 'target_hit'
   | 'paywall_viewed'
+  | 'paywall_purchase'
+  | 'paywall_restore'
   | 'trial_started'
   | 'account_deleted'
   | 'password_reset_requested';
