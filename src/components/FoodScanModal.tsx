@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Upload, X, RefreshCw, Check, Loader2, AlertTriangle } from 'lucide-react';
 import { MealType } from '@/lib/types';
 import { scanFoodImage, fileToCompressedDataUrl, ScanResult } from '@/lib/scan';
+import { track } from '@/lib/track';
 import { toast } from 'sonner';
 
 interface Props {
@@ -43,14 +44,20 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
       const dataUrl = await fileToCompressedDataUrl(file);
       setImageDataUrl(dataUrl);
       setStage('analyzing');
+      track('ai_scan_started');
       const result = await scanFoodImage(dataUrl);
       setAi(result);
       setFoodName(result.foodName);
       setProtein(String(result.proteinGrams));
       if (result.mealType) setMealType(result.mealType);
+      track('ai_scan_completed', {
+        ai_grams: result.proteinGrams,
+        confidence: result.confidence,
+      });
       setStage('review');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Scan failed';
+      track('ai_scan_failed', { reason: msg.slice(0, 80) });
       setErrorMsg(msg);
       setStage('error');
     }

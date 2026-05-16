@@ -7,6 +7,7 @@ import {
 import { auth } from './firebase';
 import { getProfile } from './firestore';
 import { UserProfile } from './types';
+import { identifyUser, track } from './track';
 
 interface AuthCtx {
   user: User | null;
@@ -34,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         if (u) {
           setUser(u);
+          identifyUser(u.uid);
           try {
             const p = await getProfile(u.uid);
             setProfile(p);
@@ -44,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setUser(null);
           setProfile(null);
+          identifyUser(null);
         }
       } finally {
         setLoading(false);
@@ -55,13 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, password: string, name: string) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     if (name) await updateProfile(cred.user, { displayName: name });
+    track('sign_up', { method: 'password' });
     return cred.user;
   };
   const signIn = async (email: string, password: string) => {
     const cred = await signInWithEmailAndPassword(auth, email, password);
+    track('sign_in', { method: 'password' });
     return cred.user;
   };
-  const signOut = async () => { await fbSignOut(auth); };
+  const signOut = async () => { track('sign_out'); await fbSignOut(auth); };
   const refreshProfile = async () => {
     if (user) {
       try { setProfile(await getProfile(user.uid)); }
@@ -70,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   const sendPasswordReset = async (email: string) => {
     await sendPasswordResetEmail(auth, email, { url: window.location.origin });
+    track('password_reset_requested');
   };
   const verifyResetCode = async (code: string) => verifyPasswordResetCode(auth, code);
   const confirmReset = async (code: string, newPassword: string) => {

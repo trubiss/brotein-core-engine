@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
+import { track } from '@/lib/track';
 import BiometricsScreen from './BiometricsScreen';
 import GoalsScreen from './GoalsScreen';
 import ResultsScreen from './ResultsScreen';
@@ -40,6 +41,16 @@ export default function OnboardingFlow() {
   };
   const update = (partial: Partial<OnboardingData>) => setData(prev => ({ ...prev, ...partial }));
 
+  const completeFrom = (path: 'auto' | 'manual') => async () => {
+    track('onboarding_complete', {
+      path,
+      goal: data.goal,
+      activity_level: data.activityLevel,
+      weight: data.weight,
+    });
+    await refreshProfile();
+  };
+
   const profileBase = {
     name: user?.displayName ?? 'Athlete',
     email: user?.email ?? '',
@@ -66,14 +77,14 @@ export default function OnboardingFlow() {
     results: (
       <ResultsScreen
         data={{ ...profileBase, ...data }}
-        onComplete={refreshProfile}
+        onComplete={completeFrom('auto')}
         onBack={() => go('goals', -1)}
       />
     ),
     manual: (
       <ManualTargetScreen
         data={profileBase}
-        onComplete={refreshProfile}
+        onComplete={completeFrom('manual')}
         onBack={() => go('bio', -1)}
       />
     ),

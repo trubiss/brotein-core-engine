@@ -10,6 +10,7 @@ import { User, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { computePace } from '@/lib/pace';
 import { markFirstOpen, shouldShowPaywall, startTrial, isTrialActive } from '@/lib/paywall';
+import { track } from '@/lib/track';
 
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
@@ -112,6 +113,19 @@ export default function Dashboard({ onNavigate }: Props) {
     return () => { u1(); u2(); };
   }, [user, viewDate]);
 
+  // Fire target_hit once per date when the user crosses their daily goal.
+  useEffect(() => {
+    if (!summary?.hitTarget) return;
+    const key = `brotein_target_hit_${summary.date}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, '1');
+    track('target_hit', {
+      date: summary.date,
+      consumed: summary.consumedProtein,
+      target: summary.targetProtein,
+    });
+  }, [summary?.hitTarget, summary?.date, summary?.consumedProtein, summary?.targetProtein]);
+
   // Streak: one-shot, deferred to idle, refetched after mutations.
   useEffect(() => {
     if (!user) return;
@@ -196,6 +210,7 @@ export default function Dashboard({ onNavigate }: Props) {
     haptic();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
+    track('food_logged', { grams: proteinGrams, meal: mealType ?? 'unspecified', source: 'manual', is_today: isToday });
     return addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate }, profile.dailyProtein)
       .catch((e: unknown) => {
         toast.error(e instanceof Error ? e.message : 'Failed to log');
@@ -204,10 +219,20 @@ export default function Dashboard({ onNavigate }: Props) {
 
 
   const showPaywall = !trialActive && shouldShowPaywall({ logsCount: totalLogs });
+  useEffect(() => {
+    if (showPaywall) track('paywall_viewed', { logs_count: totalLogs, streak });
+  }, [showPaywall, totalLogs, streak]);
   if (showPaywall) {
     return (
       <Suspense fallback={null}>
-        <Paywall streak={streak} onStart={() => { startTrial(); setTrialActive(true); }} />
+        <Paywall
+          streak={streak}
+          onStart={() => {
+            track('trial_started', { streak, logs_count: totalLogs });
+            startTrial();
+            setTrialActive(true);
+          }}
+        />
       </Suspense>
     );
   }
@@ -376,6 +401,13 @@ export default function Dashboard({ onNavigate }: Props) {
                     aiEdited: edited,
                   }, profile.dailyProtein);
                   setStreakBump(b => b + 1);
+                  track('ai_scan_logged', {
+                    grams: proteinGrams,
+                    ai_grams: ai.proteinGrams,
+                    confidence: ai.confidence,
+                    edited,
+                    meal: mealType ?? 'unspecified',
+                  });
                   toast.success(`+${proteinGrams}G LOGGED · AI SCAN`);
                 } catch (e: unknown) {
                   toast.error(e instanceof Error ? e.message : 'Failed to log');

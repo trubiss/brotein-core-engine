@@ -5,6 +5,7 @@ import { auth } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
 import { deleteUserData } from '@/lib/firestore';
 import { toast } from 'sonner';
+import { track } from '@/lib/track';
 import { X } from 'lucide-react';
 
 interface Props {
@@ -45,6 +46,7 @@ export default function DeleteAccountModal({ open, onClose }: Props) {
       }
       await deleteUserData(user.uid);
       await deleteUser(auth.currentUser);
+      track('account_deleted');
       // Clear local state
       Object.keys(localStorage)
         .filter((k) => k.startsWith('brotein_'))
