@@ -31,9 +31,6 @@ const Index = () => {
   const { user, profile, loading } = useAuth();
   const [page, setPage] = useState<Page>('dashboard');
   const [resetCode, setResetCode] = useState<string | null>(() => getResetCode());
-  const [welcomeSeen, setWelcomeSeen] = useState<boolean>(() =>
-    typeof window !== 'undefined' && localStorage.getItem('brotein_welcome_seen') === '1'
-  );
   const [storySeen, setStorySeen] = useState<boolean>(() =>
     typeof window !== 'undefined' && localStorage.getItem('brotein_story_seen') === '1'
   );
@@ -48,11 +45,6 @@ const Index = () => {
     if (typeof window !== 'undefined') {
       window.history.replaceState({}, '', window.location.pathname);
     }
-  };
-
-  const completeWelcome = () => {
-    localStorage.setItem('brotein_welcome_seen', '1');
-    setWelcomeSeen(true);
   };
 
   if (loading) {
