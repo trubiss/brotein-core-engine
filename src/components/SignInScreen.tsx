@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import ForgotPasswordFlow from './ForgotPasswordFlow';
+import { Apple } from 'lucide-react';
 
 export default function SignInScreen() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithApple } = useAuth();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -23,6 +24,19 @@ export default function SignInScreen() {
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Authentication failed';
       toast.error(msg.replace('Firebase: ', ''));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const apple = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await signInWithApple();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Apple sign-in failed';
+      if (!/cancel/i.test(msg)) toast.error(msg.replace('Firebase: ', ''));
     } finally {
       setBusy(false);
     }
@@ -77,6 +91,23 @@ export default function SignInScreen() {
         >
           {busy ? 'WORKING…' : mode === 'signin' ? 'SIGN IN' : 'INITIALIZE SYSTEM'}
         </button>
+
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-foreground/20" />
+          <span className="text-[10px] tracking-[0.3em] uppercase font-bold text-muted-foreground">OR</span>
+          <div className="flex-1 h-px bg-foreground/20" />
+        </div>
+
+        <button
+          onClick={apple}
+          disabled={busy}
+          className="w-full border-2 border-foreground bg-foreground text-background py-3 flex items-center justify-center gap-2 text-xs font-bold tracking-[0.2em] uppercase active:scale-[0.98] transition-transform"
+          style={{ opacity: busy ? 0.5 : 1 }}
+        >
+          <Apple size={14} strokeWidth={2.5} fill="currentColor" />
+          CONTINUE WITH APPLE
+        </button>
+
         <button
           className="text-[10px] tracking-[0.3em] uppercase font-bold w-full text-center text-muted-foreground active:opacity-60"
           onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}

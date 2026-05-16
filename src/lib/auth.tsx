@@ -104,6 +104,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return cred.user;
   };
 
+  const refreshProfile = async () => {
+    if (user) {
+      try { setProfile(await getProfile(user.uid)); }
+      catch (err) { console.error('refreshProfile failed:', err); }
+    }
+  };
 
   const sendPasswordReset = async (email: string) => {
     await sendPasswordResetEmail(auth, email, { url: window.location.origin });
@@ -117,13 +123,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider
       value={{
-        user, profile, loading, signUp, signIn, signOut, refreshProfile,
+        user, profile, loading, signUp, signIn, signInWithApple, signOut, refreshProfile,
         sendPasswordReset, verifyResetCode, confirmReset,
       }}
     >
       {children}
     </Ctx.Provider>
   );
+}
+
+function cryptoNonce(length = 32): string {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export function useAuth() {
