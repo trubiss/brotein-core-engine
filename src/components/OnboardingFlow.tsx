@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
+import { track } from '@/lib/track';
 import BiometricsScreen from './BiometricsScreen';
 import GoalsScreen from './GoalsScreen';
 import ResultsScreen from './ResultsScreen';
