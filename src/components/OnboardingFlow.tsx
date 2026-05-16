@@ -77,14 +77,14 @@ export default function OnboardingFlow() {
     results: (
       <ResultsScreen
         data={{ ...profileBase, ...data }}
-        onComplete={refreshProfile}
+        onComplete={completeFrom('auto')}
         onBack={() => go('goals', -1)}
       />
     ),
     manual: (
       <ManualTargetScreen
         data={profileBase}
-        onComplete={refreshProfile}
+        onComplete={completeFrom('manual')}
         onBack={() => go('bio', -1)}
       />
     ),
