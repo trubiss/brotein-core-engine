@@ -1,21 +1,62 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-
-const haptic = () => {
-  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-    try { navigator.vibrate(8); } catch { /* noop */ }
-  }
-};
+import { toast } from 'sonner';
+import { isIOS, isNative, tapHaptic } from '@/lib/native';
+import { getYearlyOffer, purchaseYearly, restorePurchases, type NativeOffer } from '@/lib/iap';
 
 interface Props {
   streak?: number;
+  /** Called when entitlement is granted (either via StoreKit on iOS, or web fallback trial). */
   onStart: () => void;
 }
 
 export default function Paywall({ streak = 0, onStart }: Props) {
-  const handle = () => {
-    haptic();
-    onStart();
+  const native = isNative() && isIOS();
+  const [offer, setOffer] = useState<NativeOffer | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!native) return;
+    let cancelled = false;
+    void getYearlyOffer().then(o => { if (!cancelled) setOffer(o); }).catch(() => { /* keep fallback */ });
+    return () => { cancelled = true; };
+  }, [native]);
+
+  const handle = async () => {
+    void tapHaptic();
+    if (!native) { onStart(); return; }
+    if (busy) return;
+    setBusy(true);
+    try {
+      const ok = await purchaseYearly();
+      if (ok) onStart();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Purchase failed');
+    } finally {
+      setBusy(false);
+    }
   };
+
+  const restore = async () => {
+    if (!native || busy) return;
+    setBusy(true);
+    try {
+      const ok = await restorePurchases();
+      if (ok) { toast.success('Purchases restored'); onStart(); }
+      else toast.message('No active subscription found');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Restore failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const priceLine = offer?.priceString ?? '$39';
+  const ctaLabel = busy
+    ? 'WORKING…'
+    : native
+      ? (offer?.introPriceString ? 'START 7-DAY TRIAL' : `SUBSCRIBE ${priceLine}/YR`)
+      : 'START 7-DAY TRIAL';
 
   return (
     <div className="fixed inset-0 z-50 bg-background text-foreground overflow-y-auto">
