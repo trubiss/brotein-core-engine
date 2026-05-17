@@ -46,23 +46,23 @@ export interface ReminderEvent {
   firedAt: number;
 }
 
-const STORAGE_KEY = 'brotein:reminderState';
+const storageKey = (uid: string) => `brotein:reminderState:${uid}`;
 
 interface StoredState {
   // last fired key per reminder, e.g. "2026-04-17:morning"
   lastFired: Record<string, string>;
 }
 
-function readState(): StoredState {
+function readState(uid: string): StoredState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey(uid));
     if (raw) return JSON.parse(raw) as StoredState;
   } catch { /* ignore */ }
   return { lastFired: {} };
 }
 
-function writeState(s: StoredState) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch { /* ignore */ }
+function writeState(uid: string, s: StoredState) {
+  try { localStorage.setItem(storageKey(uid), JSON.stringify(s)); } catch { /* ignore */ }
 }
 
 function timeToMinutes(t: string): number {
@@ -83,13 +83,14 @@ export interface PaceContext {
 }
 
 export function evaluateReminders(
+  uid: string,
   settings: ReminderSettings,
   pace: PaceContext,
   now: Date = new Date(),
 ): ReminderEvent[] {
-  if (!settings.enabled) return [];
+  if (!settings.enabled || !uid) return [];
   const events: ReminderEvent[] = [];
-  const state = readState();
+  const state = readState(uid);
   const today = dateKey(now);
   const minutes = now.getHours() * 60 + now.getMinutes();
 
@@ -128,6 +129,6 @@ export function evaluateReminders(
     }
   }
 
-  if (events.length) writeState(state);
+  if (events.length) writeState(uid, state);
   return events;
 }

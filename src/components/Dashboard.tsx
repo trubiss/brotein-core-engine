@@ -55,6 +55,7 @@ const haptic = () => {
 
 export default function Dashboard({ onNavigate }: Props) {
   const { user, profile } = useAuth();
+  const uid = user?.uid ?? '';
   const [today, setToday] = useState(todayKey());
   const [viewDate, setViewDate] = useState(todayKey());
   const [logs, setLogs] = useState<FoodLog[]>([]);
@@ -63,16 +64,32 @@ export default function Dashboard({ onNavigate }: Props) {
   const [streak, setStreak] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [showScan, setShowScan] = useState(false);
-  
+
   const [streakBump, setStreakBump] = useState(0);
-  const [trialActive, setTrialActive] = useState(() => isTrialActive());
+  const [hasEntitlement, setHasEntitlement] = useState(false);
+  const [trialActive, setTrialActive] = useState(() => isTrialActive(uid));
   const [totalLogs, setTotalLogs] = useState(0);
 
-  useEffect(() => { markFirstOpen(); }, []);
+  // Keep trialActive in sync when uid changes (login/logout) — preserves expiry semantics.
+  useEffect(() => { setTrialActive(isTrialActive(uid)); }, [uid]);
 
-  // Track total log count for paywall trigger (lightweight: piggyback on today's logs + a one-shot recent fetch)
+  useEffect(() => { if (uid) markFirstOpen(uid); }, [uid]);
+
+  // Check RevenueCat entitlement on boot. If the user already has Pro
+  // (returning subscriber, restored on reinstall), bypass the paywall.
   useEffect(() => {
-    if (!user || trialActive) return;
+    if (!uid) return;
+    let cancelled = false;
+    void import('@/lib/iap')
+      .then(m => m.hasProEntitlement())
+      .then(active => { if (!cancelled) setHasEntitlement(active); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [uid]);
+
+  // Track total log count for paywall trigger.
+  useEffect(() => {
+    if (!user || trialActive || hasEntitlement) return;
     let cancelled = false;
     getRecentSummaries(user.uid, 30)
       .then(all => {
@@ -82,9 +99,7 @@ export default function Dashboard({ onNavigate }: Props) {
       })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [user, trialActive, streakBump]);
-
-  const isToday = viewDate === today;
+  }, [user, trialActive, hasEntitlement, streakBump]);
 
   // Roll over at midnight
   useEffect(() => {
@@ -100,8 +115,6 @@ export default function Dashboard({ onNavigate }: Props) {
 
   useEffect(() => {
     if (!user) return;
-    // Reset state immediately so stale cached values from a previous day/session
-    // don't flash before the live snapshot arrives.
     setLogs([]);
     setSummary(null);
     setSummaryReady(false);
@@ -114,9 +127,10 @@ export default function Dashboard({ onNavigate }: Props) {
   }, [user, viewDate]);
 
   // Fire target_hit once per date when the user crosses their daily goal.
+  // Key is namespaced by uid so two users on the same device don't collide.
   useEffect(() => {
-    if (!summary?.hitTarget) return;
-    const key = `brotein_target_hit_${summary.date}`;
+    if (!summary?.hitTarget || !uid) return;
+    const key = `brotein_target_hit:${uid}:${summary.date}`;
     if (localStorage.getItem(key)) return;
     localStorage.setItem(key, '1');
     track('target_hit', {
@@ -124,7 +138,7 @@ export default function Dashboard({ onNavigate }: Props) {
       consumed: summary.consumedProtein,
       target: summary.targetProtein,
     });
-  }, [summary?.hitTarget, summary?.date, summary?.consumedProtein, summary?.targetProtein]);
+  }, [summary?.hitTarget, summary?.date, summary?.consumedProtein, summary?.targetProtein, uid]);
 
   // Streak: one-shot, deferred to idle, refetched after mutations.
   useEffect(() => {
@@ -145,12 +159,47 @@ export default function Dashboard({ onNavigate }: Props) {
     };
   }, [user, streakBump]);
 
+  // In-app reminder evaluator
+  useEffect(() => {
+    if (!profile || !uid) return;
+    const settings = getReminderSettings(profile);
+    const tick = () => {
+      const events = evaluateReminders(uid, settings, {
+        consumed: summary?.consumedProtein ?? 0,
+        target: profile.dailyProtein,
+      });
+      events.forEach(e => toast(e.title, { description: e.body }));
+    };
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => clearInterval(id);
+  }, [profile, summary, uid]);
+
+  // Pace — safe to compute even when profile not yet loaded (target=0 → on-pace)
+  const consumed = summary?.consumedProtein ?? 0;
+  const target = profile?.dailyProtein ?? 0;
+  const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
+
+  // Paywall tracking (must be declared before any conditional return)
+  const showPaywall =
+    !!profile && !trialActive && !hasEntitlement && shouldShowPaywall({ uid, logsCount: totalLogs, hasEntitlement });
+
+  useEffect(() => {
+    if (showPaywall) track('paywall_viewed', { logs_count: totalLogs, streak });
+  }, [showPaywall, totalLogs, streak]);
+
+  // ───────── early returns AFTER all hooks ─────────
+  if (!profile || !user) return null;
+
+  const remaining = Math.max(0, target - consumed);
+  const isToday = viewDate === today;
+
   const shiftDate = (days: number) => {
     const [y, m, d] = viewDate.split('-').map(Number);
     const dt = new Date(y, m - 1, d);
     dt.setDate(dt.getDate() + days);
     const next = todayKey(dt);
-    if (next > today) return; // do not allow future
+    if (next > today) return;
     setViewDate(next);
   };
 
@@ -163,31 +212,6 @@ export default function Dashboard({ onNavigate }: Props) {
     return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
   })();
 
-  // In-app reminder evaluator: checks every minute and surfaces toasts.
-  // Push notifications can replace `toast` later without touching the logic.
-  useEffect(() => {
-    if (!profile) return;
-    const settings = getReminderSettings(profile);
-    const tick = () => {
-      const events = evaluateReminders(settings, {
-        consumed: summary?.consumedProtein ?? 0,
-        target: profile.dailyProtein,
-      });
-      events.forEach(e => toast(e.title, { description: e.body }));
-    };
-    tick();
-    const id = setInterval(tick, 60_000);
-    return () => clearInterval(id);
-  }, [profile, summary]);
-
-  if (!profile || !user) return null;
-
-  const consumed = summary?.consumedProtein ?? 0;
-  const target = profile.dailyProtein;
-  const remaining = Math.max(0, target - consumed);
-  const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
-
-  // Action-driven status copy. Direct, no passive language.
   const status = (() => {
     if (consumed >= target) {
       return { headline: 'LOCKED IN', sub: 'TARGET HIT.' };
@@ -197,16 +221,12 @@ export default function Dashboard({ onNavigate }: Props) {
     }
     if (pace.status === 'behind') {
       const need = Math.max(0, target - consumed);
-      // Deadline = end of active eating window (22:00). Show as HH:MM.
       return { headline: 'BEHIND', sub: `NEED ${need}G BEFORE 22:00` };
     }
     return { headline: 'ON TRACK', sub: 'STAY CONSISTENT.' };
   })();
 
-
   const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
-    // Optimistic: toast immediately, write in background. Firestore's local cache
-    // will reflect the new log via onSnapshot before the server round-trip completes.
     haptic();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
@@ -217,11 +237,6 @@ export default function Dashboard({ onNavigate }: Props) {
       });
   };
 
-
-  const showPaywall = !trialActive && shouldShowPaywall({ logsCount: totalLogs });
-  useEffect(() => {
-    if (showPaywall) track('paywall_viewed', { logs_count: totalLogs, streak });
-  }, [showPaywall, totalLogs, streak]);
   if (showPaywall) {
     return (
       <Suspense fallback={null}>
@@ -229,7 +244,7 @@ export default function Dashboard({ onNavigate }: Props) {
           streak={streak}
           onStart={() => {
             track('trial_started', { streak, logs_count: totalLogs });
-            startTrial();
+            startTrial(uid);
             setTrialActive(true);
           }}
         />

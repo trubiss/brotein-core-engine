@@ -130,7 +130,7 @@ export default function ProfileScreen({ onBack }: Props) {
         <button
           className="w-full p-4 border-2 border-foreground font-mono font-bold text-xs uppercase tracking-widest active:scale-[0.98] transition-transform"
           onClick={() => {
-            localStorage.removeItem('brotein_story_seen');
+            if (user) localStorage.removeItem(`brotein_story_seen:${user.uid}`);
             location.reload();
           }}
         >
