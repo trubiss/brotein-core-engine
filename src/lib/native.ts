@@ -38,6 +38,67 @@ export async function successHaptic() {
   } catch { /* ignore */ }
 }
 
+// ---- Local notifications --------------------------------------------------
+
+export interface ScheduledReminder {
+  id: number;            // stable numeric id per slot
+  title: string;
+  body: string;
+  hour: number;
+  minute: number;
+}
+
+/** Ensure permission for local notifications on native iOS/Android. No-op on web. */
+export async function ensureNotificationPermission(): Promise<boolean> {
+  if (!isNative()) return false;
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const status = await LocalNotifications.checkPermissions();
+    if (status.display === 'granted') return true;
+    const req = await LocalNotifications.requestPermissions();
+    return req.display === 'granted';
+  } catch (e) {
+    console.warn('Notification permission failed', e);
+    return false;
+  }
+}
+
+/** Replace any previously scheduled daily reminders with the provided set. */
+export async function scheduleDailyReminders(reminders: ScheduledReminder[]): Promise<void> {
+  if (!isNative()) return;
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    // Cancel anything we previously scheduled
+    const pending = await LocalNotifications.getPending();
+    if (pending.notifications.length) {
+      await LocalNotifications.cancel({ notifications: pending.notifications.map(n => ({ id: n.id })) });
+    }
+    if (!reminders.length) return;
+    await LocalNotifications.schedule({
+      notifications: reminders.map(r => ({
+        id: r.id,
+        title: r.title,
+        body: r.body,
+        schedule: { on: { hour: r.hour, minute: r.minute }, allowWhileIdle: true, repeats: true },
+      })),
+    });
+  } catch (e) {
+    console.warn('Schedule reminders failed', e);
+  }
+}
+
+/** Cancel all scheduled reminders. */
+export async function cancelAllReminders(): Promise<void> {
+  if (!isNative()) return;
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const pending = await LocalNotifications.getPending();
+    if (pending.notifications.length) {
+      await LocalNotifications.cancel({ notifications: pending.notifications.map(n => ({ id: n.id })) });
+    }
+  } catch { /* ignore */ }
+}
+
 /**
  * Get a JPEG data URL from the native camera (or photo library on web fallback).
  * Returns null if the user cancels.
