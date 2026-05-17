@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { ArrowRight } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { createOrUpdateProfile } from '@/lib/firestore';
 import { toast } from 'sonner';
+import OnboardingHeader from './onboarding/OnboardingHeader';
 
 interface Props {
   data: { name: string; email: string };
@@ -45,17 +47,19 @@ export default function ManualTargetScreen({ data, onComplete, onBack }: Props) 
 
   return (
     <div className="flex-1 flex flex-col justify-between min-w-0">
-      <div className="pt-16">
-        <h1 className="text-2xl font-black tracking-[0.15em] mb-3 break-words">SET YOUR TARGET</h1>
-        <div className="w-16 h-0.5 bg-foreground" />
-        <p className="text-[11px] text-muted-foreground tracking-[0.2em] uppercase mt-4">
-          ENTER YOUR DAILY PROTEIN GOAL
-        </p>
-      </div>
+      <OnboardingHeader
+        step={1}
+        total={1}
+        title="SET YOUR TARGET"
+        kicker="MANUAL OVERRIDE"
+        onBack={onBack}
+      />
 
       <div className="flex-1 flex flex-col items-center justify-center py-8">
-        <p className="label-spaced text-center">DAILY PROTEIN TARGET</p>
-        <div className="flex items-baseline gap-1 mt-2">
+        <p className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-foreground/50 mb-4">
+          DAILY PROTEIN TARGET
+        </p>
+        <div className="flex items-baseline gap-1">
           <input
             autoFocus
             type="number"
@@ -63,26 +67,19 @@ export default function ManualTargetScreen({ data, onComplete, onBack }: Props) 
             placeholder="180"
             value={target}
             onChange={e => setTarget(e.target.value)}
-            className="w-40 text-7xl font-black font-display tracking-tighter text-center bg-transparent border-b-2 border-foreground outline-none focus:ring-0"
+            className="w-44 text-[88px] font-black font-display tracking-[-0.03em] leading-none text-center bg-transparent border-b-[3px] border-foreground outline-none focus:ring-0 placeholder:text-foreground/15"
           />
-          <span className="text-4xl font-black font-display">G</span>
+          <span className="font-mono font-bold text-3xl text-foreground/60">G</span>
         </div>
-        <p className="text-[10px] text-muted-foreground tracking-[0.25em] uppercase mt-6">
-          RECOMMENDED RANGE: 80G – 250G
+        <p className="font-mono text-[10px] font-bold tracking-[0.25em] uppercase text-foreground/40 mt-6">
+          RECOMMENDED: 80G – 250G
         </p>
       </div>
 
-      <div className="flex gap-4">
-        <button className="btn-outline flex-1" onClick={onBack} disabled={busy}>BACK</button>
-        <button
-          className="btn-primary flex-1"
-          disabled={!valid || busy}
-          onClick={handleStart}
-          style={{ opacity: valid && !busy ? 1 : 0.3 }}
-        >
-          {busy ? 'SAVING…' : 'START TRACKING'}
-        </button>
-      </div>
+      <button className="btn-cta" disabled={!valid || busy} onClick={handleStart}>
+        <span>{busy ? 'SAVING…' : 'START TRACKING'}</span>
+        <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+      </button>
     </div>
   );
 }
