@@ -1,72 +1,87 @@
+import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
+import OnboardingHeader from './onboarding/OnboardingHeader';
+
 interface Props {
   data: { weight: number; height: number; age: number };
   onUpdate: (d: Partial<Props['data']>) => void;
   onNext: () => void;
   onBack: () => void;
   onManualOverride?: () => void;
+  step?: number;
+  total?: number;
 }
 
-export default function BiometricsScreen({ data, onUpdate, onNext, onBack, onManualOverride }: Props) {
+const fields: { key: 'weight' | 'height' | 'age'; label: string; unit: string; placeholder: string; min: number; max: number }[] = [
+  { key: 'weight', label: 'BODY MASS',  unit: 'KG', placeholder: '0', min: 30, max: 250 },
+  { key: 'height', label: 'HEIGHT',     unit: 'CM', placeholder: '0', min: 100, max: 230 },
+  { key: 'age',    label: 'AGE',        unit: 'YR', placeholder: '0', min: 13, max: 100 },
+];
+
+export default function BiometricsScreen({
+  data, onUpdate, onNext, onBack, onManualOverride, step = 1, total = 3,
+}: Props) {
   const canProceed = data.weight > 0 && data.height > 0 && data.age > 0;
 
   return (
     <div className="flex-1 flex flex-col justify-between min-w-0">
-      <div className="pt-16">
-        <h1 className="text-2xl font-black tracking-[0.15em] mb-3 break-words">STRUCTURAL DATA</h1>
-        <div className="w-16 h-0.5 bg-foreground" />
-      </div>
+      <OnboardingHeader
+        step={step}
+        total={total}
+        title="STRUCTURAL DATA"
+        kicker="A · MEASUREMENTS"
+        onBack={onBack}
+      />
 
-      <div className="space-y-8 py-8">
-        <div>
-          <label className="label-spaced">Body Mass (kg)</label>
-          <input
-            className="input-underline"
-            type="number"
-            placeholder="0"
-            value={data.weight || ''}
-            onChange={e => onUpdate({ weight: Number(e.target.value) })}
-          />
-        </div>
-        <div>
-          <label className="label-spaced">Height (cm)</label>
-          <input
-            className="input-underline"
-            type="number"
-            placeholder="0"
-            value={data.height || ''}
-            onChange={e => onUpdate({ height: Number(e.target.value) })}
-          />
-        </div>
-        <div>
-          <label className="label-spaced">Age</label>
-          <input
-            className="input-underline"
-            type="number"
-            placeholder="0"
-            value={data.age || ''}
-            onChange={e => onUpdate({ age: Number(e.target.value) })}
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <div className="flex gap-4">
-          <button className="btn-outline flex-1" onClick={onBack}>BACK</button>
-          <button
-            className="btn-primary flex-1"
-            disabled={!canProceed}
-            onClick={onNext}
-            style={{ opacity: canProceed ? 1 : 0.3 }}
+      <div className="flex-1 flex flex-col justify-center gap-2">
+        {fields.map((f, i) => (
+          <motion.div
+            key={f.key}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.08 + i * 0.06, ease: [0.2, 0.8, 0.2, 1] }}
+            className="bio-row"
           >
-            NEXT
-          </button>
-        </div>
+            <label
+              htmlFor={`bio-${f.key}`}
+              className="font-mono text-[11px] font-bold tracking-[0.25em] uppercase text-foreground/60"
+            >
+              {f.label}
+            </label>
+            <div className="flex items-baseline gap-2">
+              <input
+                id={`bio-${f.key}`}
+                className="bio-input"
+                type="number"
+                inputMode="numeric"
+                placeholder={f.placeholder}
+                value={data[f.key] || ''}
+                min={f.min}
+                max={f.max}
+                onChange={e => onUpdate({ [f.key]: Number(e.target.value) } as Partial<Props['data']>)}
+              />
+              <span className="font-mono text-sm font-bold tracking-[0.15em] text-foreground/50 w-7 text-left">
+                {f.unit}
+              </span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-4 pt-8">
+        <button className="btn-cta" disabled={!canProceed} onClick={onNext}>
+          <span>CONTINUE</span>
+          <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+        </button>
         {onManualOverride && (
           <button
             onClick={onManualOverride}
-            className="text-[10px] tracking-[0.25em] uppercase font-bold underline underline-offset-4 text-muted-foreground hover:text-foreground active:opacity-60 py-2"
+            className="w-full border-2 border-foreground/15 py-3 flex items-center justify-between px-4 active:opacity-60 transition-opacity"
           >
-            ALREADY KNOW YOUR TARGET? ENTER MANUALLY
+            <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/60">
+              ALREADY KNOW YOUR TARGET?
+            </span>
+            <ArrowRight className="w-3.5 h-3.5 text-foreground/60" strokeWidth={2.5} />
           </button>
         )}
       </div>

@@ -56,9 +56,12 @@ export default function OnboardingFlow() {
     email: user?.email ?? '',
   };
 
+  const TOTAL = 3;
   const screens: Record<StepKey, JSX.Element> = {
     bio: (
       <BiometricsScreen
+        step={1}
+        total={TOTAL}
         data={data}
         onUpdate={update}
         onNext={() => go('goals', 1)}
@@ -68,6 +71,8 @@ export default function OnboardingFlow() {
     ),
     goals: (
       <GoalsScreen
+        step={2}
+        total={TOTAL}
         data={data}
         onUpdate={update}
         onNext={() => go('results', 1)}
@@ -76,6 +81,8 @@ export default function OnboardingFlow() {
     ),
     results: (
       <ResultsScreen
+        step={3}
+        total={TOTAL}
         data={{ ...profileBase, ...data }}
         onComplete={completeFrom('auto')}
         onBack={() => go('goals', -1)}
@@ -100,7 +107,7 @@ export default function OnboardingFlow() {
           initial="enter"
           animate="center"
           exit="exit"
-          transition={{ duration: 0.18, ease: 'easeOut' }}
+          transition={{ duration: 0.16, ease: [0.2, 0.8, 0.2, 1] }}
           className="flex-1 flex flex-col"
         >
           {screens[step]}

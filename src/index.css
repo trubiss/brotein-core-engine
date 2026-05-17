@@ -94,6 +94,34 @@
     @apply bg-foreground text-background;
   }
 
+  /* Onboarding primary CTA: full-width, taller, softer disabled state */
+  .btn-cta {
+    @apply bg-primary text-primary-foreground w-full h-16 font-bold tracking-[0.18em] uppercase text-sm transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-3;
+    font-family: var(--font-display);
+    border-radius: 0 !important;
+  }
+  .btn-cta:disabled {
+    opacity: 0.12;
+    pointer-events: none;
+  }
+
+  /* Large-number onboarding input row */
+  .bio-row {
+    @apply flex items-baseline justify-between gap-3 py-4 border-b-2 border-foreground transition-[border-width] duration-150;
+  }
+  .bio-row:focus-within {
+    @apply border-b-[3px];
+  }
+  .bio-input {
+    @apply bg-transparent outline-none text-right w-24 placeholder:text-foreground/15;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 44px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    border-radius: 0 !important;
+  }
+
   .label-spaced {
     @apply text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-3 block font-bold;
     font-family: var(--font-display);
