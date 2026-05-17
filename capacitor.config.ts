@@ -1,16 +1,22 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+// Set CAP_DEV=1 when you want the native shell to hot-reload from the Lovable
+// sandbox. Production / App Store builds MUST run without it so the bundled
+// `dist/` is loaded — Apple rejects apps that fetch their JS from a remote URL.
+const isDev = process.env.CAP_DEV === '1';
+
 const config: CapacitorConfig = {
   appId: 'com.brotein.app',
   appName: 'Brotein',
   webDir: 'dist',
-  // Hot-reload from the Lovable sandbox while developing on a device.
-  // Remove the `server` block (or replace `url` with your production domain)
-  // before producing a release build for the App Store.
-  server: {
-    url: 'https://376913f3-6f06-467e-8b0e-d64dbb833936.lovableproject.com?forceHideBadge=true',
-    cleartext: true,
-  },
+  ...(isDev
+    ? {
+        server: {
+          url: 'https://376913f3-6f06-467e-8b0e-d64dbb833936.lovableproject.com?forceHideBadge=true',
+          cleartext: true,
+        },
+      }
+    : {}),
   ios: {
     contentInset: 'always',
     backgroundColor: '#ffffff',
