@@ -1,13 +1,13 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import SignInScreen from '@/components/SignInScreen';
 import OnboardingFlow from '@/components/OnboardingFlow';
-import OnboardingStoryFlow from '@/components/OnboardingStoryFlow';
 
 import Dashboard from '@/components/Dashboard';
 import ResetPasswordScreen from '@/components/ResetPasswordScreen';
 
+const OnboardingStoryFlow = lazy(() => import('@/components/OnboardingStoryFlow'));
 const HistoryScreen = lazy(() => import('@/components/HistoryScreen'));
 const ProfileScreen = lazy(() => import('@/components/ProfileScreen'));
 const InsightsScreen = lazy(() => import('@/components/InsightsScreen'));
@@ -21,6 +21,8 @@ const getResetCode = (): string | null => {
   return null;
 };
 
+const storySeenKey = (uid: string) => `brotein_story_seen:${uid}`;
+
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
@@ -31,12 +33,17 @@ const Index = () => {
   const { user, profile, loading } = useAuth();
   const [page, setPage] = useState<Page>('dashboard');
   const [resetCode, setResetCode] = useState<string | null>(() => getResetCode());
-  const [storySeen, setStorySeen] = useState<boolean>(() =>
-    typeof window !== 'undefined' && localStorage.getItem('brotein_story_seen') === '1'
-  );
+  const [storySeen, setStorySeen] = useState(false);
+
+  // Recompute per-user when auth state changes — prevents User A's "seen"
+  // state from suppressing the story for User B on the same device.
+  useEffect(() => {
+    if (!user) { setStorySeen(false); return; }
+    setStorySeen(localStorage.getItem(storySeenKey(user.uid)) === '1');
+  }, [user]);
 
   const completeStory = () => {
-    localStorage.setItem('brotein_story_seen', '1');
+    if (user) localStorage.setItem(storySeenKey(user.uid), '1');
     setStorySeen(true);
   };
 
@@ -58,7 +65,11 @@ const Index = () => {
 
   if (resetCode) return <ResetPasswordScreen oobCode={resetCode} onDone={clearResetCode} />;
   if (!user) return <SignInScreen />;
-  if (!storySeen) return <OnboardingStoryFlow onComplete={completeStory} />;
+  if (!storySeen) return (
+    <Suspense fallback={null}>
+      <OnboardingStoryFlow onComplete={completeStory} />
+    </Suspense>
+  );
   if (!profile) return <OnboardingFlow />;
 
   return (
