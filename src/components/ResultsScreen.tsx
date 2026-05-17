@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { createOrUpdateProfile } from '@/lib/firestore';
 import { ActivityLevel, Goal, calculateMacros } from '@/lib/types';
@@ -31,7 +30,6 @@ function useCountUp(target: number, duration = 900, enabled = true) {
     const start = performance.now();
     const tick = (t: number) => {
       const p = Math.min(1, (t - start) / duration);
-      // ease-out-cubic
       const eased = 1 - Math.pow(1 - p, 3);
       setValue(Math.round(target * eased));
       if (p < 1) raf = requestAnimationFrame(tick);
@@ -76,23 +74,24 @@ export default function ResultsScreen({ data, onComplete, onBack, step = 3, tota
     }
   };
 
-  const stagger = (i: number) => ({
-    initial: reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.35, delay: reduce ? 0 : 1.05 + i * 0.08, ease: [0.2, 0.8, 0.2, 1] as const },
-  });
+  const cells = [
+    { label: 'CALORIES', value: String(macros.calories) },
+    { label: 'CARBS',    value: `${macros.carbs}G` },
+    { label: 'FATS',     value: `${macros.fats}G` },
+    { label: 'MEALS',    value: `${macros.mealFrequency}×` },
+  ];
 
   return (
-    <div className="flex-1 flex flex-col justify-between min-w-0">
-      <OnboardingHeader
-        step={step}
-        total={total}
-        title="CALCULATION COMPLETE"
-        kicker="C · OUTPUT"
-        onBack={onBack}
-      />
+    <div className="flex-1 flex flex-col min-w-0">
+      <OnboardingHeader step={step} total={total} onBack={onBack} />
 
-      <div className="flex-1 flex flex-col items-center justify-center py-8">
+      <div className="px-1 pt-6">
+        <h1 className="font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] uppercase">
+          CALCULATION<br />COMPLETE
+        </h1>
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center py-10">
         <p className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-foreground/50 mb-3">
           DAILY PROTEIN TARGET
         </p>
@@ -108,40 +107,20 @@ export default function ResultsScreen({ data, onComplete, onBack, step = 3, tota
           <span className="font-mono font-bold text-3xl text-foreground/60">G</span>
         </div>
 
-        <motion.div
-          initial={reduce ? { scaleX: 1 } : { scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ duration: 0.45, delay: reduce ? 0 : 0.95, ease: [0.2, 0.8, 0.2, 1] }}
-          style={{ transformOrigin: 'left' }}
-          className="w-32 h-[3px] bg-foreground my-8"
-        />
-
-        <div className="grid grid-cols-3 gap-6 w-full max-w-xs text-center">
-          {[
-            { label: 'CALORIES', value: macros.calories },
-            { label: 'CARBS',    value: `${macros.carbs}g` },
-            { label: 'FATS',     value: `${macros.fats}g` },
-          ].map((m, i) => (
-            <motion.div key={m.label} {...stagger(i)} className="min-w-0">
-              <p className="font-mono text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/50 mb-1">
-                {m.label}
+        <div className="grid grid-cols-4 gap-4 w-full max-w-sm text-center mt-12">
+          {cells.map(c => (
+            <div key={c.label} className="min-w-0">
+              <p className="font-mono text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/50 mb-1">
+                {c.label}
               </p>
-              <p className="font-mono text-xl font-black tracking-tight">{m.value}</p>
-            </motion.div>
+              <p className="font-mono text-base font-black tracking-tight">{c.value}</p>
+            </div>
           ))}
         </div>
-
-        <motion.div {...stagger(3)} className="mt-8 text-center">
-          <p className="font-mono text-[9px] font-bold tracking-[0.25em] uppercase text-foreground/50 mb-1">
-            MEAL FREQUENCY
-          </p>
-          <p className="font-mono text-xl font-black tracking-tight">{macros.mealFrequency}× / DAY</p>
-        </motion.div>
       </div>
 
-      <button className="btn-cta group" onClick={handleStart} disabled={busy}>
-        <span>{busy ? 'SAVING…' : 'START TRACKING'}</span>
-        <ArrowRight className="w-4 h-4 transition-transform group-active:translate-x-1" strokeWidth={2.5} />
+      <button className="btn-cta" onClick={handleStart} disabled={busy}>
+        {busy ? 'SAVING…' : 'START TRACKING'}
       </button>
     </div>
   );
