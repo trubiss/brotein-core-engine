@@ -1,77 +1,115 @@
-## Onboarding Polish Plan
+## Onboarding Cleanup — Strip to Essentials
 
-Scope: post-story onboarding only (`BiometricsScreen` → `GoalsScreen` → `ResultsScreen`, plus `ManualTargetScreen`). Keep current 3-screen structure and keyboard inputs. No new dependencies. Brutalist B&W identity preserved — same Space Mono / Grotesk tokens, 0px corners.
+Goal: align the 3 form screens (`BiometricsScreen`, `GoalsScreen`, `ResultsScreen`) + `ManualTargetScreen` with the visual discipline of `OnboardingStoryFlow`. No copy changes. Same brutalist tokens. Remove every element that isn't carrying its weight.
 
-### What's wrong today
+### Diagnosis — what's noisy today
 
-- After the dramatic story flow, the form screens feel flat: no sense of progress, no rhythm, no payoff.
-- Inputs are thin and identical; no visual weight matches the headlines.
-- The Results "reveal" is a static number — the climax of onboarding doesn't feel like one.
-- Buttons (BACK / NEXT) look identical in weight, hurting clarity.
-- Manual-override link buried as small underline text.
+After the last pass, each form screen carries three competing systems:
+1. The shared header (segmented bar + chevron + `01/03` counter)
+2. A kicker line (`A · MEASUREMENTS`, `B · TRAJECTORY`, `C · OUTPUT`)
+3. Per-row decoration (numbered badges `01/02/03`, unit chips, meta values like `1.8 G/KG`, section headers `ACTIVITY COEFFICIENT`)
 
-### Changes
+That's three places telling you where you are, plus per-row chrome competing with the actual content. The story flow uses **one** of those systems and reads instantly.
 
-**1. Shared progress header (new)**
-A top bar shared across bio / goals / results showing step position. Brutalist execution: numeric counter + a row of segmented bars.
+### Cleanup rules (apply to all screens)
+
+- Headline = the only thing that matters at the top.
+- Progress = one thin bar at the very top, story-flow style (matches what came before).
+- Drop every kicker, section label, and number badge.
+- One column. Same horizontal padding everywhere (`px-6`).
+- Vertical rhythm on multiples of 8: `pt-4 pb-6`, gaps of 16/24/32 only.
+- Borders only where they encode meaning (selected state, input baseline). No purely decorative borders.
+
+### Per-screen changes
+
+**Shared `OnboardingHeader` — simplified**
+- Remove segmented bars, kicker prop, large dividing rule under the headline.
+- Replace with the exact header from `OnboardingStoryFlow`: back chevron (left) · one thin 2px progress line (center, ~65% width) · `SKIP` slot empty. No `01/03` counter.
+- Headline rendered by the screen, not the header — gives each screen full control over headline spacing.
 
 ```text
-  01 / 03                          ────  ────  ────
-  STRUCTURAL DATA                   ████  ────  ────
-  ─────                              (filled segments = progress)
+  ←       ───────────────────         
+                                       
+  STRUCTURAL                           
+  DATA                                 
 ```
 
-Counter is mono caps, segments are 2px-tall blocks that fill black as you advance, with a 250ms ease-out width animation between steps.
+**BiometricsScreen — quiet form**
+- Drop unit chips (`KG/CM/YR`) — units go into the label itself: `WEIGHT (KG)`, `HEIGHT (CM)`, `AGE`.
+- Drop the staggered entry animation — let the screen-level slide do the work.
+- Single column, three rows, each row = small label above, big underlined number input below (left-aligned, full width).
+- Manual-override becomes a plain centered text link below the CTA: `ALREADY KNOW YOUR TARGET →` — no border box.
 
-**2. BiometricsScreen — input redesign**
-- Replace three identical underline inputs with **large-number inputs**: each field shows the entered value at ~56px Space Mono on the right, label on the left, thick 2px underline that thickens to 4px on focus.
-- Unit chip (`KG`, `CM`, `YR`) sits inline next to the value to remove ambiguity.
-- Fields stagger in on mount (40ms each) for rhythm matching the story flow.
-- Manual-override link promoted to a bordered ghost row at the bottom (`ALREADY KNOW YOUR TARGET? →`) with an arrow glyph.
-
-Sketch:
 ```text
-  BODY MASS                              82  KG
-  ──────────────────────────────────────────
-  HEIGHT                                178  CM
-  ──────────────────────────────────────────
-  AGE                                    29  YR
-  ──────────────────────────────────────────
+  WEIGHT (KG)
+  __82_______________________________
+
+  HEIGHT (CM)
+  __178______________________________
+
+  AGE
+  __29_______________________________
+                                   
+  [        CONTINUE              →  ]
+       ALREADY KNOW YOUR TARGET →
 ```
 
-**3. GoalsScreen — hierarchy + selection feedback**
-- Each option row gains a **leading numeric badge** (`01 02 03`) in mono and a **right-side meta value** (e.g. `1.8 G/KG`) pulled out of the description for scannability.
-- Selection animation: instead of an instant invert, the black fill sweeps in from the left over 200ms; a small inverted arrow (`→`) appears on the right.
-- Sections get a thin numeric label (`A · ACTIVITY` / `B · TRAJECTORY`) to break the monotony of two identical stacks.
-- Tap target height bumped from current ~56px to 64px for thumb-comfort.
+**GoalsScreen — match story flow's button stack**
+- Drop section headers (`ACTIVITY COEFFICIENT`, `PHYSICAL TRAJECTORY`), kickers, numbered badges, meta values, and the inverted arrow.
+- Two question-style stacks separated by a single short headline change rendered inside the body (not a label):
+  - First page asks `HOW ACTIVE ARE YOU?` (no copy change — just promote the existing prompt visually)
+  - Second `WHAT'S YOUR GOAL?`
+- Options become the exact `h-14` bordered button used in `OnboardingStoryFlow`: label only, full-width, invert-on-select. Description shown as a single-line muted subtext under each label (12px, +6% tracking).
 
-**4. ResultsScreen — make it the climax**
-- Headline becomes `CALCULATION COMPLETE` with a typewriter-like reveal (8 chars at a time, ~30ms each).
-- The protein number **counts up** from 0 to the target over 900ms (ease-out-cubic), in 96px Space Mono Black, kerning -2%.
-- Below the number: a thin animated rule that draws left-to-right in 400ms after the count finishes.
-- 3-column macros grid: each cell fades + slides up 8px in sequence (80ms stagger) after the rule lands.
-- `START TRACKING` button: full-width, 64px tall, with a tiny `→` glyph that nudges 4px right on hover/press.
+Important detail: splitting the screen into two sub-pages preserves all current data flow (`onUpdate({activityLevel})` / `onUpdate({goal})`) — just adds one internal step. Headline copy stays as today (`KINETIC OBJECTIVES`) for the wrapper; per-section sub-prompts are kept tiny and secondary. **If you'd rather not split**, fallback is keeping both lists on one screen but with story-flow buttons and only the existing `KINETIC OBJECTIVES` headline — confirm preference in the build.
 
-**5. Buttons & rhythm (shared)**
-- `BACK` becomes a top-left chevron (`← BACK`) inside the progress header, not a bottom-row button — frees the bottom for one strong primary CTA per screen.
-- Primary CTA spans full width, label centered, 56–64px tall. Disabled state: 12% opacity (current 30% reads as "broken").
-- Page padding standardized to `px-6 pt-6 pb-8`; vertical rhythm on an 8pt grid.
+**ResultsScreen — single hero number**
+- Drop the kicker (`C · OUTPUT`) and the animated rule draw.
+- Headline `CALCULATION COMPLETE` stays.
+- Center stack:
+  - small label `DAILY PROTEIN TARGET`
+  - giant count-up number (kept — it earns its place)
+  - 32px of breathing room
+  - 3-column macros, no individual cell animation, no big numbers competing with the hero — keep at ~18px
+  - `MEAL FREQUENCY` becomes the 4th cell in the grid (eliminates the orphaned block below)
+- Bottom CTA unchanged.
 
-**6. Transitions**
-- Keep the existing horizontal slide between steps but shorten to 160ms with `cubic-bezier(0.2, 0.8, 0.2, 1)` to match story flow easing.
-- Add a 1-frame `prefers-reduced-motion` fallback that disables count-up + stagger.
+```text
+  CALCULATION
+  COMPLETE
 
-### Files touched
+           DAILY PROTEIN TARGET
+                184G
+            ────────────
 
-- `src/components/OnboardingFlow.tsx` — add `currentStepIndex` / `totalSteps` and pass to each screen; wire shared header.
-- `src/components/BiometricsScreen.tsx` — new input layout, staggered mount, promoted manual link.
-- `src/components/GoalsScreen.tsx` — badges, meta values, sweep-in selection.
-- `src/components/ResultsScreen.tsx` — count-up hook, rule-draw, staggered macros.
-- `src/components/ManualTargetScreen.tsx` — light pass to match new header + button rhythm.
-- `src/index.css` — possibly one new utility (`.btn-cta` for the 64px full-width CTA) if it can't be expressed cleanly with Tailwind.
+      CALORIES   CARBS    FATS    MEALS
+        2 410    240G     78G     5×/D
+
+  [       START TRACKING        →  ]
+```
+
+**ManualTargetScreen — match Results rhythm**
+- Same simplified header.
+- Centered number input identical to Results' display, just editable.
+- Drop the "RECOMMENDED RANGE" line into a single muted helper under the input (already there, just retypeset).
+
+### Token / utility changes
+
+- `.btn-cta` — keep, but reduce height to 56px to match story flow's `h-14`. Drop the gap-3 + arrow icon from the utility; screens pass the arrow as a child only when wanted.
+- New `.input-bio` — single underline, left-aligned, 40px Space Mono Black, used by Biometrics rows.
+- Remove `.bio-row` (no longer needed once units move into labels).
+
+### Files
+
+- `src/components/onboarding/OnboardingHeader.tsx` — strip to back + thin progress line.
+- `src/components/BiometricsScreen.tsx` — simplified rows, link instead of bordered override.
+- `src/components/GoalsScreen.tsx` — story-flow buttons; either single screen with one headline or split into two sub-steps (I'll pick the single-screen version unless you prefer the split).
+- `src/components/ResultsScreen.tsx` — drop kicker + rule draw, fold meal frequency into the grid.
+- `src/components/ManualTargetScreen.tsx` — header + button rhythm.
+- `src/index.css` — adjust `.btn-cta`, add `.input-bio`, remove `.bio-row`.
 
 ### Out of scope
 
-- No copy rewrites (screen titles stay: `STRUCTURAL DATA`, `KINETIC OBJECTIVES`, `CALCULATION COMPLETE`).
-- No new fields, no new flow steps, no dependency installs.
-- SignIn, Dashboard, Paywall, story flow untouched.
+- All copy (headlines, button labels, descriptions) stays exactly as today.
+- Story flow untouched.
+- No changes to flow/state/persistence.

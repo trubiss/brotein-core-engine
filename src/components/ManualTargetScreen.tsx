@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { createOrUpdateProfile } from '@/lib/firestore';
 import { toast } from 'sonner';
@@ -46,16 +45,16 @@ export default function ManualTargetScreen({ data, onComplete, onBack }: Props) 
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-between min-w-0">
-      <OnboardingHeader
-        step={1}
-        total={1}
-        title="SET YOUR TARGET"
-        kicker="MANUAL OVERRIDE"
-        onBack={onBack}
-      />
+    <div className="flex-1 flex flex-col min-w-0">
+      <OnboardingHeader step={1} total={1} onBack={onBack} />
 
-      <div className="flex-1 flex flex-col items-center justify-center py-8">
+      <div className="px-1 pt-6">
+        <h1 className="font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] uppercase">
+          SET YOUR<br />TARGET
+        </h1>
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center py-10">
         <p className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-foreground/50 mb-4">
           DAILY PROTEIN TARGET
         </p>
@@ -72,13 +71,12 @@ export default function ManualTargetScreen({ data, onComplete, onBack }: Props) 
           <span className="font-mono font-bold text-3xl text-foreground/60">G</span>
         </div>
         <p className="font-mono text-[10px] font-bold tracking-[0.25em] uppercase text-foreground/40 mt-6">
-          RECOMMENDED: 80G – 250G
+          RECOMMENDED 80G – 250G
         </p>
       </div>
 
       <button className="btn-cta" disabled={!valid || busy} onClick={handleStart}>
-        <span>{busy ? 'SAVING…' : 'START TRACKING'}</span>
-        <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+        {busy ? 'SAVING…' : 'START TRACKING'}
       </button>
     </div>
   );

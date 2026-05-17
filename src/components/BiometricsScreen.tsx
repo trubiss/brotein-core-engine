@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
 import OnboardingHeader from './onboarding/OnboardingHeader';
 
 interface Props {
@@ -12,10 +10,10 @@ interface Props {
   total?: number;
 }
 
-const fields: { key: 'weight' | 'height' | 'age'; label: string; unit: string; placeholder: string; min: number; max: number }[] = [
-  { key: 'weight', label: 'BODY MASS',  unit: 'KG', placeholder: '0', min: 30, max: 250 },
-  { key: 'height', label: 'HEIGHT',     unit: 'CM', placeholder: '0', min: 100, max: 230 },
-  { key: 'age',    label: 'AGE',        unit: 'YR', placeholder: '0', min: 13, max: 100 },
+const fields: { key: 'weight' | 'height' | 'age'; label: string }[] = [
+  { key: 'weight', label: 'WEIGHT (KG)' },
+  { key: 'height', label: 'HEIGHT (CM)' },
+  { key: 'age',    label: 'AGE' },
 ];
 
 export default function BiometricsScreen({
@@ -24,64 +22,47 @@ export default function BiometricsScreen({
   const canProceed = data.weight > 0 && data.height > 0 && data.age > 0;
 
   return (
-    <div className="flex-1 flex flex-col justify-between min-w-0">
-      <OnboardingHeader
-        step={step}
-        total={total}
-        title="STRUCTURAL DATA"
-        kicker="A · MEASUREMENTS"
-        onBack={onBack}
-      />
+    <div className="flex-1 flex flex-col min-w-0">
+      <OnboardingHeader step={step} total={total} onBack={onBack} />
 
-      <div className="flex-1 flex flex-col justify-center gap-2">
-        {fields.map((f, i) => (
-          <motion.div
-            key={f.key}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.08 + i * 0.06, ease: [0.2, 0.8, 0.2, 1] }}
-            className="bio-row"
-          >
+      <div className="px-1 pt-6">
+        <h1 className="font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] uppercase">
+          STRUCTURAL<br />DATA
+        </h1>
+      </div>
+
+      <div className="flex-1 flex flex-col justify-center gap-8">
+        {fields.map(f => (
+          <div key={f.key}>
             <label
               htmlFor={`bio-${f.key}`}
-              className="font-mono text-[11px] font-bold tracking-[0.25em] uppercase text-foreground/60"
+              className="block font-mono text-[11px] font-bold tracking-[0.2em] uppercase text-foreground/50 mb-2"
             >
               {f.label}
             </label>
-            <div className="flex items-baseline gap-2">
-              <input
-                id={`bio-${f.key}`}
-                className="bio-input"
-                type="number"
-                inputMode="numeric"
-                placeholder={f.placeholder}
-                value={data[f.key] || ''}
-                min={f.min}
-                max={f.max}
-                onChange={e => onUpdate({ [f.key]: Number(e.target.value) } as Partial<Props['data']>)}
-              />
-              <span className="font-mono text-sm font-bold tracking-[0.15em] text-foreground/50 w-7 text-left">
-                {f.unit}
-              </span>
-            </div>
-          </motion.div>
+            <input
+              id={`bio-${f.key}`}
+              className="input-bio"
+              type="number"
+              inputMode="numeric"
+              placeholder="0"
+              value={data[f.key] || ''}
+              onChange={e => onUpdate({ [f.key]: Number(e.target.value) } as Partial<Props['data']>)}
+            />
+          </div>
         ))}
       </div>
 
-      <div className="flex flex-col gap-4 pt-8">
+      <div className="flex flex-col items-center gap-4 pt-8">
         <button className="btn-cta" disabled={!canProceed} onClick={onNext}>
-          <span>CONTINUE</span>
-          <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+          CONTINUE
         </button>
         {onManualOverride && (
           <button
             onClick={onManualOverride}
-            className="w-full border-2 border-foreground/15 py-3 flex items-center justify-between px-4 active:opacity-60 transition-opacity"
+            className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase text-foreground/60 hover:text-foreground active:opacity-60 py-2"
           >
-            <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/60">
-              ALREADY KNOW YOUR TARGET?
-            </span>
-            <ArrowRight className="w-3.5 h-3.5 text-foreground/60" strokeWidth={2.5} />
+            ALREADY KNOW YOUR TARGET →
           </button>
         )}
       </div>

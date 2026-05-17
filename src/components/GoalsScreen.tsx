@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
 import { ActivityLevel, Goal } from '@/lib/types';
 import OnboardingHeader from './onboarding/OnboardingHeader';
 
@@ -12,114 +10,73 @@ interface Props {
   total?: number;
 }
 
-const activities = [
-  { value: 'active',   label: 'ACTIVE',   desc: 'High Performance', meta: '5–7×/WK' },
-  { value: 'moderate', label: 'MODERATE', desc: 'Maintenance',      meta: '3–4×/WK' },
-  { value: 'recovery', label: 'RECOVERY', desc: 'Recovery Phase',   meta: '0–2×/WK' },
-] as const;
+const activities: { value: ActivityLevel; label: string }[] = [
+  { value: 'active',   label: 'ACTIVE' },
+  { value: 'moderate', label: 'MODERATE' },
+  { value: 'recovery', label: 'RECOVERY' },
+];
 
-const goals = [
-  { value: 'hypertrophy', label: 'HYPERTROPHY', desc: 'Muscle Gain', meta: '1.8 G/KG' },
-  { value: 'equilibrium', label: 'MAINTENANCE', desc: 'Maintain',    meta: '1.4 G/KG' },
-  { value: 'recovery',    label: 'RECOVERY',    desc: 'Repair',      meta: '1.2 G/KG' },
-] as const;
+const goals: { value: Goal; label: string }[] = [
+  { value: 'hypertrophy', label: 'HYPERTROPHY' },
+  { value: 'equilibrium', label: 'MAINTENANCE' },
+  { value: 'recovery',    label: 'RECOVERY' },
+];
 
-type Item = { value: string; label: string; desc: string; meta: string };
-
-function OptionRow({
-  item, index, selected, onClick,
-}: { item: Item; index: number; selected: boolean; onClick: () => void }) {
+function OptionButton({
+  label, selected, onClick,
+}: { label: string; selected: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className={`relative w-full h-16 border-2 border-foreground overflow-hidden text-left active:scale-[0.99] transition-transform`}
+      className={`w-full h-14 border-2 border-foreground px-4 text-left font-mono text-sm font-bold uppercase tracking-[0.09em] transition-colors active:scale-[0.99] ${
+        selected
+          ? 'bg-foreground text-background'
+          : 'bg-background text-foreground hover:bg-foreground hover:text-background'
+      }`}
     >
-      {/* Sweep-in fill */}
-      <motion.span
-        initial={false}
-        animate={{ scaleX: selected ? 1 : 0 }}
-        transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
-        style={{ transformOrigin: 'left' }}
-        className="absolute inset-0 bg-foreground z-0"
-      />
-      <div className={`relative z-10 h-full px-4 flex items-center justify-between gap-3 ${selected ? 'text-background' : 'text-foreground'}`}>
-        <div className="flex items-center gap-3 min-w-0">
-          <span className={`font-mono text-[10px] font-bold tracking-[0.2em] ${selected ? 'text-background/60' : 'text-foreground/40'}`}>
-            {String(index + 1).padStart(2, '0')}
-          </span>
-          <div className="min-w-0">
-            <div className="font-mono text-sm font-bold tracking-[0.15em] uppercase truncate">{item.label}</div>
-            <div className={`font-sans text-[11px] truncate ${selected ? 'text-background/70' : 'text-foreground/50'}`}>{item.desc}</div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className={`font-mono text-[10px] font-bold tracking-[0.15em] ${selected ? 'text-background/70' : 'text-foreground/50'}`}>
-            {item.meta}
-          </span>
-          <motion.span
-            initial={false}
-            animate={{ opacity: selected ? 1 : 0, x: selected ? 0 : -4 }}
-            transition={{ duration: 0.18 }}
-          >
-            <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
-          </motion.span>
-        </div>
-      </div>
+      {label}
     </button>
   );
 }
 
 export default function GoalsScreen({ data, onUpdate, onNext, onBack, step = 2, total = 3 }: Props) {
   return (
-    <div className="flex-1 flex flex-col justify-between min-w-0">
-      <OnboardingHeader
-        step={step}
-        total={total}
-        title="KINETIC OBJECTIVES"
-        kicker="B · TRAJECTORY"
-        onBack={onBack}
-      />
+    <div className="flex-1 flex flex-col min-w-0">
+      <OnboardingHeader step={step} total={total} onBack={onBack} />
 
-      <div className="flex-1 flex flex-col gap-7 py-6 min-h-0">
-        <div>
-          <p className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-foreground/40 mb-3">
-            ACTIVITY COEFFICIENT
-          </p>
-          <div className="space-y-2">
-            {activities.map((a, i) => (
-              <OptionRow
-                key={a.value}
-                item={a}
-                index={i}
-                selected={data.activityLevel === a.value}
-                onClick={() => onUpdate({ activityLevel: a.value })}
-              />
-            ))}
-          </div>
+      <div className="px-1 pt-6">
+        <h1 className="font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] uppercase">
+          KINETIC<br />OBJECTIVES
+        </h1>
+      </div>
+
+      <div className="flex-1 flex flex-col gap-8 pt-10">
+        <div className="flex flex-col gap-3">
+          {activities.map(a => (
+            <OptionButton
+              key={a.value}
+              label={a.label}
+              selected={data.activityLevel === a.value}
+              onClick={() => onUpdate({ activityLevel: a.value })}
+            />
+          ))}
         </div>
 
-        <div>
-          <p className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-foreground/40 mb-3">
-            PHYSICAL TRAJECTORY
-          </p>
-          <div className="space-y-2">
-            {goals.map((g, i) => (
-              <OptionRow
-                key={g.value}
-                item={g}
-                index={i}
-                selected={data.goal === g.value}
-                onClick={() => onUpdate({ goal: g.value })}
-              />
-            ))}
-          </div>
+        <div className="flex flex-col gap-3">
+          {goals.map(g => (
+            <OptionButton
+              key={g.value}
+              label={g.label}
+              selected={data.goal === g.value}
+              onClick={() => onUpdate({ goal: g.value })}
+            />
+          ))}
         </div>
       </div>
 
-      <button className="btn-cta" onClick={onNext}>
-        <span>CALCULATE</span>
-        <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
-      </button>
+      <div className="pt-8">
+        <button className="btn-cta" onClick={onNext}>CALCULATE</button>
+      </div>
     </div>
   );
 }
