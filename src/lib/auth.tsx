@@ -9,6 +9,7 @@ import { auth } from './firebase';
 import { getProfile } from './firestore';
 import { UserProfile } from './types';
 import { identifyUser, track } from './track';
+import { isNative } from './native';
 
 interface AuthCtx {
   user: User | null;
@@ -86,6 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => { track('sign_out'); await fbSignOut(auth); };
 
   const signInWithApple = async (): Promise<User> => {
+    if (isNative()) {
+      throw new Error(
+        'Apple Sign-In is not available in this build. The native Apple Sign-In plugin needs to be reinstalled to enable it on iOS.'
+      );
+    }
     const provider = new OAuthProvider('apple.com');
     provider.addScope('email');
     provider.addScope('name');
