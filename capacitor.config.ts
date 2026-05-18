@@ -1,3 +1,5 @@
+/// <reference types="@capacitor-firebase/authentication" />
+
 import type { CapacitorConfig } from '@capacitor/cli';
 
 // Set CAP_DEV=1 when you want the native shell to hot-reload from the Lovable
