@@ -9,6 +9,7 @@ import { auth } from './firebase';
 import { getProfile } from './firestore';
 import { UserProfile } from './types';
 import { identifyUser, track } from './track';
+import { isNative } from './native';
 
 interface AuthCtx {
   user: User | null;
