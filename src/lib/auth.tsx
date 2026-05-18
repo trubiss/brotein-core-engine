@@ -88,9 +88,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithApple = async (): Promise<User> => {
     if (isNative()) {
-      throw new Error(
-        'Apple Sign-In is not available in this build. The native Apple Sign-In plugin needs to be reinstalled to enable it on iOS.'
-      );
+      // Native iOS: use the Capacitor Firebase Authentication plugin so we
+      // get the real ASAuthorizationAppleIDProvider sheet and a credential
+      // that can be exchanged with Firebase Auth.
+      const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+      const result = await FirebaseAuthentication.signInWithApple({
+        skipNativeAuth: true,
+        scopes: ['email', 'name'],
+      });
+      const idToken = result.credential?.idToken;
+      const rawNonce = result.credential?.nonce;
+      if (!idToken) throw new Error('Apple did not return an identity token.');
+      const provider = new OAuthProvider('apple.com');
+      const credential = provider.credential({ idToken, rawNonce });
+      const cred = await signInWithCredential(auth, credential);
+      track('sign_in', { method: 'apple' });
+      return cred.user;
     }
     const provider = new OAuthProvider('apple.com');
     provider.addScope('email');
