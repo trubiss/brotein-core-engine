@@ -3,13 +3,12 @@ import {
   onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
   signOut as fbSignOut, updateProfile, sendPasswordResetEmail,
   verifyPasswordResetCode, confirmPasswordReset, User,
-  OAuthProvider, signInWithCredential, signInWithPopup,
+  OAuthProvider, signInWithPopup,
 } from 'firebase/auth';
 import { auth } from './firebase';
 import { getProfile } from './firestore';
 import { UserProfile } from './types';
 import { identifyUser, track } from './track';
-import { isNative, isIOS } from './native';
 
 interface AuthCtx {
   user: User | null;
@@ -33,6 +32,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let settled = false;
+    const startupTimeout = window.setTimeout(() => {
+      if (!settled) {
+        console.warn('Auth startup timed out; continuing without a cached session.');
+        setLoading(false);
+      }
+    }, 8000);
+
     const unsub = onAuthStateChanged(auth, async (u) => {
       setLoading(true);
       try {
@@ -41,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           identifyUser(u.uid);
           void import('./iap').then(m => m.identifyPurchaser(u.uid)).catch(() => {});
           try {
-            const p = await getProfile(u.uid);
+            const p = await withTimeout(getProfile(u.uid), 6000, null);
             setProfile(p);
           } catch (err) {
             console.error('getProfile failed (continuing without profile):', err);
@@ -54,10 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           void import('./iap').then(m => m.identifyPurchaser(null)).catch(() => {});
         }
       } finally {
+        settled = true;
+        clearTimeout(startupTimeout);
         setLoading(false);
       }
     });
-    return () => unsub();
+    return () => {
+      clearTimeout(startupTimeout);
+      unsub();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, name: string) => {
@@ -74,30 +86,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => { track('sign_out'); await fbSignOut(auth); };
 
   const signInWithApple = async (): Promise<User> => {
-    // Native iOS: use the Apple Sign-In sheet, then exchange the identityToken with Firebase.
-    if (isNative() && isIOS()) {
-      const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
-      const nonce = cryptoNonce();
-      const res = await SignInWithApple.authorize({
-        clientId: 'com.brotein.app', // must match Services ID configured in Firebase
-        redirectURI: 'https://brotein.firebaseapp.com/__/auth/handler',
-        scopes: 'email name',
-        nonce,
-      });
-      const idToken = res.response?.identityToken;
-      if (!idToken) throw new Error('Apple sign-in failed: no identity token');
-      const provider = new OAuthProvider('apple.com');
-      const credential = provider.credential({ idToken, rawNonce: nonce });
-      const cred = await signInWithCredential(auth, credential);
-      // First-time: Apple only returns givenName/familyName on the very first auth.
-      const given = res.response?.givenName ?? '';
-      const family = res.response?.familyName ?? '';
-      const fullName = `${given} ${family}`.trim();
-      if (fullName && !cred.user.displayName) await updateProfile(cred.user, { displayName: fullName });
-      track('sign_in', { method: 'apple' });
-      return cred.user;
-    }
-    // Web fallback: popup flow.
     const provider = new OAuthProvider('apple.com');
     provider.addScope('email');
     provider.addScope('name');
@@ -134,10 +122,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-function cryptoNonce(length = 32): string {
-  const bytes = new Uint8Array(length);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return new Promise((resolve) => {
+    const timeout = window.setTimeout(() => resolve(fallback), ms);
+    promise
+      .then(resolve)
+      .catch(() => resolve(fallback))
+      .finally(() => clearTimeout(timeout));
+  });
 }
 
 export function useAuth() {
