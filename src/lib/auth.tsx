@@ -33,6 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let settled = false;
+    const startupTimeout = window.setTimeout(() => {
+      if (!settled) {
+        console.warn('Auth startup timed out; continuing without a cached session.');
+        setLoading(false);
+      }
+    }, 8000);
+
     const unsub = onAuthStateChanged(auth, async (u) => {
       setLoading(true);
       try {
@@ -41,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           identifyUser(u.uid);
           void import('./iap').then(m => m.identifyPurchaser(u.uid)).catch(() => {});
           try {
-            const p = await getProfile(u.uid);
+            const p = await withTimeout(getProfile(u.uid), 6000, null);
             setProfile(p);
           } catch (err) {
             console.error('getProfile failed (continuing without profile):', err);
@@ -54,10 +62,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           void import('./iap').then(m => m.identifyPurchaser(null)).catch(() => {});
         }
       } finally {
+        settled = true;
+        clearTimeout(startupTimeout);
         setLoading(false);
       }
     });
-    return () => unsub();
+    return () => {
+      clearTimeout(startupTimeout);
+      unsub();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, name: string) => {
@@ -132,6 +145,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </Ctx.Provider>
   );
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return new Promise((resolve) => {
+    const timeout = window.setTimeout(() => resolve(fallback), ms);
+    promise
+      .then(resolve)
+      .catch(() => resolve(fallback))
+      .finally(() => clearTimeout(timeout));
+  });
 }
 
 function cryptoNonce(length = 32): string {
