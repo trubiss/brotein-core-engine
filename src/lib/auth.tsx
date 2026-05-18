@@ -88,22 +88,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithApple = async (): Promise<User> => {
     if (isNative()) {
-      // Native iOS: use the Capacitor Firebase Authentication plugin so we
-      // get the real ASAuthorizationAppleIDProvider sheet and a credential
-      // that can be exchanged with Firebase Auth.
+      console.log('[apple] native flow start');
       const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+      console.log('[apple] plugin loaded, calling signInWithApple');
       const result = await FirebaseAuthentication.signInWithApple({
         skipNativeAuth: true,
         scopes: ['email', 'name'],
+      });
+      console.log('[apple] plugin returned', {
+        hasIdToken: !!result.credential?.idToken,
+        hasNonce: !!result.credential?.nonce,
       });
       const idToken = result.credential?.idToken;
       const rawNonce = result.credential?.nonce;
       if (!idToken) throw new Error('Apple did not return an identity token.');
       const provider = new OAuthProvider('apple.com');
       const credential = provider.credential({ idToken, rawNonce });
-      const cred = await signInWithCredential(auth, credential);
-      track('sign_in', { method: 'apple' });
-      return cred.user;
+      console.log('[apple] exchanging credential with Firebase Web SDK…');
+      try {
+        const cred = await signInWithCredential(auth, credential);
+        console.log('[apple] signed in', cred.user.uid);
+        track('sign_in', { method: 'apple' });
+        return cred.user;
+      } catch (err) {
+        console.error('[apple] signInWithCredential failed', err);
+        throw err;
+      }
     }
     const provider = new OAuthProvider('apple.com');
     provider.addScope('email');
