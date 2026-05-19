@@ -125,6 +125,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return cred.user;
   };
 
+  const reauthenticateWithApple = async (): Promise<void> => {
+    if (!auth.currentUser) throw new Error('Not signed in');
+    if (isNative()) {
+      const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+      const result = await FirebaseAuthentication.signInWithApple({
+        skipNativeAuth: true,
+        scopes: ['email', 'name'],
+      });
+      const idToken = result.credential?.idToken;
+      const rawNonce = result.credential?.nonce;
+      if (!idToken) throw new Error('Apple did not return an identity token.');
+      const provider = new OAuthProvider('apple.com');
+      const credential = provider.credential({ idToken, rawNonce });
+      await reauthenticateWithCredential(auth.currentUser, credential);
+      return;
+    }
+    const provider = new OAuthProvider('apple.com');
+    provider.addScope('email');
+    await reauthenticateWithPopup(auth.currentUser, provider);
+  };
+
   const refreshProfile = async () => {
     if (user) {
       try { setProfile(await getProfile(user.uid)); }
