@@ -275,7 +275,9 @@ export default function Dashboard({ onNavigate }: Props) {
   }
 
   return (
-    <motion.div className="screen-container pb-32" variants={stagger} initial="initial" animate="animate">
+    <motion.div className="screen-container pb-32 relative isolate" variants={stagger} initial="initial" animate="animate">
+      <AmbientGrid opacity={0.04} />
+
       <motion.div variants={fadeUp} className="flex items-center justify-between mb-12 min-w-0">
         <h1 className="font-black tracking-[0.15em] font-sans text-3xl truncate">BROTEIN</h1>
         <div className="flex gap-2 shrink-0">
