@@ -171,7 +171,7 @@ export default function DeleteAccountModal({ open, onClose }: Props) {
               />
             </div>
 
-            {needsReauth && (
+            {reauthMethod === 'password' && (
               <div>
                 <label className="label-spaced">RE-ENTER PASSWORD</label>
                 <input
@@ -184,12 +184,33 @@ export default function DeleteAccountModal({ open, onClose }: Props) {
                 />
               </div>
             )}
+
+            {reauthMethod === 'apple' && (
+              <div>
+                <label className="label-spaced">CONFIRM YOUR IDENTITY</label>
+                <p className="font-sans text-sm mt-2 mb-3">
+                  For security, please confirm with Apple to permanently delete your account.
+                </p>
+                <button
+                  onClick={confirmWithApple}
+                  disabled={busy || !canDelete}
+                  className="w-full h-12 border-2 border-foreground bg-background font-mono font-black tracking-[0.18em] uppercase text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-30 disabled:active:scale-100"
+                >
+                  <Apple size={14} strokeWidth={2.5} fill="currentColor" />
+                  {busy ? 'CONFIRMING…' : 'CONFIRM WITH APPLE'}
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="p-6 border-t-2 border-foreground space-y-3">
             <button
               onClick={performDelete}
-              disabled={!canDelete || (needsReauth && !password)}
+              disabled={
+                !canDelete ||
+                (reauthMethod === 'password' && !password) ||
+                reauthMethod === 'apple'
+              }
               className="w-full h-14 bg-foreground text-background font-mono font-black tracking-[0.18em] uppercase text-sm active:scale-[0.98] transition-transform disabled:opacity-30 disabled:active:scale-100"
             >
               {busy ? 'DELETING…' : 'DELETE FOREVER'}
