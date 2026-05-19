@@ -417,7 +417,7 @@ export default function Dashboard({ onNavigate }: Props) {
       {/* Minimal streak — low visual weight, breathes above */}
       <motion.div variants={fadeUp} className="mb-2">
         <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55">
-          STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'}
+          STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'} <BlinkingCursor className="text-foreground/40" />
         </p>
       </motion.div>
 
