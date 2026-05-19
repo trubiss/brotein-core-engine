@@ -25,7 +25,7 @@ const slideVariants = {
 type Choice = { value: string; label: string };
 
 type Screen =
-  | { kind: 'statement'; headline: React.ReactNode; sub?: string; visual?: React.ReactNode; cta: string }
+  | { kind: 'statement'; headline: React.ReactNode; sub?: string; visual?: React.ReactNode; motif?: React.ReactNode; cta: string }
   | { kind: 'question'; key: string; headline: React.ReactNode; sub?: string; choices: Choice[] }
   | { kind: 'interactive-add'; headline: React.ReactNode; sub: string; cta: string }
   | { kind: 'pace'; headline: React.ReactNode; sub: string; cta: string };
