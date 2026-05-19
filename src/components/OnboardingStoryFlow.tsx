@@ -1,6 +1,16 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
+import {
+  StalledBarMotif,
+  CollapsingBarsMotif,
+  DeficitCounterMotif,
+  GapBarsMotif,
+  StreakGridMotif,
+  StopwatchMotif,
+  ChecklistMotif,
+  WeekStripMotif,
+} from './onboarding/SlideMotifs';
 
 interface OnboardingStoryFlowProps {
   onComplete: () => void;
