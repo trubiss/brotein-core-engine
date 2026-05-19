@@ -1,44 +1,45 @@
-## Plan: Two-card paywall (Annual + Monthly)
+## Plan: App Store assets for Annual + Monthly subscriptions
 
-Replace the single bordered card + tiny "subscribe monthly" link at the bottom with **two stacked cards**, both visible at once. Tapping a card selects it; the primary CTA reflects the selected plan.
+Produce two paywall screenshots (one per plan selected) at iPhone 6.7" (1290×2796) plus suggested App Store Connect copy.
 
-### Layout (top to bottom, unchanged above)
-- Brand mark, headline, subtext, streak, identity bullets — all unchanged.
+### Step 1 — Temporary preview routes
+Add two dev-only routes in `src/App.tsx`:
+- `/__paywall-annual` → `<Paywall onStart={() => {}} streak={0} />` (annual is default selected)
+- `/__paywall-monthly` → same component but wrapped to auto-click the Monthly card on mount, so the screenshot captures monthly-selected state
 
-### New section: plan cards
-Two stacked cards, full width, 16px gap:
+(Implementation note: simplest path is one route `/__paywall?plan=monthly` that reads the query param and programmatically taps the monthly card via a `useEffect` + ref, but two routes is cleaner.)
 
-**Card 1 — ANNUAL (default selected)**
-- Top-left chip: `MOST POPULAR` (existing style)
-- Top-right chip: `SAVE 33%` (computed from monthly × 12 vs annual)
-- Title: `7-DAY FREE TRIAL` if trial available, else `$39.99`
-- Sub: `THEN $39.99 / YEAR · BILLED YEARLY` (or just `BILLED YEARLY` when no trial)
-- Per-week breakdown footnote: `JUST $0.77 / WEEK`
+### Step 2 — Capture screenshots
+- Browser viewport: 390×844 (closest supported to iPhone 6.7" CSS dimensions; devicePixelRatio gives us native resolution)
+- Capture full page for each route
+- Upscale/resize the resulting PNGs to exactly 1290×2796 using ImageMagick to match Apple's required dimensions
+- Save to:
+  - `/mnt/documents/appstore-paywall-annual-1290x2796.png`
+  - `/mnt/documents/appstore-paywall-monthly-1290x2796.png`
 
-**Card 2 — MONTHLY**
-- No "popular" chip
-- Title: `$4.99`
-- Sub: `BILLED MONTHLY · CANCEL ANYTIME`
-- Footnote: `NO TRIAL · FLEXIBLE`
+### Step 3 — Remove temporary routes
+Revert `src/App.tsx` so the `__paywall-*` routes don't ship.
 
-### Selection behavior
-- Tap a card → it becomes selected (2px solid `foreground` border, others go to 1px `foreground/30`).
-- Selected plan drives the primary CTA label:
-  - Annual + trial: `START 7-DAY FREE TRIAL`
-  - Annual no trial: `SUBSCRIBE $39.99/YR`
-  - Monthly: `SUBSCRIBE $4.99/MO`
-- CTA `onClick` calls `purchase(selectedPlan)`.
+### Step 4 — Provide App Store Connect copy
+Draft text for each subscription, sized to App Store Connect's limits:
 
-### Footer micro-text
-Reflects selection:
-- Annual+trial: `Free for 7 days, then $39.99/year. Cancel anytime in Settings.`
-- Annual: `$39.99 per year. Cancel anytime in Settings.`
-- Monthly: `$4.99 per month. Cancel anytime in Settings.`
+**Annual subscription**
+- Reference Name (internal): `Brotein Annual`
+- Display Name (30 char max): `Brotein Annual`
+- Description (45 char max for subscription localization): `Best value — save 33%. 7-day free trial.`
 
-Remove the old "OR SUBSCRIBE MONTHLY" link entirely. Keep `RESTORE PURCHASES` (native only) and bottom auto-renew line.
+**Monthly subscription**
+- Reference Name: `Brotein Monthly`
+- Display Name (30 char max): `Brotein Monthly`
+- Description (45 char max): `Flexible monthly access. Cancel anytime.`
 
-### Technical notes
-- Single file change: `src/components/Paywall.tsx`.
-- Reuse existing `plan` state (already typed `PlanId`) as the selection source of truth; just wire card taps to `setPlan(...)` without triggering purchase.
-- Brutalist tokens preserved: 0px radius, 2px foreground border on selected, Space Mono labels, ALL CAPS.
-- No new images, no business-logic changes, no IAP changes.
+Plus a short **Review Notes** snippet to paste into App Store Connect explaining what reviewers see:
+> "Paywall appears after onboarding + first protein log. Both subscription options visible; tap to select, then 'Start' to subscribe. Annual offers a 7-day free trial; Monthly is full price from day one."
+
+### Deliverables
+- 2 PNG files in `/mnt/documents/` surfaced as `<presentation-artifact>` tags
+- Markdown block with all the copy ready to paste into App Store Connect
+
+### Out of scope
+- No changes to `Paywall.tsx`, pricing, IAP product IDs, or `src/lib/iap.ts`
+- No App Store Connect API calls — copy is for you to paste manually
