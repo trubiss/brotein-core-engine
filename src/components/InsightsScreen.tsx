@@ -73,14 +73,14 @@ export default function InsightsScreen({ onBack }: Props) {
             </>
           ) : (
             <div className="grid grid-cols-7 gap-2 mb-3">
-              {analytics.weeklyConsistency.map((d) => {
+              {analytics.weeklyConsistency.map((d, i) => {
                 const pct = d.target > 0 ? Math.min(100, (d.consumed / d.target) * 100) : 0;
                 return (
                   <div key={d.date} className="flex flex-col items-center gap-1 min-w-0">
                     <div className="w-full h-20 border-2 border-foreground relative overflow-hidden">
                       <div
-                        className="absolute bottom-0 left-0 right-0 bg-foreground"
-                        style={{ height: `${pct}%` }}
+                        className="absolute bottom-0 left-0 right-0 bg-foreground origin-bottom animate-bar-rise motion-reduce:animate-none"
+                        style={{ height: `${pct}%`, animationDelay: `${i * 60}ms` }}
                       />
                       {d.hit && (
                         <Check size={10} className="absolute top-1 right-1 text-foreground mix-blend-difference" strokeWidth={3} />
