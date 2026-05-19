@@ -14,6 +14,8 @@ import {
 
 interface OnboardingStoryFlowProps {
   onComplete: () => void;
+  /** If provided, the final "START FREE TRIAL" CTA calls this instead of onComplete. */
+  onStartTrial?: () => void;
 }
 
 const slideVariants = {
@@ -158,7 +160,7 @@ function MiniDashboard({ value, target, flash = 0 }: { value: number; target: nu
   );
 }
 
-export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowProps) {
+export default function OnboardingStoryFlow({ onComplete, onStartTrial }: OnboardingStoryFlowProps) {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -316,7 +318,8 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
 
   const next = () => {
     if (step >= TOTAL - 1) {
-      onComplete();
+      if (onStartTrial) onStartTrial();
+      else onComplete();
       return;
     }
     setDirection(1);

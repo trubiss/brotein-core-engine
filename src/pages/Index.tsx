@@ -6,11 +6,13 @@ import OnboardingFlow from '@/components/OnboardingFlow';
 
 import Dashboard from '@/components/Dashboard';
 import ResetPasswordScreen from '@/components/ResetPasswordScreen';
+import { startTrial } from '@/lib/paywall';
 
 const OnboardingStoryFlow = lazy(() => import('@/components/OnboardingStoryFlow'));
 const HistoryScreen = lazy(() => import('@/components/HistoryScreen'));
 const ProfileScreen = lazy(() => import('@/components/ProfileScreen'));
 const InsightsScreen = lazy(() => import('@/components/InsightsScreen'));
+const Paywall = lazy(() => import('@/components/Paywall'));
 
 type Page = 'dashboard' | 'history' | 'profile' | 'insights';
 
@@ -34,6 +36,7 @@ const Index = () => {
   const [page, setPage] = useState<Page>('dashboard');
   const [resetCode, setResetCode] = useState<string | null>(() => getResetCode());
   const [storySeen, setStorySeen] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   // Recompute per-user when auth state changes — prevents User A's "seen"
   // state from suppressing the story for User B on the same device.
@@ -45,6 +48,16 @@ const Index = () => {
   const completeStory = () => {
     if (user) localStorage.setItem(storySeenKey(user.uid), '1');
     setStorySeen(true);
+  };
+
+  const handleStartTrial = () => {
+    completeStory();
+    setPaywallOpen(true);
+  };
+
+  const handlePaywallStart = () => {
+    if (user) startTrial(user.uid);
+    setPaywallOpen(false);
   };
 
   const clearResetCode = () => {
@@ -67,12 +80,13 @@ const Index = () => {
   if (!user) return <SignInScreen />;
   if (!storySeen) return (
     <Suspense fallback={null}>
-      <OnboardingStoryFlow onComplete={completeStory} />
+      <OnboardingStoryFlow onComplete={completeStory} onStartTrial={handleStartTrial} />
     </Suspense>
   );
-  if (!profile) return <OnboardingFlow />;
 
-  return (
+  const mainContent = !profile ? (
+    <OnboardingFlow />
+  ) : (
     <AnimatePresence mode="wait">
       <motion.div
         key={page}
@@ -90,6 +104,17 @@ const Index = () => {
         </Suspense>
       </motion.div>
     </AnimatePresence>
+  );
+
+  return (
+    <>
+      {mainContent}
+      {paywallOpen && (
+        <Suspense fallback={null}>
+          <Paywall onStart={handlePaywallStart} onClose={() => setPaywallOpen(false)} />
+        </Suspense>
+      )}
+    </>
   );
 };
 

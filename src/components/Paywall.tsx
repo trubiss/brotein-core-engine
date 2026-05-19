@@ -9,9 +9,11 @@ interface Props {
   streak?: number;
   /** Called when entitlement is granted (either via StoreKit on iOS, or web fallback trial). */
   onStart: () => void;
+  /** Optional dismiss handler — when provided, shows a "MAYBE LATER" button. */
+  onClose?: () => void;
 }
 
-export default function Paywall({ streak = 0, onStart }: Props) {
+export default function Paywall({ streak = 0, onStart, onClose }: Props) {
   const native = isNative() && isIOS();
   const [offers, setOffers] = useState<Offers>({ annual: null, monthly: null });
   const [plan, setPlan] = useState<PlanId>('annual');
@@ -257,6 +259,16 @@ export default function Paywall({ streak = 0, onStart }: Props) {
               ? 'Cancel anytime · Auto-renews monthly'
               : 'Cancel anytime · Charged after trial ends'}
         </p>
+
+        {onClose && (
+          <button
+            onClick={onClose}
+            disabled={busy}
+            className="mt-4 mb-2 w-full text-[10px] tracking-[0.3em] uppercase font-bold text-muted-foreground active:opacity-60 hover:opacity-80 transition-opacity"
+          >
+            MAYBE LATER
+          </button>
+        )}
       </div>
     </div>
   );
