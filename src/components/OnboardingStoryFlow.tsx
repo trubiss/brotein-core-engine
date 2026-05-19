@@ -160,7 +160,7 @@ function MiniDashboard({ value, target, flash = 0 }: { value: number; target: nu
   );
 }
 
-export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowProps) {
+export default function OnboardingStoryFlow({ onComplete, onStartTrial }: OnboardingStoryFlowProps) {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [answers, setAnswers] = useState<Record<string, string>>({});
