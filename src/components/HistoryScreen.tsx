@@ -168,10 +168,10 @@ export default function HistoryScreen({ onBack }: Props) {
           return (
             <motion.div key={date} variants={fadeUp} className="mb-10">
               <div className="flex justify-between items-baseline mb-3 min-w-0">
-                <p className="label-spaced mb-0 truncate">{formatDate(date)}</p>
+                <p className={`label-spaced mb-0 truncate ${formatDate(date) === 'TODAY' ? 'animate-soft-pulse motion-reduce:animate-none' : ''}`}>{formatDate(date)}</p>
                 <p className="label-spaced mb-0 whitespace-nowrap">{total}G TOTAL</p>
               </div>
-              <div className="border-t-2 border-foreground">
+              <div className="border-t-2 border-foreground origin-left animate-draw-line motion-reduce:animate-none">
                 {dayLogs.map(log => (
                   <SwipeableLogRow
                     key={log.id}
