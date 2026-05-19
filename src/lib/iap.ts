@@ -5,11 +5,14 @@
 //
 // Setup checklist (one-time, outside of code):
 //   1. Create a RevenueCat account, add an iOS app, paste your App Store Connect shared secret.
-//   2. Create a subscription product in App Store Connect: id `brotein_yearly_3999`, price $39.99/yr,
-//      with a 7-day free intro offer attached. Attach it to a RevenueCat Offering named "default"
-//      with a single Package using the "Annual" identifier.
-//   3. Paste the RevenueCat public iOS SDK key below (REVENUECAT_IOS_API_KEY).
-//   4. After adding the iOS platform with Capacitor, run `npx cap sync ios` so the native
+//   2. In App Store Connect, create two subscription products in the SAME subscription group:
+//        • `brotein_yearly_3999`  — $39.99 / year, attach a 7-DAY FREE intro offer.
+//        • `brotein_monthly_499`  — $4.99 / month, NO intro offer.
+//   3. In RevenueCat → Offerings, edit the `default` Offering and add BOTH products as packages:
+//        • Package `$rc_annual`  → brotein_yearly_3999  (set as default)
+//        • Package `$rc_monthly` → brotein_monthly_499
+//   4. Paste the RevenueCat public iOS SDK key below (REVENUECAT_IOS_API_KEY).
+//   5. After adding the iOS platform with Capacitor, run `npx cap sync ios` so the native
 //      RevenueCat pod is installed.
 
 import { isIOS, isNative } from './native';
@@ -21,6 +24,8 @@ const REVENUECAT_IOS_API_KEY = 'test_LIpJqqukaFfMTNtAlMEpeYIfIsw';
 const REVENUECAT_ANDROID_API_KEY = ''; // fill in if/when Android ships
 const ENTITLEMENT_ID = 'Brotein Pro';
 const OFFERING_ID = 'default';
+
+export type PlanId = 'annual' | 'monthly';
 
 let initPromise: Promise<void> | null = null;
 
@@ -59,40 +64,64 @@ export interface NativeOffer {
   period: string; // "P1Y"
 }
 
-export async function getYearlyOffer(): Promise<NativeOffer | null> {
-  if (!isNative() || !isIOS()) return null;
+async function getCurrentOffering() {
   await ensureInit();
   const { Purchases } = await import('@revenuecat/purchases-capacitor');
   const { current } = await Purchases.getOfferings();
-  const pkg = current?.annual ?? current?.availablePackages?.[0];
+  return current ?? null;
+}
+
+function pkgToOffer(pkg: any): NativeOffer | null {
   if (!pkg) return null;
   const p = pkg.product;
   return {
     identifier: pkg.identifier,
     priceString: p.priceString,
     introPriceString: p.introPrice?.priceString,
-    period: p.subscriptionPeriod ?? 'P1Y',
+    period: p.subscriptionPeriod ?? '',
   };
 }
 
+export interface Offers {
+  annual: NativeOffer | null;
+  monthly: NativeOffer | null;
+}
+
+export async function getOffers(): Promise<Offers> {
+  if (!isNative() || !isIOS()) return { annual: null, monthly: null };
+  const current = await getCurrentOffering();
+  return {
+    annual: pkgToOffer(current?.annual ?? null),
+    monthly: pkgToOffer(current?.monthly ?? null),
+  };
+}
+
+/** Back-compat helper — returns only the yearly offer. */
+export async function getYearlyOffer(): Promise<NativeOffer | null> {
+  const { annual } = await getOffers();
+  return annual ?? (await getOffers()).monthly; // last-resort fallback
+}
+
 /**
- * Launch native StoreKit purchase sheet for the annual plan.
+ * Launch native StoreKit purchase sheet for the requested plan.
  * Returns true if entitled (purchase OR existing active sub), false if user cancels.
  * Throws on real errors.
  */
-export async function purchaseYearly(): Promise<boolean> {
+export async function purchasePlan(plan: PlanId): Promise<boolean> {
   if (!isNative() || !isIOS()) {
     throw new Error('Native purchases only available on iOS');
   }
   await ensureInit();
   const { Purchases, PURCHASES_ERROR_CODE } = await import('@revenuecat/purchases-capacitor');
   const { current } = await Purchases.getOfferings();
-  const pkg = current?.annual ?? current?.availablePackages?.[0];
-  if (!pkg) throw new Error('No subscription offering available');
+  const pkg = plan === 'annual'
+    ? (current?.annual ?? current?.availablePackages?.[0])
+    : (current?.monthly ?? current?.availablePackages?.find((p: any) => /month/i.test(p.identifier)));
+  if (!pkg) throw new Error(`No ${plan} subscription available`);
   try {
     const result = await Purchases.purchasePackage({ aPackage: pkg });
     const active = !!result.customerInfo.entitlements.active[ENTITLEMENT_ID];
-    track('paywall_purchase', { active });
+    track('paywall_purchase', { plan, active });
     return active;
   } catch (e: any) {
     if (e?.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR || /cancel/i.test(e?.message ?? '')) {
@@ -101,6 +130,9 @@ export async function purchaseYearly(): Promise<boolean> {
     throw e;
   }
 }
+
+export const purchaseYearly = () => purchasePlan('annual');
+export const purchaseMonthly = () => purchasePlan('monthly');
 
 export async function restorePurchases(): Promise<boolean> {
   if (!isNative() || !isIOS()) return false;

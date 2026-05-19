@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { isIOS, isNative, tapHaptic } from '@/lib/native';
-import { getYearlyOffer, purchaseYearly, restorePurchases, type NativeOffer } from '@/lib/iap';
+import { getOffers, purchasePlan, restorePurchases, type Offers, type PlanId } from '@/lib/iap';
+import { track } from '@/lib/track';
 
 interface Props {
   streak?: number;
@@ -12,23 +13,32 @@ interface Props {
 
 export default function Paywall({ streak = 0, onStart }: Props) {
   const native = isNative() && isIOS();
-  const [offer, setOffer] = useState<NativeOffer | null>(null);
+  const [offers, setOffers] = useState<Offers>({ annual: null, monthly: null });
+  const [plan, setPlan] = useState<PlanId>('annual');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!native) return;
     let cancelled = false;
-    void getYearlyOffer().then(o => { if (!cancelled) setOffer(o); }).catch(() => { /* keep fallback */ });
+    void getOffers()
+      .then(o => { if (!cancelled) setOffers(o); })
+      .catch(() => { /* keep fallback */ });
     return () => { cancelled = true; };
   }, [native]);
 
-  const handle = async () => {
+  const annualPrice  = offers.annual?.priceString  ?? '$39.99';
+  const monthlyPrice = offers.monthly?.priceString ?? '$4.99';
+  const trialAvailable = !!offers.annual?.introPriceString || !native;
+
+  const purchase = async (which: PlanId) => {
     void tapHaptic();
-    if (!native) { onStart(); return; }
     if (busy) return;
+    setPlan(which);
+    track('paywall_plan_selected', { plan: which });
+    if (!native) { onStart(); return; }
     setBusy(true);
     try {
-      const ok = await purchaseYearly();
+      const ok = await purchasePlan(which);
       if (ok) onStart();
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Purchase failed');
@@ -51,12 +61,11 @@ export default function Paywall({ streak = 0, onStart }: Props) {
     }
   };
 
-  const priceLine = offer?.priceString ?? '$39';
-  const ctaLabel = busy
+  const primaryCta = busy
     ? 'WORKING…'
-    : native
-      ? (offer?.introPriceString ? 'START 7-DAY TRIAL' : `SUBSCRIBE ${priceLine}/YR`)
-      : 'START 7-DAY TRIAL';
+    : trialAvailable
+      ? 'START 7-DAY TRIAL'
+      : `SUBSCRIBE ${annualPrice}/YR`;
 
   return (
     <div className="fixed inset-0 z-50 bg-background text-foreground overflow-y-auto">
@@ -101,34 +110,63 @@ export default function Paywall({ streak = 0, onStart }: Props) {
           ))}
         </ul>
 
-        {/* Price block */}
-        <div className="mt-12 text-center">
-          <p className="font-display font-black text-4xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
-            {priceLine} <span className="opacity-50 font-normal text-2xl">/ YEAR</span>
+        {/* Selected plan panel */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="mt-12 border-2 border-foreground p-5 relative"
+        >
+          <span className="absolute -top-3 left-4 bg-background px-2 font-mono text-[10px] font-bold tracking-[0.25em] uppercase">
+            MOST POPULAR
+          </span>
+          <div className="flex items-baseline justify-between">
+            <p className="font-display font-black text-3xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
+              {annualPrice}
+            </p>
+            <p className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-60">
+              / YEAR
+            </p>
+          </div>
+          <p className="mt-2 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
+            {trialAvailable ? '7-DAY FREE TRIAL' : 'BILLED YEARLY'}
           </p>
-          <p className="mt-2 label-spaced opacity-60 tracking-[0.25em]">
-            {native && offer?.introPriceString ? '7-DAY FREE TRIAL' : native ? 'BILLED YEARLY' : '7-DAY FREE TRIAL'}
-          </p>
-          {!native && <p className="mt-1 text-[11px] opacity-40">Less than $4/month</p>}
-        </div>
+        </motion.div>
 
-        {/* CTA */}
+        {/* Primary CTA */}
         <motion.button
-          onClick={handle}
+          onClick={() => purchase('annual')}
           disabled={busy}
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
-          className="mt-8 w-full bg-foreground text-background font-black tracking-[0.15em] text-sm py-5 active:opacity-90"
-          style={{ opacity: busy ? 0.5 : 1 }}
+          className="mt-5 w-full bg-foreground text-background font-black tracking-[0.15em] text-sm py-5 active:opacity-90"
+          style={{ opacity: busy && plan === 'annual' ? 0.5 : 1 }}
         >
-          {ctaLabel}
+          {plan === 'annual' && busy ? 'WORKING…' : primaryCta}
         </motion.button>
+
+        <p className="mt-3 text-center text-[11px] opacity-50 leading-relaxed">
+          {trialAvailable
+            ? <>7-day free trial, then {annualPrice} / year. Cancel anytime.</>
+            : <>{annualPrice} per year. Cancel anytime.</>}
+        </p>
+
+        {/* Monthly secondary link */}
+        <button
+          onClick={() => purchase('monthly')}
+          disabled={busy}
+          className="mt-5 w-full font-mono text-[11px] font-bold tracking-[0.2em] uppercase text-foreground/60 hover:text-foreground active:opacity-60 py-2"
+        >
+          {plan === 'monthly' && busy
+            ? 'WORKING…'
+            : <>OR SUBSCRIBE MONTHLY — {monthlyPrice} / MO →</>}
+        </button>
 
         {native && (
           <button
             onClick={restore}
             disabled={busy}
-            className="mt-3 w-full text-[10px] tracking-[0.3em] uppercase font-bold text-muted-foreground active:opacity-60"
+            className="mt-2 w-full text-[10px] tracking-[0.3em] uppercase font-bold text-muted-foreground active:opacity-60"
           >
             RESTORE PURCHASES
           </button>
@@ -136,7 +174,7 @@ export default function Paywall({ streak = 0, onStart }: Props) {
 
         {/* Footer micro-text */}
         <p className="mt-4 mb-2 text-center text-[10px] opacity-40 tracking-[0.15em] uppercase">
-          {native ? 'Cancel in Settings · Auto-renews yearly' : 'Cancel anytime · Charged after trial ends'}
+          {native ? 'Cancel in Settings · Auto-renews' : 'Cancel anytime · Charged after trial ends'}
         </p>
       </div>
     </div>
