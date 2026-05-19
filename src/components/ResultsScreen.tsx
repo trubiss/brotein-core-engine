@@ -94,7 +94,7 @@ export default function ResultsScreen({ data, onComplete, onBack, step = 3, tota
         <p className="font-mono text-[10px] font-bold tracking-[0.25em] uppercase text-foreground/40 mb-3">
           // OUTPUT
         </p>
-        <h1 className="font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] uppercase">
+        <h1 className="font-black leading-[0.92] tracking-[-0.015em] uppercase text-foreground max-w-[280px] text-7xl mx-px my-0 px-0 py-0 border-0 font-mono text-justify">
           CALCULATION<br />COMPLETE
         </h1>
       </motion.div>
