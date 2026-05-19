@@ -7,7 +7,9 @@ interface Props {
   onBack?: () => void;
 }
 
-/** Minimal header — back chevron + single thin progress line. */
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** Minimal header — back chevron, thin progress line, step counter. */
 export default function OnboardingHeader({ step, total, onBack }: Props) {
   const pct = Math.max(0, Math.min(100, (step / total) * 100));
   return (
@@ -25,13 +27,20 @@ export default function OnboardingHeader({ step, total, onBack }: Props) {
           <motion.div
             initial={false}
             animate={{ width: `${pct}%` }}
-            transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
+            transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
             className="h-full bg-foreground"
           />
         </div>
       </div>
-      {/* right slot keeps progress centered */}
-      <div className="w-5 shrink-0" />
+      <motion.span
+        key={step}
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+        className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/50 shrink-0 tabular-nums"
+      >
+        {pad(step)}<span className="opacity-40"> / {pad(total)}</span>
+      </motion.span>
     </div>
   );
 }
