@@ -4,6 +4,7 @@ import {
   signOut as fbSignOut, updateProfile, sendPasswordResetEmail,
   verifyPasswordResetCode, confirmPasswordReset, User,
   OAuthProvider, signInWithPopup, signInWithCredential,
+  reauthenticateWithCredential, reauthenticateWithPopup,
 } from 'firebase/auth';
 import { auth } from './firebase';
 import { getProfile } from './firestore';
