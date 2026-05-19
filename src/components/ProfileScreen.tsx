@@ -51,7 +51,14 @@ export default function ProfileScreen({ onBack }: Props) {
   };
 
   return (
-    <motion.div className="screen-container" variants={stagger} initial="initial" animate="animate">
+    <motion.div className="screen-container relative isolate" variants={stagger} initial="initial" animate="animate">
+      <AmbientGrid opacity={0.035} />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-32 overflow-hidden -z-10 motion-reduce:hidden">
+        <div
+          className="absolute inset-x-0 h-px bg-foreground/40 animate-scanline-drift"
+          style={{ top: 0 }}
+        />
+      </div>
       <motion.div variants={fadeUp} className="flex items-center gap-4 mb-12 min-w-0">
         <button onClick={onBack} className="p-2 border-2 border-foreground active:scale-95 transition-transform shrink-0">
           <ArrowLeft size={20} />
