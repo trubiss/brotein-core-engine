@@ -193,11 +193,17 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
 
   const screens: Screen[] = useMemo(
     () => [
-      { kind: 'statement', headline: <>YOU'RE NOT<br />HITTING YOUR<br />PROTEIN.</>, cta: 'CONTINUE' },
+      {
+        kind: 'statement',
+        headline: <>YOU'RE NOT<br />HITTING YOUR<br />PROTEIN.</>,
+        motif: <StalledBarMotif />,
+        cta: 'CONTINUE',
+      },
       {
         kind: 'statement',
         headline: <>NO PROTEIN.<br />NO RESULTS.</>,
         sub: 'MUSCLE, RECOVERY, FAT LOSS — ALL DEPEND ON IT.',
+        motif: <CollapsingBarsMotif />,
         cta: 'CONTINUE',
       },
       {
@@ -234,9 +240,15 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
           </>
         ),
         sub: 'BASED ON WHAT YOU JUST TOLD US.',
+        motif: <DeficitCounterMotif from={estimateFrom} to={TARGET} />,
         cta: 'CONTINUE',
       },
-      { kind: 'statement', headline: <>THAT GAP<br />IS HOLDING<br />YOU BACK.</>, cta: 'SHOW ME THE FIX' },
+      {
+        kind: 'statement',
+        headline: <>THAT GAP<br />IS HOLDING<br />YOU BACK.</>,
+        motif: <GapBarsMotif />,
+        cta: 'SHOW ME THE FIX',
+      },
       {
         kind: 'statement',
         headline: <>THIS IS<br />YOUR DAILY<br />TARGET.</>,
@@ -272,23 +284,31 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
       {
         kind: 'statement',
         headline: <>IN 30 DAYS,<br />HITTING YOUR<br />PROTEIN BECOMES<br />AUTOMATIC.</>,
+        motif: <StreakGridMotif />,
         cta: 'CONTINUE',
       },
-      { kind: 'statement', headline: <>LESS THAN<br />10 SECONDS<br />PER MEAL.</>, cta: 'CONTINUE' },
+      {
+        kind: 'statement',
+        headline: <>LESS THAN<br />10 SECONDS<br />PER MEAL.</>,
+        motif: <StopwatchMotif />,
+        cta: 'CONTINUE',
+      },
       {
         kind: 'statement',
         headline: <>YOU ALREADY<br />KNOW WHAT<br />TO DO.</>,
         sub: 'NOW YOU JUST NEED TO STAY CONSISTENT.',
+        motif: <ChecklistMotif />,
         cta: 'CONTINUE',
       },
       {
         kind: 'statement',
         headline: <>TRY BROTEIN<br />FREE FOR<br />7 DAYS.</>,
         sub: 'LESS THAN A COFFEE PER WEEK.',
+        motif: <WeekStripMotif />,
         cta: 'START FREE TRIAL',
       },
     ],
-    [protein, estimateGap]
+    [protein, estimateGap, estimateFrom]
   );
 
   const TOTAL = screens.length;
