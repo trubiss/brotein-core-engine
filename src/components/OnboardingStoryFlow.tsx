@@ -305,7 +305,7 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
       {
         kind: 'statement',
         headline: <>TRY BROTEIN<br />FREE FOR<br />7 DAYS.</>,
-        sub: 'LESS THAN A COFFEE PER WEEK.',
+        sub: 'HIT YOUR TARGET. EVERY DAY.',
         motif: <WeekStripMotif />,
         cta: 'START FREE TRIAL',
       },
