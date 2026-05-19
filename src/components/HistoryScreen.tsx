@@ -7,6 +7,7 @@ import { ArrowLeft, Search } from 'lucide-react';
 import QuickLogModal from './QuickLogModal';
 import SwipeableLogRow from './SwipeableLogRow';
 import { toast } from 'sonner';
+import { AmbientGrid } from './ui/AmbientGrid';
 
 interface Props { onBack: () => void; }
 
