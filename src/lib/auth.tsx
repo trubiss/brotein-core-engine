@@ -165,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider
       value={{
-        user, profile, loading, signUp, signIn, signInWithApple, signOut, refreshProfile,
+        user, profile, loading, signUp, signIn, signInWithApple, reauthenticateWithApple, signOut, refreshProfile,
         sendPasswordReset, verifyResetCode, confirmReset,
       }}
     >
