@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { watchAllSummaries, watchAllLogs, computeStreak } from '@/lib/firestore';
 import { DailySummary, FoodLog } from '@/lib/types';
 import { computeAnalytics, computeAchievements, computeAiAccuracy } from '@/lib/analytics';
+import { AmbientGrid } from './ui/AmbientGrid';
 
 interface Props { onBack: () => void; }
 
