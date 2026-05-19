@@ -28,7 +28,7 @@ const TARGET = 150;
 // ───────────────────────────────────────────────────────────
 const HEADLINE_CLS =
   // 40-44px, weight 900, tight line-height (~92%), -1.5% tracking, uppercase
-  'font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] uppercase text-foreground';
+  'font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] [word-spacing:-0.25em] uppercase text-foreground';
 const SUB_CLS =
   // 14px, weight 500, tracking +2%, ~60% black, line-height ~145%
   'font-sans text-[14px] font-medium leading-[1.45] tracking-[0.02em] text-foreground/60';
