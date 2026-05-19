@@ -9,9 +9,11 @@ interface Props {
   streak?: number;
   /** Called when entitlement is granted (either via StoreKit on iOS, or web fallback trial). */
   onStart: () => void;
+  /** Optional dismiss handler — when provided, shows a "MAYBE LATER" button. */
+  onClose?: () => void;
 }
 
-export default function Paywall({ streak = 0, onStart }: Props) {
+export default function Paywall({ streak = 0, onStart, onClose }: Props) {
   const native = isNative() && isIOS();
   const [offers, setOffers] = useState<Offers>({ annual: null, monthly: null });
   const [plan, setPlan] = useState<PlanId>('annual');
