@@ -1,33 +1,26 @@
-# Add Apple re-auth to Delete Account flow
+# Fix oversized word gaps in onboarding headlines
 
-Make account deletion work for both email/password and Apple Sign-In users. Apple reviewers will likely test this with their Apple ID, so the current password-only flow is a rejection risk.
+## Problem
+The onboarding slide headlines (e.g. "NO PROTEIN. NO RESULTS.", "ONLY ONE NUMBER MATTERS.", "HOW MUCH PROTEIN DO YOU EAT PER DAY?") use **Space Mono** — a monospace font where every space is a fixed, full character width. That makes the gap between words look unnaturally wide and amateurish, especially at the large 40px display size.
 
-## What changes
+It only stands out on slides with multiple short words per line; single long words like "STRUGGLE" look fine, which matches your observation.
 
-**`src/lib/auth.tsx`**
-- Export a new `reauthenticateWithApple()` helper that mirrors `signInWithApple()`:
-  - Native (iOS): use `@capacitor-firebase/authentication`'s `signInWithApple` to get a fresh `idToken` + `rawNonce`, build an `OAuthProvider('apple.com')` credential, then call Firebase `reauthenticateWithCredential(auth.currentUser, credential)`.
-  - Web: build an `OAuthProvider('apple.com')` and call `reauthenticateWithPopup(auth.currentUser, provider)`.
-- Add it to the `AuthContext` value/interface alongside `signInWithApple`.
+## Fix
+Keep the brutalist Space Mono look — just compress the **word spacing** (the gap between words) without touching letter-spacing or the font itself.
 
-**`src/components/DeleteAccountModal.tsx`**
-- Detect the user's sign-in method from `auth.currentUser.providerData[0].providerId`:
-  - `password` → keep the existing "re-enter password" field.
-  - `apple.com` → instead of a password input, show a **"CONFIRM WITH APPLE"** button that calls the new `reauthenticateWithApple()` and then retries deletion automatically.
-- When `auth/requires-recent-login` fires, branch on provider:
-  - password user → show password field (current behavior).
-  - Apple user → show the Apple re-auth button (no password field).
-- Keep the "DELETE" confirmation text gate for both paths.
-- After successful re-auth, immediately re-run `deleteUserData` + `deleteUser` without making the user tap "DELETE FOREVER" again.
+**File:** `src/components/OnboardingStoryFlow.tsx`
 
-## Edge cases handled
+Update the `HEADLINE_CLS` constant (line 31) to add a negative `word-spacing`:
 
-- Apple user cancels the re-auth sheet → toast "Re-authentication cancelled", stay on modal.
-- Mixed providers (rare: user linked both) → prefer the provider matching the most recent sign-in method; fall back to whichever is available.
-- Native vs web detection reuses the existing `isNative()` helper already used by `signInWithApple`.
+```
+'font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] [word-spacing:-0.25em] uppercase text-foreground'
+```
+
+This shrinks inter-word gaps by roughly 25% of the font size — enough to feel natural and intentional, while still leaving a clear visual break between words. Letter-spacing inside each word is untouched, so the monospace rhythm is preserved.
+
+## Also check
+`ManualTargetScreen.tsx` line 55 uses the same `font-mono font-black text-[40px]` headline ("SET YOUR TARGET") — apply the same `[word-spacing:-0.25em]` there for consistency.
 
 ## Out of scope
-
-- No UI redesign of the modal — only adds one conditional button in place of the password field for Apple users.
-- No changes to the sign-in screen or auth provider configuration.
-- No changes to Firestore data deletion logic.
+- No font swap, no layout changes, no copy edits.
+- Body/sub text and labels are left as-is (they use smaller sizes where the gap reads fine).
