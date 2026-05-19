@@ -259,6 +259,16 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
               ? 'Cancel anytime · Auto-renews monthly'
               : 'Cancel anytime · Charged after trial ends'}
         </p>
+
+        {onClose && (
+          <button
+            onClick={onClose}
+            disabled={busy}
+            className="mt-4 mb-2 w-full text-[10px] tracking-[0.3em] uppercase font-bold text-muted-foreground active:opacity-60 hover:opacity-80 transition-opacity"
+          >
+            MAYBE LATER
+          </button>
+        )}
       </div>
     </div>
   );
