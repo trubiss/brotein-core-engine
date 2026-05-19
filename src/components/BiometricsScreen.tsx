@@ -35,7 +35,7 @@ export default function BiometricsScreen({
         <p className="font-mono text-[10px] font-bold tracking-[0.25em] uppercase text-foreground/40 mb-3">
           // INPUT 01
         </p>
-        <h1 className="font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] uppercase">
+        <h1 className="font-black leading-[0.92] tracking-[-0.015em] uppercase text-foreground max-w-[280px] text-7xl mx-px my-0 px-0 py-0 border-0 font-mono text-justify">
           STRUCTURAL<br />DATA
         </h1>
         <p className="font-sans text-[13px] font-medium leading-[1.45] tracking-[0.01em] text-foreground/55 mt-3 max-w-[260px]">
