@@ -318,7 +318,8 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
 
   const next = () => {
     if (step >= TOTAL - 1) {
-      onComplete();
+      if (onStartTrial) onStartTrial();
+      else onComplete();
       return;
     }
     setDirection(1);
