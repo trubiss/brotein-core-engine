@@ -6,11 +6,13 @@ import OnboardingFlow from '@/components/OnboardingFlow';
 
 import Dashboard from '@/components/Dashboard';
 import ResetPasswordScreen from '@/components/ResetPasswordScreen';
+import { startTrial } from '@/lib/paywall';
 
 const OnboardingStoryFlow = lazy(() => import('@/components/OnboardingStoryFlow'));
 const HistoryScreen = lazy(() => import('@/components/HistoryScreen'));
 const ProfileScreen = lazy(() => import('@/components/ProfileScreen'));
 const InsightsScreen = lazy(() => import('@/components/InsightsScreen'));
+const Paywall = lazy(() => import('@/components/Paywall'));
 
 type Page = 'dashboard' | 'history' | 'profile' | 'insights';
 
