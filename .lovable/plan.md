@@ -1,45 +1,50 @@
-## Plan: App Store assets for Annual + Monthly subscriptions
+## Goal
+Take the composite strip you uploaded and produce **6 separate, App Store–ready PNGs at exactly 1290×2796**, keeping the current dark + phone-glow aesthetic but with perfected headline typography.
 
-Produce two paywall screenshots (one per plan selected) at iPhone 6.7" (1290×2796) plus suggested App Store Connect copy.
+## Steps
 
-### Step 1 — Temporary preview routes
-Add two dev-only routes in `src/App.tsx`:
-- `/__paywall-annual` → `<Paywall onStart={() => {}} streak={0} />` (annual is default selected)
-- `/__paywall-monthly` → same component but wrapped to auto-click the Monthly card on mount, so the screenshot captures monthly-selected state
+### 1. Slice the composite
+Copy `user-uploads://image-51.png` to `/tmp/`, detect the 6 panel boundaries (the strip already has clear vertical gaps between panels), and split into 6 base images:
+1. MOST GUYS MISS PROTEIN
+2. ONE NUMBER MATTERS
+3. ZERO FRICTION
+4. TAP. DONE.
+5. YOU'RE BEHIND
+6. STAY ON TRACK
 
-(Implementation note: simplest path is one route `/__paywall?plan=monthly` that reads the query param and programmatically taps the monthly card via a `useEffect` + ref, but two routes is cleaner.)
+### 2. Strip and re-typeset headlines
+For each panel:
+- Mask out the existing top headline + subtitle area with pure black (preserving the phone + glow below)
+- Re-render the headline cleanly in **Space Grotesk Bold/Black** (matches Brotein's brutalist system) with:
+  - Consistent left margin (~80 px at 1290 wide)
+  - Consistent baseline / top position across all 6
+  - Tightened tracking (-0.02em) and proper line-height
+  - Auto-balanced line breaks so no orphans
+  - Uniform headline size (e.g. ~140 px) — currently they vary
+- Re-render subtitles in **Space Grotesk Regular** at a consistent smaller size, same left margin
+- Same color hierarchy: headline pure white, subtitle ~70% white
 
-### Step 2 — Capture screenshots
-- Browser viewport: 390×844 (closest supported to iPhone 6.7" CSS dimensions; devicePixelRatio gives us native resolution)
-- Capture full page for each route
-- Upscale/resize the resulting PNGs to exactly 1290×2796 using ImageMagick to match Apple's required dimensions
-- Save to:
-  - `/mnt/documents/appstore-paywall-annual-1290x2796.png`
-  - `/mnt/documents/appstore-paywall-monthly-1290x2796.png`
+### 3. Compose at exact App Store size
+- Scale/pad each panel canvas to exactly **1290×2796** (iPhone 6.7" required size)
+- Pure black background, phone hero preserved as-is from your composite
+- Save as:
+  - `/mnt/documents/appstore-01-most-guys.png`
+  - `/mnt/documents/appstore-02-one-number.png`
+  - `/mnt/documents/appstore-03-zero-friction.png`
+  - `/mnt/documents/appstore-04-tap-done.png`
+  - `/mnt/documents/appstore-05-youre-behind.png`
+  - `/mnt/documents/appstore-06-stay-on-track.png`
 
-### Step 3 — Remove temporary routes
-Revert `src/App.tsx` so the `__paywall-*` routes don't ship.
+### 4. QA pass
+Re-open each PNG, verify:
+- Exact 1290×2796 dimensions
+- Headline baseline consistent across all 6
+- No text clipping, no orphan words
+- Phone artwork intact, no double-exposure on the mask edge
 
-### Step 4 — Provide App Store Connect copy
-Draft text for each subscription, sized to App Store Connect's limits:
+Surface all 6 as `<presentation-artifact>` tags.
 
-**Annual subscription**
-- Reference Name (internal): `Brotein Annual`
-- Display Name (30 char max): `Brotein Annual`
-- Description (45 char max for subscription localization): `Best value — save 33%. 7-day free trial.`
-
-**Monthly subscription**
-- Reference Name: `Brotein Monthly`
-- Display Name (30 char max): `Brotein Monthly`
-- Description (45 char max): `Flexible monthly access. Cancel anytime.`
-
-Plus a short **Review Notes** snippet to paste into App Store Connect explaining what reviewers see:
-> "Paywall appears after onboarding + first protein log. Both subscription options visible; tap to select, then 'Start' to subscribe. Annual offers a 7-day free trial; Monthly is full price from day one."
-
-### Deliverables
-- 2 PNG files in `/mnt/documents/` surfaced as `<presentation-artifact>` tags
-- Markdown block with all the copy ready to paste into App Store Connect
-
-### Out of scope
-- No changes to `Paywall.tsx`, pricing, IAP product IDs, or `src/lib/iap.ts`
-- No App Store Connect API calls — copy is for you to paste manually
+## Out of scope
+- No changes to the phone mockups themselves (angles, glow, screen contents)
+- No copy rewrites — keeping your exact headlines
+- No project source file changes
