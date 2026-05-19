@@ -1,61 +1,31 @@
-# Paywall Pricing Update
+## Goal
 
-Add a monthly option as a secondary plan, keep yearly with 7-day trial as the recommended primary.
+The screenshot shows the old paywall (US$ 79.99/yr, no trial messaging). Update it to match the new App Store Connect plan: **$39.99/year with a 7-day free trial** (plus the $4.99/month secondary option already wired up).
 
-## Pricing
+## Changes (src/components/Paywall.tsx only)
 
-| Plan | Price | Trial | Notes |
-|---|---|---|---|
-| Yearly *(primary)* | $39.99 / yr | 7-day free trial | Default selection, big CTA |
-| Monthly *(secondary)* | $4.99 / mo | No trial | Quiet text link below primary |
+1. **Price panel** — when a trial is available, show the trial as the headline and the price as supporting text:
+   - Big line: `7-DAY FREE TRIAL`
+   - Sub line: `THEN $39.99 / YEAR · BILLED YEARLY`
+   - Keep the "MOST POPULAR" tag.
+   - When no trial (e.g. returning user), fall back to the current `$39.99 / YEAR · BILLED YEARLY` layout.
 
-Primary CTA: `START 7-DAY TRIAL`
-Subtext: `7-day free trial, then $39.99 / year. Cancel anytime.`
-Secondary: `Or subscribe monthly — $4.99 / mo →` (text-style link, opens monthly purchase)
+2. **Primary CTA**
+   - Trial available → `START 7-DAY FREE TRIAL`
+   - No trial → `SUBSCRIBE $39.99/YR`
+   (Already partly done — just confirm copy and remove the `US$` formatting drift seen in the screenshot.)
 
-## UI changes (`src/components/Paywall.tsx`)
+3. **Fine-print under CTA**
+   - Trial: `Free for 7 days, then $39.99/year. Cancel anytime in Settings.`
+   - No trial: `$39.99 per year. Cancel anytime in Settings.`
 
-- Remove the centered single-price block.
-- Add a compact "selected plan" panel showing `$39.99 / YEAR · 7-DAY FREE TRIAL` with a tiny `MOST POPULAR` ribbon.
-- Below the primary CTA, add the monthly text-link that switches the active package and triggers native purchase (no trial copy).
-- Keep restore-purchases link and footer micro-text. Footer adapts to the selected plan.
-- Preserve current brutalist visuals, type tokens, and entry animations — no design overhaul.
+4. **Footer micro-text** — keep `CANCEL IN SETTINGS · AUTO-RENEWS YEARLY` on native, web copy unchanged.
 
-## Native purchase flow (`src/lib/iap.ts`)
+5. **Defaults** — `annualPrice` fallback stays `$39.99`; `monthlyPrice` stays `$4.99`. Live prices from RevenueCat (`offers.annual.priceString`) continue to override on device, so localized formats like `US$ 39,99` will still render correctly.
 
-- Replace single-offer fetch with two-package fetch from the `default` RevenueCat Offering: `annual` and `monthly`.
-- New `getOffers()` returns `{ annual: NativeOffer | null; monthly: NativeOffer | null }`.
-- `purchaseYearly()` stays. Add `purchaseMonthly()` (same shape).
-- Generalize to `purchasePlan('annual' | 'monthly')` internally; export both named helpers for clarity.
-- Track which plan was purchased: `track('paywall_purchase', { plan, active })`.
-
-## RevenueCat setup the user needs to do (outside code)
-
-In App Store Connect:
-1. Create monthly subscription `brotein_monthly_499` at $4.99/mo, no intro offer, same subscription group as yearly.
-2. Keep yearly `brotein_yearly_3999` with its 7-day intro offer.
-
-In RevenueCat dashboard:
-1. Add both products to the `default` Offering.
-2. Identifiers: `$rc_annual` (annual package) + `$rc_monthly` (monthly package).
-3. Make `annual` the default package.
-
-These are dashboard/App Store steps — I'll add a checklist comment at the top of `iap.ts` so it's documented in code.
-
-## Web fallback (`src/lib/paywall.ts`)
-
-- Web flow stays trial-only (no real billing on web). Monthly link on web simply starts the same local trial — the App Store is the only place real money moves.
-
-## Analytics (`src/lib/track.ts`)
-
-Existing events stay. Extend payloads:
-- `paywall_viewed` → add `default_plan: 'annual'`
-- `paywall_purchase` → add `plan: 'annual' | 'monthly'`
-- New: `paywall_plan_selected` when user taps the monthly link
+No changes to `iap.ts`, entitlements, or purchase flow — product IDs (`brotein_yearly_3999`, `brotein_monthly_499`) already match what you set up in App Store Connect.
 
 ## Out of scope
 
-- No lifetime plan, no weekly plan.
-- No changes to when the paywall triggers (still 3 logs OR 2 days).
-- No price changes for the existing yearly product.
-- No Stripe/web checkout — Apple still requires StoreKit for digital subs.
+- RevenueCat / App Store Connect config (already in progress in chat).
+- Monthly link styling — stays as-is.

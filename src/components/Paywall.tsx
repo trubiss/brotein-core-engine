@@ -64,7 +64,7 @@ export default function Paywall({ streak = 0, onStart }: Props) {
   const primaryCta = busy
     ? 'WORKING…'
     : trialAvailable
-      ? 'START 7-DAY TRIAL'
+      ? 'START 7-DAY FREE TRIAL'
       : `SUBSCRIBE ${annualPrice}/YR`;
 
   return (
