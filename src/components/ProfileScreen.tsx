@@ -8,6 +8,7 @@ import { ArrowLeft, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import ReminderSettingsPanel from './ReminderSettingsPanel';
 import DeleteAccountModal from './DeleteAccountModal';
+import { AmbientGrid } from './ui/AmbientGrid';
 
 interface Props { onBack: () => void; }
 
