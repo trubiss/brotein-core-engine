@@ -30,6 +30,26 @@ export default function Paywall({ streak = 0, onStart }: Props) {
   const monthlyPrice = offers.monthly?.priceString ?? '$4.99';
   const trialAvailable = !!offers.annual?.introPriceString || !native;
 
+  // Compute savings % (annual vs monthly × 12) from numeric prices when possible.
+  const parsePrice = (s: string) => {
+    const n = parseFloat(s.replace(/[^0-9.]/g, ''));
+    return Number.isFinite(n) ? n : null;
+  };
+  const annualNum = parsePrice(annualPrice);
+  const monthlyNum = parsePrice(monthlyPrice);
+  const savingsPct = annualNum && monthlyNum
+    ? Math.max(0, Math.round((1 - annualNum / (monthlyNum * 12)) * 100))
+    : 33;
+  const perWeek = annualNum
+    ? `$${(annualNum / 52).toFixed(2)}`
+    : '$0.77';
+
+  const selectPlan = (which: PlanId) => {
+    void tapHaptic();
+    setPlan(which);
+    track('paywall_plan_selected', { plan: which });
+  };
+
   const purchase = async (which: PlanId) => {
     void tapHaptic();
     if (busy) return;
@@ -63,9 +83,14 @@ export default function Paywall({ streak = 0, onStart }: Props) {
 
   const primaryCta = busy
     ? 'WORKING…'
-    : trialAvailable
-      ? 'START 7-DAY FREE TRIAL'
-      : `SUBSCRIBE ${annualPrice}/YR`;
+    : plan === 'monthly'
+      ? `SUBSCRIBE ${monthlyPrice}/MO`
+      : trialAvailable
+        ? 'START 7-DAY FREE TRIAL'
+        : `SUBSCRIBE ${annualPrice}/YR`;
+
+  const annualSelected = plan === 'annual';
+  const monthlySelected = plan === 'monthly';
 
   return (
     <div className="fixed inset-0 z-50 bg-background text-foreground overflow-y-auto">
@@ -110,76 +135,115 @@ export default function Paywall({ streak = 0, onStart }: Props) {
           ))}
         </ul>
 
-        {/* Selected plan panel */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="mt-12 border-2 border-foreground p-5 relative"
-        >
-          <span className="absolute -top-3 left-4 bg-background px-2 font-mono text-[10px] font-bold tracking-[0.25em] uppercase">
-            MOST POPULAR
-          </span>
-          {trialAvailable ? (
-            <>
-              <p className="font-display font-black text-3xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
-                7-DAY FREE TRIAL
-              </p>
-              <p className="mt-2 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
-                THEN {annualPrice} / YEAR · BILLED YEARLY
-              </p>
-            </>
-          ) : (
-            <>
-              <div className="flex items-baseline justify-between">
+        {/* Plan cards */}
+        <div className="mt-12 space-y-4">
+          {/* Annual card */}
+          <motion.button
+            type="button"
+            onClick={() => selectPlan('annual')}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className={`w-full text-left p-5 relative block transition-[border-color,opacity] ${
+              annualSelected
+                ? 'border-2 border-foreground'
+                : 'border border-foreground/30 opacity-70'
+            }`}
+            aria-pressed={annualSelected}
+          >
+            <span className="absolute -top-3 left-4 bg-background px-2 font-mono text-[10px] font-bold tracking-[0.25em] uppercase">
+              MOST POPULAR
+            </span>
+            {savingsPct > 0 && (
+              <span className="absolute -top-3 right-4 bg-foreground text-background px-2 py-[2px] font-mono text-[10px] font-bold tracking-[0.2em] uppercase">
+                SAVE {savingsPct}%
+              </span>
+            )}
+            {trialAvailable ? (
+              <>
                 <p className="font-display font-black text-3xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
-                  {annualPrice}
+                  7-DAY FREE TRIAL
                 </p>
-                <p className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-60">
-                  / YEAR
+                <p className="mt-2 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
+                  THEN {annualPrice} / YEAR · BILLED YEARLY
                 </p>
-              </div>
-              <p className="mt-2 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
-                BILLED YEARLY
+              </>
+            ) : (
+              <>
+                <div className="flex items-baseline justify-between">
+                  <p className="font-display font-black text-3xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
+                    {annualPrice}
+                  </p>
+                  <p className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-60">
+                    / YEAR
+                  </p>
+                </div>
+                <p className="mt-2 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
+                  BILLED YEARLY
+                </p>
+              </>
+            )}
+            <p className="mt-3 font-mono text-[10px] font-bold tracking-[0.2em] uppercase opacity-50">
+              JUST {perWeek} / WEEK
+            </p>
+          </motion.button>
+
+          {/* Monthly card */}
+          <motion.button
+            type="button"
+            onClick={() => selectPlan('monthly')}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
+            className={`w-full text-left p-5 relative block transition-[border-color,opacity] ${
+              monthlySelected
+                ? 'border-2 border-foreground'
+                : 'border border-foreground/30 opacity-70'
+            }`}
+            aria-pressed={monthlySelected}
+          >
+            <div className="flex items-baseline justify-between">
+              <p className="font-display font-black text-3xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
+                {monthlyPrice}
               </p>
-            </>
-          )}
-        </motion.div>
+              <p className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-60">
+                / MO
+              </p>
+            </div>
+            <p className="mt-2 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
+              BILLED MONTHLY · CANCEL ANYTIME
+            </p>
+            <p className="mt-3 font-mono text-[10px] font-bold tracking-[0.2em] uppercase opacity-50">
+              NO TRIAL · FLEXIBLE
+            </p>
+          </motion.button>
+        </div>
 
         {/* Primary CTA */}
         <motion.button
-          onClick={() => purchase('annual')}
+          onClick={() => purchase(plan)}
           disabled={busy}
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
           className="mt-5 w-full bg-foreground text-background font-black tracking-[0.15em] text-sm py-5 active:opacity-90"
-          style={{ opacity: busy && plan === 'annual' ? 0.5 : 1 }}
+          style={{ opacity: busy ? 0.5 : 1 }}
         >
-          {plan === 'annual' && busy ? 'WORKING…' : primaryCta}
+          {busy ? 'WORKING…' : primaryCta}
         </motion.button>
 
         <p className="mt-3 text-center text-[11px] opacity-50 leading-relaxed">
-          {trialAvailable
-            ? <>Free for 7 days, then {annualPrice}/year. Cancel anytime in Settings.</>
-            : <>{annualPrice} per year. Cancel anytime in Settings.</>}
+          {monthlySelected
+            ? <>{monthlyPrice} per month. Cancel anytime in Settings.</>
+            : trialAvailable
+              ? <>Free for 7 days, then {annualPrice}/year. Cancel anytime in Settings.</>
+              : <>{annualPrice} per year. Cancel anytime in Settings.</>}
         </p>
-
-        {/* Monthly secondary link */}
-        <button
-          onClick={() => purchase('monthly')}
-          disabled={busy}
-          className="mt-5 w-full font-mono text-[11px] font-bold tracking-[0.2em] uppercase text-foreground/60 hover:text-foreground active:opacity-60 py-2"
-        >
-          {plan === 'monthly' && busy
-            ? 'WORKING…'
-            : <>OR SUBSCRIBE MONTHLY — {monthlyPrice} / MO →</>}
-        </button>
 
         {native && (
           <button
             onClick={restore}
             disabled={busy}
-            className="mt-2 w-full text-[10px] tracking-[0.3em] uppercase font-bold text-muted-foreground active:opacity-60"
+            className="mt-5 w-full text-[10px] tracking-[0.3em] uppercase font-bold text-muted-foreground active:opacity-60"
           >
             RESTORE PURCHASES
           </button>
@@ -187,7 +251,11 @@ export default function Paywall({ streak = 0, onStart }: Props) {
 
         {/* Footer micro-text */}
         <p className="mt-4 mb-2 text-center text-[10px] opacity-40 tracking-[0.15em] uppercase">
-          {native ? 'Cancel in Settings · Auto-renews' : 'Cancel anytime · Charged after trial ends'}
+          {native
+            ? 'Cancel in Settings · Auto-renews'
+            : monthlySelected
+              ? 'Cancel anytime · Auto-renews monthly'
+              : 'Cancel anytime · Charged after trial ends'}
         </p>
       </div>
     </div>
