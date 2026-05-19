@@ -14,6 +14,8 @@ import {
 
 interface OnboardingStoryFlowProps {
   onComplete: () => void;
+  /** If provided, the final "START FREE TRIAL" CTA calls this instead of onComplete. */
+  onStartTrial?: () => void;
 }
 
 const slideVariants = {
