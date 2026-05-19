@@ -205,7 +205,7 @@ export default function Dashboard({ onNavigate }: Props) {
     !!profile && !trialActive && !hasEntitlement && shouldShowPaywall({ uid, logsCount: totalLogs, hasEntitlement });
 
   useEffect(() => {
-    if (showPaywall) track('paywall_viewed', { logs_count: totalLogs, streak });
+    if (showPaywall) track('paywall_viewed', { logs_count: totalLogs, streak, default_plan: 'annual' });
   }, [showPaywall, totalLogs, streak]);
 
   // ───────── early returns AFTER all hooks ─────────
