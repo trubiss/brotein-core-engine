@@ -353,11 +353,22 @@ export default function Dashboard({ onNavigate }: Props) {
         {/* Progress bar */}
         <div className="h-[10px] w-full bg-foreground/10 mb-1.5 overflow-hidden">
           <motion.div
-            className="h-full bg-foreground"
+            className="h-full bg-foreground relative overflow-hidden"
             initial={false}
             animate={{ width: `${Math.min(100, target > 0 ? (consumed / target) * 100 : 0)}%` }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-          />
+          >
+            {consumed < target && target > 0 && (
+              <span
+                aria-hidden
+                className="absolute inset-y-0 w-1/3 animate-shimmer-sweep motion-reduce:hidden"
+                style={{
+                  background:
+                    'linear-gradient(90deg, transparent 0%, hsl(var(--background) / 0.55) 50%, transparent 100%)',
+                }}
+              />
+            )}
+          </motion.div>
         </div>
 
         <div className="flex items-center justify-between mb-4 min-w-0">
