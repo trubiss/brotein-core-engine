@@ -75,7 +75,7 @@ export default function GoalsScreen({ data, onUpdate, onNext, onBack, step = 2, 
         <p className="font-mono text-[10px] font-bold tracking-[0.25em] uppercase text-foreground/40 mb-3">
           // INPUT 02
         </p>
-        <h1 className="font-black leading-[0.92] tracking-[-0.015em] uppercase text-foreground max-w-[280px] text-7xl mx-px my-0 px-0 py-0 border-0 font-mono text-justify">
+        <h1 className="font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] uppercase">
           KINETIC<br />OBJECTIVES
         </h1>
       </motion.div>

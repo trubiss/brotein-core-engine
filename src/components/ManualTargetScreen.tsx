@@ -49,7 +49,7 @@ export default function ManualTargetScreen({ data, onComplete, onBack }: Props) 
       <OnboardingHeader step={1} total={1} onBack={onBack} />
 
       <div className="px-1 pt-6">
-        <h1 className="font-black leading-[0.92] tracking-[-0.015em] uppercase text-foreground max-w-[280px] text-7xl mx-px my-0 px-0 py-0 border-0 font-mono text-justify">
+        <h1 className="font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] uppercase">
           SET YOUR<br />TARGET
         </h1>
       </div>

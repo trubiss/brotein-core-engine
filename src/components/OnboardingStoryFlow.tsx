@@ -28,7 +28,7 @@ const TARGET = 150;
 // ───────────────────────────────────────────────────────────
 const HEADLINE_CLS =
   // 40-44px, weight 900, tight line-height (~92%), -1.5% tracking, uppercase
-  'font-black leading-[0.92] tracking-[-0.015em] uppercase text-foreground max-w-[280px] text-7xl mx-px my-0 px-0 py-0 border-0 font-mono text-justify';
+  'font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] uppercase text-foreground';
 const SUB_CLS =
   // 14px, weight 500, tracking +2%, ~60% black, line-height ~145%
   'font-sans text-[14px] font-medium leading-[1.45] tracking-[0.02em] text-foreground/60';
@@ -344,7 +344,7 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
           >
             {/* Headline block — max-width ~280px, intentional line breaks */}
             <div className="flex flex-col">
-              <h1 className={`${HEADLINE_CLS}`}>{current.headline}</h1>
+              <h1 className={`${HEADLINE_CLS} max-w-[280px]`}>{current.headline}</h1>
               {'sub' in current && current.sub && (
                 <>
                   {/* 12px gap */}
