@@ -399,7 +399,7 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
 
             {/* Center content — 32-48px from headline via flex spacing */}
             <div className="flex-1 flex items-center justify-center py-8">
-              {current.kind === 'statement' && current.visual}
+              {current.kind === 'statement' && (current.visual ?? current.motif)}
 
               {current.kind === 'question' && (
                 /* Container 48px below headline (mt-12 from py-8 + items-center) */
