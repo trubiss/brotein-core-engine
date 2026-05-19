@@ -64,7 +64,7 @@ export default function Paywall({ streak = 0, onStart }: Props) {
   const primaryCta = busy
     ? 'WORKING…'
     : trialAvailable
-      ? 'START 7-DAY TRIAL'
+      ? 'START 7-DAY FREE TRIAL'
       : `SUBSCRIBE ${annualPrice}/YR`;
 
   return (
@@ -120,17 +120,30 @@ export default function Paywall({ streak = 0, onStart }: Props) {
           <span className="absolute -top-3 left-4 bg-background px-2 font-mono text-[10px] font-bold tracking-[0.25em] uppercase">
             MOST POPULAR
           </span>
-          <div className="flex items-baseline justify-between">
-            <p className="font-display font-black text-3xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
-              {annualPrice}
-            </p>
-            <p className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-60">
-              / YEAR
-            </p>
-          </div>
-          <p className="mt-2 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
-            {trialAvailable ? '7-DAY FREE TRIAL' : 'BILLED YEARLY'}
-          </p>
+          {trialAvailable ? (
+            <>
+              <p className="font-display font-black text-3xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
+                7-DAY FREE TRIAL
+              </p>
+              <p className="mt-2 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
+                THEN {annualPrice} / YEAR · BILLED YEARLY
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="flex items-baseline justify-between">
+                <p className="font-display font-black text-3xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
+                  {annualPrice}
+                </p>
+                <p className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-60">
+                  / YEAR
+                </p>
+              </div>
+              <p className="mt-2 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
+                BILLED YEARLY
+              </p>
+            </>
+          )}
         </motion.div>
 
         {/* Primary CTA */}
@@ -147,8 +160,8 @@ export default function Paywall({ streak = 0, onStart }: Props) {
 
         <p className="mt-3 text-center text-[11px] opacity-50 leading-relaxed">
           {trialAvailable
-            ? <>7-day free trial, then {annualPrice} / year. Cancel anytime.</>
-            : <>{annualPrice} per year. Cancel anytime.</>}
+            ? <>Free for 7 days, then {annualPrice}/year. Cancel anytime in Settings.</>
+            : <>{annualPrice} per year. Cancel anytime in Settings.</>}
         </p>
 
         {/* Monthly secondary link */}
