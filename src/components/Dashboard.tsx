@@ -16,6 +16,8 @@ const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
 const Paywall = lazy(() => import('./Paywall'));
 
+import { AmbientGrid, BlinkingCursor } from './ui/AmbientGrid';
+
 /** Counter that tweens between values for a satisfying count-up/down on log. */
 function AnimatedGrams({ value }: { value: number }) {
   const mv = useMotionValue(value);
@@ -273,7 +275,9 @@ export default function Dashboard({ onNavigate }: Props) {
   }
 
   return (
-    <motion.div className="screen-container pb-32" variants={stagger} initial="initial" animate="animate">
+    <motion.div className="screen-container pb-32 relative isolate" variants={stagger} initial="initial" animate="animate">
+      <AmbientGrid opacity={0.04} />
+
       <motion.div variants={fadeUp} className="flex items-center justify-between mb-12 min-w-0">
         <h1 className="font-black tracking-[0.15em] font-sans text-3xl truncate">BROTEIN</h1>
         <div className="flex gap-2 shrink-0">
@@ -349,11 +353,22 @@ export default function Dashboard({ onNavigate }: Props) {
         {/* Progress bar */}
         <div className="h-[10px] w-full bg-foreground/10 mb-1.5 overflow-hidden">
           <motion.div
-            className="h-full bg-foreground"
+            className="h-full bg-foreground relative overflow-hidden"
             initial={false}
             animate={{ width: `${Math.min(100, target > 0 ? (consumed / target) * 100 : 0)}%` }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-          />
+          >
+            {consumed < target && target > 0 && (
+              <span
+                aria-hidden
+                className="absolute inset-y-0 w-1/3 animate-shimmer-sweep motion-reduce:hidden"
+                style={{
+                  background:
+                    'linear-gradient(90deg, transparent 0%, hsl(var(--background) / 0.55) 50%, transparent 100%)',
+                }}
+              />
+            )}
+          </motion.div>
         </div>
 
         <div className="flex items-center justify-between mb-4 min-w-0">
@@ -402,7 +417,7 @@ export default function Dashboard({ onNavigate }: Props) {
       {/* Minimal streak — low visual weight, breathes above */}
       <motion.div variants={fadeUp} className="mb-2">
         <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55">
-          STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'}
+          STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'} <BlinkingCursor className="text-foreground/40" />
         </p>
       </motion.div>
 

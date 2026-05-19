@@ -69,25 +69,51 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "ambient-grid-drift": {
+          "0%": { backgroundPosition: "0 0, 0 0" },
+          "100%": { backgroundPosition: "24px 24px, 24px 24px" },
+        },
+        "cursor-blink": {
+          "0%, 50%": { opacity: "1" },
+          "51%, 100%": { opacity: "0" },
+        },
+        "shimmer-sweep": {
+          "0%": { transform: "translateX(-120%)" },
+          "60%, 100%": { transform: "translateX(220%)" },
+        },
+        "soft-pulse": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.55" },
+        },
+        "bar-rise": {
+          "0%": { transform: "scaleY(0)" },
+          "100%": { transform: "scaleY(1)" },
+        },
+        "draw-line": {
+          "0%": { transform: "scaleX(0)" },
+          "100%": { transform: "scaleX(1)" },
+        },
+        "scanline-drift": {
+          "0%": { transform: "translateY(-100%)" },
+          "100%": { transform: "translateY(2000%)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "ambient-grid-drift": "ambient-grid-drift 18s linear infinite",
+        "shimmer-sweep": "shimmer-sweep 3.2s ease-in-out infinite",
+        "soft-pulse": "soft-pulse 2.2s ease-in-out infinite",
+        "bar-rise": "bar-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both",
+        "draw-line": "draw-line 0.7s ease-out both",
+        "scanline-drift": "scanline-drift 7s linear infinite",
       },
     },
   },

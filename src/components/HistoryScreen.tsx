@@ -7,6 +7,7 @@ import { ArrowLeft, Search } from 'lucide-react';
 import QuickLogModal from './QuickLogModal';
 import SwipeableLogRow from './SwipeableLogRow';
 import { toast } from 'sonner';
+import { AmbientGrid } from './ui/AmbientGrid';
 
 interface Props { onBack: () => void; }
 
@@ -74,7 +75,8 @@ export default function HistoryScreen({ onBack }: Props) {
   };
 
   return (
-    <motion.div className="screen-container pb-12" variants={stagger} initial="initial" animate="animate">
+    <motion.div className="screen-container pb-12 relative isolate" variants={stagger} initial="initial" animate="animate">
+      <AmbientGrid opacity={0.035} />
       <motion.div variants={fadeUp} className="flex items-center gap-4 mb-8 min-w-0">
         <button onClick={onBack} className="p-2 border-2 border-foreground active:scale-95 transition-transform shrink-0">
           <ArrowLeft size={20} />
@@ -166,10 +168,10 @@ export default function HistoryScreen({ onBack }: Props) {
           return (
             <motion.div key={date} variants={fadeUp} className="mb-10">
               <div className="flex justify-between items-baseline mb-3 min-w-0">
-                <p className="label-spaced mb-0 truncate">{formatDate(date)}</p>
+                <p className={`label-spaced mb-0 truncate ${formatDate(date) === 'TODAY' ? 'animate-soft-pulse motion-reduce:animate-none' : ''}`}>{formatDate(date)}</p>
                 <p className="label-spaced mb-0 whitespace-nowrap">{total}G TOTAL</p>
               </div>
-              <div className="border-t-2 border-foreground">
+              <div className="border-t-2 border-foreground origin-left animate-draw-line motion-reduce:animate-none">
                 {dayLogs.map(log => (
                   <SwipeableLogRow
                     key={log.id}

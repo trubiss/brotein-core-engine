@@ -1,26 +1,48 @@
-# Fix oversized word gaps in onboarding headlines
+# Add ambient animations to main screens
 
-## Problem
-The onboarding slide headlines (e.g. "NO PROTEIN. NO RESULTS.", "ONLY ONE NUMBER MATTERS.", "HOW MUCH PROTEIN DO YOU EAT PER DAY?") use **Space Mono** — a monospace font where every space is a fixed, full character width. That makes the gap between words look unnaturally wide and amateurish, especially at the large 40px display size.
+The text content stays exactly as-is. The goal is to make the lower/empty areas of each screen feel alive without distracting from the brutalist B&W aesthetic. All animations use existing `framer-motion` (already in the project) and CSS — no new dependencies.
 
-It only stands out on slides with multiple short words per line; single long words like "STRUGGLE" look fine, which matches your observation.
+## Per-screen treatments
 
-## Fix
-Keep the brutalist Space Mono look — just compress the **word spacing** (the gap between words) without touching letter-spacing or the font itself.
+### Dashboard (`src/components/Dashboard.tsx`)
+- **Ambient grid backdrop**: subtle 1px monospace grid layer (opacity ~0.04) slowly drifting diagonally behind the content. Pure CSS, fixed/absolute behind the card.
+- **Progress bar shimmer**: when consumed < target, a thin highlight sweeps left→right across the filled portion every ~3.5s.
+- **Streak line tick**: the "STREAK · N DAYS" line gets a tiny blinking cursor (`|`) at the end — terminal/mono feel, matches Space Mono.
+- **Quick-add buttons**: stagger-in already exists; add a faint border-pulse on the active day's `+20/+30/+40g` row every ~6s (very low opacity).
 
-**File:** `src/components/OnboardingStoryFlow.tsx`
+### History (`src/components/HistoryScreen.tsx`)
+- **Day cells fade-up stagger** on mount (50ms stagger).
+- **Today's cell**: gentle pulsing outline (2s loop, opacity 0.6↔1) so the eye lands there.
+- **Empty state** (if any): typewriter reveal of the placeholder text.
 
-Update the `HEADLINE_CLS` constant (line 31) to add a negative `word-spacing`:
+### Insights (`src/components/InsightsScreen.tsx`)
+- **Numbers count-up** on mount using the same `AnimatedGrams` pattern already in Dashboard (reuse the technique for kg, %, day counts).
+- **Bars/lines draw-in**: any chart bars animate height from 0 → value with 60ms stagger.
+- **Section dividers**: hairline draws left→right on first reveal.
 
-```
-'font-mono font-black text-[40px] leading-[0.92] tracking-[-0.015em] [word-spacing:-0.25em] uppercase text-foreground'
-```
+### Profile (`src/components/ProfileScreen.tsx`)
+- **Section stagger fade-up** on mount.
+- **Avatar/initial block**: very subtle scanline shimmer (single diagonal line slowly traversing) to fill the white space at the top.
+- **List rows**: gentle border-color pulse on hover/active.
 
-This shrinks inter-word gaps by roughly 25% of the font size — enough to feel natural and intentional, while still leaving a clear visual break between words. Letter-spacing inside each word is untouched, so the monospace rhythm is preserved.
-
-## Also check
-`ManualTargetScreen.tsx` line 55 uses the same `font-mono font-black text-[40px]` headline ("SET YOUR TARGET") — apply the same `[word-spacing:-0.25em]` there for consistency.
+## Shared utilities (added once, reused)
+- A small `<AmbientGrid />` component (absolutely positioned, `pointer-events-none`, CSS-only animated background-position) — used as a backdrop on each screen where space feels empty.
+- A `<BlinkingCursor />` mono `|` component for terminal accents.
+- A `shimmer` keyframe added to `tailwind.config.ts` for the progress bar.
 
 ## Out of scope
-- No font swap, no layout changes, no copy edits.
-- Body/sub text and labels are left as-is (they use smaller sizes where the gap reads fine).
+- No text/copy changes.
+- No layout, spacing, or color changes.
+- No new dependencies, no Lottie, no video.
+- Charts in Insights keep their existing structure; only the reveal animation is added.
+
+## Files touched
+- `src/components/Dashboard.tsx`
+- `src/components/HistoryScreen.tsx`
+- `src/components/InsightsScreen.tsx`
+- `src/components/ProfileScreen.tsx`
+- `src/components/ui/AmbientGrid.tsx` (new, tiny)
+- `tailwind.config.ts` (add `shimmer` keyframe)
+- `src/index.css` (add `.blink-cursor` utility)
+
+All motion respects `prefers-reduced-motion` — animations are disabled for users who request it.
