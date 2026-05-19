@@ -5,11 +5,14 @@
 //
 // Setup checklist (one-time, outside of code):
 //   1. Create a RevenueCat account, add an iOS app, paste your App Store Connect shared secret.
-//   2. Create a subscription product in App Store Connect: id `brotein_yearly_3999`, price $39.99/yr,
-//      with a 7-day free intro offer attached. Attach it to a RevenueCat Offering named "default"
-//      with a single Package using the "Annual" identifier.
-//   3. Paste the RevenueCat public iOS SDK key below (REVENUECAT_IOS_API_KEY).
-//   4. After adding the iOS platform with Capacitor, run `npx cap sync ios` so the native
+//   2. In App Store Connect, create two subscription products in the SAME subscription group:
+//        • `brotein_yearly_3999`  — $39.99 / year, attach a 7-DAY FREE intro offer.
+//        • `brotein_monthly_499`  — $4.99 / month, NO intro offer.
+//   3. In RevenueCat → Offerings, edit the `default` Offering and add BOTH products as packages:
+//        • Package `$rc_annual`  → brotein_yearly_3999  (set as default)
+//        • Package `$rc_monthly` → brotein_monthly_499
+//   4. Paste the RevenueCat public iOS SDK key below (REVENUECAT_IOS_API_KEY).
+//   5. After adding the iOS platform with Capacitor, run `npx cap sync ios` so the native
 //      RevenueCat pod is installed.
 
 import { isIOS, isNative } from './native';
@@ -21,6 +24,8 @@ const REVENUECAT_IOS_API_KEY = 'test_LIpJqqukaFfMTNtAlMEpeYIfIsw';
 const REVENUECAT_ANDROID_API_KEY = ''; // fill in if/when Android ships
 const ENTITLEMENT_ID = 'Brotein Pro';
 const OFFERING_ID = 'default';
+
+export type PlanId = 'annual' | 'monthly';
 
 let initPromise: Promise<void> | null = null;
 
