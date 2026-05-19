@@ -178,6 +178,19 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
     }
   }, [answers.estimate]);
 
+  const estimateFrom = useMemo(() => {
+    switch (answers.estimate) {
+      case 'low':
+        return 70;
+      case 'mid':
+        return 100;
+      case 'high':
+        return 130;
+      default:
+        return 90;
+    }
+  }, [answers.estimate]);
+
   const screens: Screen[] = useMemo(
     () => [
       { kind: 'statement', headline: <>YOU'RE NOT<br />HITTING YOUR<br />PROTEIN.</>, cta: 'CONTINUE' },
