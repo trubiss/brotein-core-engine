@@ -46,7 +46,8 @@ export default function InsightsScreen({ onBack }: Props) {
     : analytics.trend === 'declining' ? TrendingDown : Minus;
 
   return (
-    <motion.div className="screen-container pb-12" variants={stagger} initial="initial" animate="animate">
+    <motion.div className="screen-container pb-12 relative isolate" variants={stagger} initial="initial" animate="animate">
+      <AmbientGrid opacity={0.035} />
       <motion.div variants={fadeUp} className="flex items-center gap-4 mb-8 min-w-0">
         <button onClick={onBack} className="p-2 border-2 border-foreground active:scale-95 transition-transform shrink-0">
           <ArrowLeft size={20} />
