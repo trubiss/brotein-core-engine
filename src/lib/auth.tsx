@@ -19,6 +19,7 @@ interface AuthCtx {
   signUp: (email: string, password: string, name: string) => Promise<User>;
   signIn: (email: string, password: string) => Promise<User>;
   signInWithApple: () => Promise<User>;
+  reauthenticateWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
