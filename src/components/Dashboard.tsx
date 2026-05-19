@@ -16,6 +16,8 @@ const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
 const Paywall = lazy(() => import('./Paywall'));
 
+import { AmbientGrid, BlinkingCursor } from './ui/AmbientGrid';
+
 /** Counter that tweens between values for a satisfying count-up/down on log. */
 function AnimatedGrams({ value }: { value: number }) {
   const mv = useMotionValue(value);
