@@ -1,50 +1,33 @@
-## Goal
-Take the composite strip you uploaded and produce **6 separate, App Store–ready PNGs at exactly 1290×2796**, keeping the current dark + phone-glow aesthetic but with perfected headline typography.
+# Add Apple re-auth to Delete Account flow
 
-## Steps
+Make account deletion work for both email/password and Apple Sign-In users. Apple reviewers will likely test this with their Apple ID, so the current password-only flow is a rejection risk.
 
-### 1. Slice the composite
-Copy `user-uploads://image-51.png` to `/tmp/`, detect the 6 panel boundaries (the strip already has clear vertical gaps between panels), and split into 6 base images:
-1. MOST GUYS MISS PROTEIN
-2. ONE NUMBER MATTERS
-3. ZERO FRICTION
-4. TAP. DONE.
-5. YOU'RE BEHIND
-6. STAY ON TRACK
+## What changes
 
-### 2. Strip and re-typeset headlines
-For each panel:
-- Mask out the existing top headline + subtitle area with pure black (preserving the phone + glow below)
-- Re-render the headline cleanly in **Space Grotesk Bold/Black** (matches Brotein's brutalist system) with:
-  - Consistent left margin (~80 px at 1290 wide)
-  - Consistent baseline / top position across all 6
-  - Tightened tracking (-0.02em) and proper line-height
-  - Auto-balanced line breaks so no orphans
-  - Uniform headline size (e.g. ~140 px) — currently they vary
-- Re-render subtitles in **Space Grotesk Regular** at a consistent smaller size, same left margin
-- Same color hierarchy: headline pure white, subtitle ~70% white
+**`src/lib/auth.tsx`**
+- Export a new `reauthenticateWithApple()` helper that mirrors `signInWithApple()`:
+  - Native (iOS): use `@capacitor-firebase/authentication`'s `signInWithApple` to get a fresh `idToken` + `rawNonce`, build an `OAuthProvider('apple.com')` credential, then call Firebase `reauthenticateWithCredential(auth.currentUser, credential)`.
+  - Web: build an `OAuthProvider('apple.com')` and call `reauthenticateWithPopup(auth.currentUser, provider)`.
+- Add it to the `AuthContext` value/interface alongside `signInWithApple`.
 
-### 3. Compose at exact App Store size
-- Scale/pad each panel canvas to exactly **1290×2796** (iPhone 6.7" required size)
-- Pure black background, phone hero preserved as-is from your composite
-- Save as:
-  - `/mnt/documents/appstore-01-most-guys.png`
-  - `/mnt/documents/appstore-02-one-number.png`
-  - `/mnt/documents/appstore-03-zero-friction.png`
-  - `/mnt/documents/appstore-04-tap-done.png`
-  - `/mnt/documents/appstore-05-youre-behind.png`
-  - `/mnt/documents/appstore-06-stay-on-track.png`
+**`src/components/DeleteAccountModal.tsx`**
+- Detect the user's sign-in method from `auth.currentUser.providerData[0].providerId`:
+  - `password` → keep the existing "re-enter password" field.
+  - `apple.com` → instead of a password input, show a **"CONFIRM WITH APPLE"** button that calls the new `reauthenticateWithApple()` and then retries deletion automatically.
+- When `auth/requires-recent-login` fires, branch on provider:
+  - password user → show password field (current behavior).
+  - Apple user → show the Apple re-auth button (no password field).
+- Keep the "DELETE" confirmation text gate for both paths.
+- After successful re-auth, immediately re-run `deleteUserData` + `deleteUser` without making the user tap "DELETE FOREVER" again.
 
-### 4. QA pass
-Re-open each PNG, verify:
-- Exact 1290×2796 dimensions
-- Headline baseline consistent across all 6
-- No text clipping, no orphan words
-- Phone artwork intact, no double-exposure on the mask edge
+## Edge cases handled
 
-Surface all 6 as `<presentation-artifact>` tags.
+- Apple user cancels the re-auth sheet → toast "Re-authentication cancelled", stay on modal.
+- Mixed providers (rare: user linked both) → prefer the provider matching the most recent sign-in method; fall back to whichever is available.
+- Native vs web detection reuses the existing `isNative()` helper already used by `signInWithApple`.
 
 ## Out of scope
-- No changes to the phone mockups themselves (angles, glow, screen contents)
-- No copy rewrites — keeping your exact headlines
-- No project source file changes
+
+- No UI redesign of the modal — only adds one conditional button in place of the password field for Apple users.
+- No changes to the sign-in screen or auth provider configuration.
+- No changes to Firestore data deletion logic.
