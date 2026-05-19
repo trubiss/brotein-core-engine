@@ -1,6 +1,16 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
+import {
+  StalledBarMotif,
+  CollapsingBarsMotif,
+  DeficitCounterMotif,
+  GapBarsMotif,
+  StreakGridMotif,
+  StopwatchMotif,
+  ChecklistMotif,
+  WeekStripMotif,
+} from './onboarding/SlideMotifs';
 
 interface OnboardingStoryFlowProps {
   onComplete: () => void;
@@ -15,7 +25,7 @@ const slideVariants = {
 type Choice = { value: string; label: string };
 
 type Screen =
-  | { kind: 'statement'; headline: React.ReactNode; sub?: string; visual?: React.ReactNode; cta: string }
+  | { kind: 'statement'; headline: React.ReactNode; sub?: string; visual?: React.ReactNode; motif?: React.ReactNode; cta: string }
   | { kind: 'question'; key: string; headline: React.ReactNode; sub?: string; choices: Choice[] }
   | { kind: 'interactive-add'; headline: React.ReactNode; sub: string; cta: string }
   | { kind: 'pace'; headline: React.ReactNode; sub: string; cta: string };
@@ -168,13 +178,32 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
     }
   }, [answers.estimate]);
 
+  const estimateFrom = useMemo(() => {
+    switch (answers.estimate) {
+      case 'low':
+        return 70;
+      case 'mid':
+        return 100;
+      case 'high':
+        return 130;
+      default:
+        return 90;
+    }
+  }, [answers.estimate]);
+
   const screens: Screen[] = useMemo(
     () => [
-      { kind: 'statement', headline: <>YOU'RE NOT<br />HITTING YOUR<br />PROTEIN.</>, cta: 'CONTINUE' },
+      {
+        kind: 'statement',
+        headline: <>YOU'RE NOT<br />HITTING YOUR<br />PROTEIN.</>,
+        motif: <StalledBarMotif />,
+        cta: 'CONTINUE',
+      },
       {
         kind: 'statement',
         headline: <>NO PROTEIN.<br />NO RESULTS.</>,
         sub: 'MUSCLE, RECOVERY, FAT LOSS — ALL DEPEND ON IT.',
+        motif: <CollapsingBarsMotif />,
         cta: 'CONTINUE',
       },
       {
@@ -211,9 +240,15 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
           </>
         ),
         sub: 'BASED ON WHAT YOU JUST TOLD US.',
+        motif: <DeficitCounterMotif from={estimateFrom} to={TARGET} />,
         cta: 'CONTINUE',
       },
-      { kind: 'statement', headline: <>THAT GAP<br />IS HOLDING<br />YOU BACK.</>, cta: 'SHOW ME THE FIX' },
+      {
+        kind: 'statement',
+        headline: <>THAT GAP<br />IS HOLDING<br />YOU BACK.</>,
+        motif: <GapBarsMotif />,
+        cta: 'SHOW ME THE FIX',
+      },
       {
         kind: 'statement',
         headline: <>THIS IS<br />YOUR DAILY<br />TARGET.</>,
@@ -249,23 +284,31 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
       {
         kind: 'statement',
         headline: <>IN 30 DAYS,<br />HITTING YOUR<br />PROTEIN BECOMES<br />AUTOMATIC.</>,
+        motif: <StreakGridMotif />,
         cta: 'CONTINUE',
       },
-      { kind: 'statement', headline: <>LESS THAN<br />10 SECONDS<br />PER MEAL.</>, cta: 'CONTINUE' },
+      {
+        kind: 'statement',
+        headline: <>LESS THAN<br />10 SECONDS<br />PER MEAL.</>,
+        motif: <StopwatchMotif />,
+        cta: 'CONTINUE',
+      },
       {
         kind: 'statement',
         headline: <>YOU ALREADY<br />KNOW WHAT<br />TO DO.</>,
         sub: 'NOW YOU JUST NEED TO STAY CONSISTENT.',
+        motif: <ChecklistMotif />,
         cta: 'CONTINUE',
       },
       {
         kind: 'statement',
         headline: <>TRY BROTEIN<br />FREE FOR<br />7 DAYS.</>,
         sub: 'LESS THAN A COFFEE PER WEEK.',
+        motif: <WeekStripMotif />,
         cta: 'START FREE TRIAL',
       },
     ],
-    [protein, estimateGap]
+    [protein, estimateGap, estimateFrom]
   );
 
   const TOTAL = screens.length;
@@ -356,7 +399,7 @@ export default function OnboardingStoryFlow({ onComplete }: OnboardingStoryFlowP
 
             {/* Center content — 32-48px from headline via flex spacing */}
             <div className="flex-1 flex items-center justify-center py-8">
-              {current.kind === 'statement' && current.visual}
+              {current.kind === 'statement' && (current.visual ?? current.motif)}
 
               {current.kind === 'question' && (
                 /* Container 48px below headline (mt-12 from py-8 + items-center) */

@@ -1,48 +1,35 @@
-# Add ambient animations to main screens
+## Goal
 
-The text content stays exactly as-is. The goal is to make the lower/empty areas of each screen feel alive without distracting from the brutalist B&W aesthetic. All animations use existing `framer-motion` (already in the project) and CSS — no new dependencies.
+Fill the empty white space below the headlines on onboarding statement slides with subtle, on-theme animations. Question, interactive-add, and pace screens already have visuals — leave those untouched. Keep the brutalist B&W aesthetic (no color, no rounded shapes, mono lines only).
 
-## Per-screen treatments
+## Approach
 
-### Dashboard (`src/components/Dashboard.tsx`)
-- **Ambient grid backdrop**: subtle 1px monospace grid layer (opacity ~0.04) slowly drifting diagonally behind the content. Pure CSS, fixed/absolute behind the card.
-- **Progress bar shimmer**: when consumed < target, a thin highlight sweeps left→right across the filled portion every ~3.5s.
-- **Streak line tick**: the "STREAK · N DAYS" line gets a tiny blinking cursor (`|`) at the end — terminal/mono feel, matches Space Mono.
-- **Quick-add buttons**: stagger-in already exists; add a faint border-pulse on the active day's `+20/+30/+40g` row every ~6s (very low opacity).
+Add an optional `motif` field to each statement screen. When a screen has no `visual`, render the motif in the center area. Each motif is a small, self-contained framer-motion SVG/div component that loops gently (3–6s) and respects `prefers-reduced-motion`.
 
-### History (`src/components/HistoryScreen.tsx`)
-- **Day cells fade-up stagger** on mount (50ms stagger).
-- **Today's cell**: gentle pulsing outline (2s loop, opacity 0.6↔1) so the eye lands there.
-- **Empty state** (if any): typewriter reveal of the placeholder text.
+## Per-slide motifs (statement screens only)
 
-### Insights (`src/components/InsightsScreen.tsx`)
-- **Numbers count-up** on mount using the same `AnimatedGrams` pattern already in Dashboard (reuse the technique for kg, %, day counts).
-- **Bars/lines draw-in**: any chart bars animate height from 0 → value with 60ms stagger.
-- **Section dividers**: hairline draws left→right on first reveal.
+1. **"YOU'RE NOT HITTING YOUR PROTEIN"** — a horizontal progress bar that fills to ~45% then stalls, with a blinking "MISSED" tick mark at 100%.
+2. **"NO PROTEIN. NO RESULTS."** — three stacked mono bars (MUSCLE / RECOVERY / FAT LOSS) that try to fill then collapse back to 0 in sequence.
+3. **"ONLY ONE NUMBER MATTERS."** — already has `MetricStack`. Skip.
+4. **"YOU'RE LIKELY UNDER-EATING…"** — a number ticker that counts from the user's est. intake up to the gap (e.g. 90 → 150 G), with a deficit bracket drawn underneath.
+5. **"THAT GAP IS HOLDING YOU BACK"** — two vertical bars (CURRENT vs TARGET) with a labeled "GAP" bracket between them, drawn-in on mount.
+6. **"THIS IS YOUR DAILY TARGET"** — already has `MiniDashboard`. Skip.
+7. **"IN 30 DAYS… AUTOMATIC"** — a 30-cell mono streak grid that fills left-to-right in a 2.5s loop.
+8. **"LESS THAN 10 SECONDS PER MEAL"** — a stopwatch-style mono ring that sweeps 0→10s and resets.
+9. **"YOU ALREADY KNOW WHAT TO DO"** — a checkbox row (3 boxes) that ticks itself one by one.
+10. **"TRY BROTEIN FREE FOR 7 DAYS"** — a 7-cell week strip with each day filling sequentially, last cell pulsing.
 
-### Profile (`src/components/ProfileScreen.tsx`)
-- **Section stagger fade-up** on mount.
-- **Avatar/initial block**: very subtle scanline shimmer (single diagonal line slowly traversing) to fill the white space at the top.
-- **List rows**: gentle border-color pulse on hover/active.
+All motifs sit in the existing centered `flex-1` area, max-width ~260px, foreground-on-background only, 2px borders, mono typography for any labels.
 
-## Shared utilities (added once, reused)
-- A small `<AmbientGrid />` component (absolutely positioned, `pointer-events-none`, CSS-only animated background-position) — used as a backdrop on each screen where space feels empty.
-- A `<BlinkingCursor />` mono `|` component for terminal accents.
-- A `shimmer` keyframe added to `tailwind.config.ts` for the progress bar.
+## Technical details
+
+- New file: `src/components/onboarding/SlideMotifs.tsx` exporting each motif as a named component (`StalledBarMotif`, `CollapsingBarsMotif`, `DeficitCounterMotif`, `GapBarsMotif`, `StreakGridMotif`, `StopwatchMotif`, `ChecklistMotif`, `WeekStripMotif`).
+- `OnboardingStoryFlow.tsx`: extend the `statement` screen type with optional `motif?: React.ReactNode`; in the center block render `current.visual ?? current.motif`. Wire each statement above to its motif.
+- Animations use framer-motion `animate` loops (`repeat: Infinity`) with `motion-reduce:hidden` wrappers or `useReducedMotion()` to disable loops.
+- No tailwind config changes needed; reuse existing tokens (`foreground`, `muted`, mono font).
 
 ## Out of scope
-- No text/copy changes.
-- No layout, spacing, or color changes.
-- No new dependencies, no Lottie, no video.
-- Charts in Insights keep their existing structure; only the reveal animation is added.
 
-## Files touched
-- `src/components/Dashboard.tsx`
-- `src/components/HistoryScreen.tsx`
-- `src/components/InsightsScreen.tsx`
-- `src/components/ProfileScreen.tsx`
-- `src/components/ui/AmbientGrid.tsx` (new, tiny)
-- `tailwind.config.ts` (add `shimmer` keyframe)
-- `src/index.css` (add `.blink-cursor` utility)
-
-All motion respects `prefers-reduced-motion` — animations are disabled for users who request it.
+- No copy, layout, color, spacing, or typography changes.
+- Question / interactive-add / pace screens stay as-is.
+- Dashboard/History/Insights/Profile ambient animations from last turn remain unchanged.
