@@ -48,6 +48,22 @@ export interface ScheduledReminder {
   minute: number;
 }
 
+export type NotificationPermissionState = 'granted' | 'denied' | 'prompt' | 'unsupported';
+
+/** Read the current permission state without prompting the user. */
+export async function getNotificationPermissionState(): Promise<NotificationPermissionState> {
+  if (!isNative()) return 'unsupported';
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const status = await LocalNotifications.checkPermissions();
+    if (status.display === 'granted') return 'granted';
+    if (status.display === 'denied') return 'denied';
+    return 'prompt';
+  } catch {
+    return 'unsupported';
+  }
+}
+
 /** Ensure permission for local notifications on native iOS/Android. No-op on web. */
 export async function ensureNotificationPermission(): Promise<boolean> {
   if (!isNative()) return false;
@@ -97,6 +113,54 @@ export async function cancelAllReminders(): Promise<void> {
       await LocalNotifications.cancel({ notifications: pending.notifications.map(n => ({ id: n.id })) });
     }
   } catch { /* ignore */ }
+}
+
+// ---- High-level helpers ----------------------------------------------------
+
+interface ReminderSettingsLike {
+  enabled: boolean;
+  morning: { enabled: boolean; time: string };
+  midday: { enabled: boolean; time: string };
+  evening: { enabled: boolean; time: string };
+}
+
+function parseHM(t: string): { hour: number; minute: number } {
+  const [h, m] = t.split(':').map(Number);
+  return { hour: h || 0, minute: m || 0 };
+}
+
+/** Schedule (or clear) daily reminders from the user's settings object. */
+export async function scheduleFromSettings(settings: ReminderSettingsLike): Promise<void> {
+  if (!isNative()) return;
+  if (!settings.enabled) {
+    await cancelAllReminders();
+    return;
+  }
+  const list: ScheduledReminder[] = [];
+  if (settings.morning.enabled) list.push({ id: 1001, title: 'MORNING FUEL', body: 'Start the day with a protein hit.', ...parseHM(settings.morning.time) });
+  if (settings.midday.enabled)  list.push({ id: 1002, title: 'MIDDAY CHECK-IN', body: 'Time to log your lunch protein.', ...parseHM(settings.midday.time) });
+  if (settings.evening.enabled) list.push({ id: 1003, title: 'EVENING PUSH', body: 'Close the day on target.', ...parseHM(settings.evening.time) });
+  await scheduleDailyReminders(list);
+}
+
+/** Fire a one-off test notification ~5s out so the user can confirm OS delivery. */
+export async function sendTestNotification(): Promise<boolean> {
+  if (!isNative()) return false;
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    await LocalNotifications.schedule({
+      notifications: [{
+        id: 9999,
+        title: 'BROTEIN TEST',
+        body: 'Notifications are working. Stay on target.',
+        schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true },
+      }],
+    });
+    return true;
+  } catch (e) {
+    console.warn('Test notification failed', e);
+    return false;
+  }
 }
 
 /**
