@@ -155,4 +155,59 @@ export async function hasProEntitlement(): Promise<boolean> {
   } catch { return false; }
 }
 
+export interface SubscriptionStatus {
+  /** True if RevenueCat reports an active "Brotein Pro" entitlement. */
+  active: boolean;
+  /** 'annual' | 'monthly' | null — inferred from productIdentifier. */
+  plan: PlanId | null;
+  /** Raw App Store product identifier, e.g. "brotein_yearly_3999". */
+  productId: string | null;
+  /** ISO timestamp of next renewal / expiration, or null if unknown. */
+  expirationDate: string | null;
+  /** True if the subscription is set to auto-renew. */
+  willRenew: boolean;
+  /** "NORMAL" | "INTRO" | "TRIAL" — whether the user is currently in a free trial. */
+  periodType: string | null;
+  /** Underlying store, e.g. "APP_STORE". */
+  store: string | null;
+  /** Deep link to App Store subscription management for this user, if available. */
+  managementURL: string | null;
+}
+
+/** Full subscription snapshot for display in the Profile screen. */
+export async function getSubscriptionStatus(): Promise<SubscriptionStatus> {
+  const empty: SubscriptionStatus = {
+    active: false, plan: null, productId: null, expirationDate: null,
+    willRenew: false, periodType: null, store: null, managementURL: null,
+  };
+  if (!isNative() || !isIOS()) return empty;
+  try {
+    await ensureInit();
+    const { Purchases } = await import('@revenuecat/purchases-capacitor');
+    const { customerInfo } = await Purchases.getCustomerInfo();
+    const ent: any = customerInfo.entitlements.active[ENTITLEMENT_ID];
+    const managementURL = (customerInfo as any).managementURL ?? null;
+    if (!ent) return { ...empty, managementURL };
+    const productId: string | null = ent.productIdentifier ?? null;
+    const plan: PlanId | null = productId
+      ? /year|annual|yearly/i.test(productId) ? 'annual'
+        : /month/i.test(productId) ? 'monthly'
+        : null
+      : null;
+    return {
+      active: true,
+      plan,
+      productId,
+      expirationDate: ent.expirationDate ?? null,
+      willRenew: ent.willRenew ?? false,
+      periodType: ent.periodType ?? null,
+      store: ent.store ?? null,
+      managementURL,
+    };
+  } catch (e) {
+    console.warn('getSubscriptionStatus failed', e);
+    return empty;
+  }
+}
+
 export { OFFERING_ID, ENTITLEMENT_ID };
