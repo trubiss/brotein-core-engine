@@ -241,15 +241,13 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
               : <>{annualPrice} per year. Cancel anytime in Settings.</>}
         </p>
 
-        {native && (
-          <button
-            onClick={restore}
-            disabled={busy}
-            className="mt-5 w-full text-[10px] tracking-[0.3em] uppercase font-bold text-muted-foreground active:opacity-60"
-          >
-            RESTORE PURCHASES
-          </button>
-        )}
+        <button
+          onClick={restore}
+          disabled={busy}
+          className="mt-4 w-full text-xs tracking-[0.3em] uppercase font-bold py-3 border border-foreground/30 active:opacity-60 hover:opacity-80 transition-opacity"
+        >
+          RESTORE PURCHASES
+        </button>
 
         {/* Footer micro-text */}
         <p className="mt-4 mb-2 text-center text-[10px] opacity-40 tracking-[0.15em] uppercase">
