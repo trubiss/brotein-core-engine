@@ -134,6 +134,9 @@ export default function ProfileScreen({ onBack }: Props) {
 
       <ReminderSettingsPanel />
 
+      <SubscriptionPanel />
+
+
       <motion.div variants={fadeUp} className="mt-12 pt-8 border-t-2 border-foreground space-y-3">
         <p className="label-spaced">ONBOARDING</p>
         <button
