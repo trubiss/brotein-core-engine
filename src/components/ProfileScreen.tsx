@@ -7,6 +7,7 @@ import { Goal } from '@/lib/types';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import ReminderSettingsPanel from './ReminderSettingsPanel';
+import SubscriptionPanel from './SubscriptionPanel';
 import DeleteAccountModal from './DeleteAccountModal';
 import { AmbientGrid } from './ui/AmbientGrid';
 
@@ -132,6 +133,9 @@ export default function ProfileScreen({ onBack }: Props) {
       </div>
 
       <ReminderSettingsPanel />
+
+      <SubscriptionPanel />
+
 
       <motion.div variants={fadeUp} className="mt-12 pt-8 border-t-2 border-foreground space-y-3">
         <p className="label-spaced">ONBOARDING</p>
