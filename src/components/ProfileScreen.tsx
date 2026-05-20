@@ -7,6 +7,7 @@ import { Goal } from '@/lib/types';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import ReminderSettingsPanel from './ReminderSettingsPanel';
+import SubscriptionPanel from './SubscriptionPanel';
 import DeleteAccountModal from './DeleteAccountModal';
 import { AmbientGrid } from './ui/AmbientGrid';
 
