@@ -38,6 +38,11 @@ const config: CapacitorConfig = {
       skipNativeAuth: true,
       providers: ['apple.com', 'google.com'],
     },
+    LocalNotifications: {
+      smallIcon: 'ic_stat_icon_config_sample',
+      iconColor: '#000000',
+      sound: 'default',
+    },
   },
 };
 
