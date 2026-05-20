@@ -4,15 +4,30 @@ import { useAuth } from '@/lib/auth';
 import { ReminderSettings, getReminderSettings, saveReminderSettings, DEFAULT_REMINDERS } from '@/lib/reminders';
 import { Bell } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  isNative,
+  getNotificationPermissionState,
+  ensureNotificationPermission,
+  scheduleFromSettings,
+  sendTestNotification,
+  cancelAllReminders,
+  type NotificationPermissionState,
+} from '@/lib/native';
 
 export default function ReminderSettingsPanel() {
   const { user, profile, refreshProfile } = useAuth();
   const [settings, setSettings] = useState<ReminderSettings>(DEFAULT_REMINDERS);
   const [busy, setBusy] = useState(false);
+  const [permState, setPermState] = useState<NotificationPermissionState>('unsupported');
 
   useEffect(() => {
     setSettings(getReminderSettings(profile));
   }, [profile]);
+
+  useEffect(() => {
+    if (!isNative()) return;
+    getNotificationPermissionState().then(setPermState);
+  }, []);
 
   if (!user) return null;
 
@@ -23,11 +38,34 @@ export default function ReminderSettingsPanel() {
     try {
       await saveReminderSettings(user.uid, next);
       await refreshProfile();
+      // Immediately reschedule on-device so changes take effect now
+      if (isNative() && permState === 'granted') {
+        if (next.enabled) await scheduleFromSettings(next);
+        else await cancelAllReminders();
+      }
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Save failed');
     } finally {
       setBusy(false);
     }
+  };
+
+  const handleEnableDevice = async () => {
+    const ok = await ensureNotificationPermission();
+    const next = await getNotificationPermissionState();
+    setPermState(next);
+    if (ok) {
+      await scheduleFromSettings(settings);
+      toast.success('NOTIFICATIONS ENABLED');
+    } else {
+      toast.error('Permission denied — enable in iOS Settings → Brotein');
+    }
+  };
+
+  const handleTest = async () => {
+    const ok = await sendTestNotification();
+    if (ok) toast('TEST SENT', { description: 'Notification will fire in ~5 seconds. Lock your screen to see it.' });
+    else toast.error('Could not send test notification');
   };
 
   const Toggle = ({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) => (
@@ -108,9 +146,38 @@ export default function ReminderSettingsPanel() {
         </div>
       </div>
 
-      <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-6">
-        IN-APP NOTICES NOW · PUSH COMING SOON
-      </p>
+      {/* Device-level permission UX (native only) */}
+      {isNative() && (
+        <div className="mt-6 pt-6 border-t-2 border-foreground space-y-3">
+          {permState === 'prompt' && (
+            <button
+              onClick={handleEnableDevice}
+              className="w-full text-xs font-bold tracking-[0.2em] uppercase py-3 border-2 border-foreground bg-foreground text-background hover:opacity-80 transition-opacity"
+            >
+              ENABLE ON THIS DEVICE
+            </button>
+          )}
+          {permState === 'granted' && (
+            <button
+              onClick={handleTest}
+              className="w-full text-xs font-bold tracking-[0.2em] uppercase py-3 border-2 border-foreground hover:opacity-80 transition-opacity"
+            >
+              SEND TEST NOTIFICATION
+            </button>
+          )}
+          {permState === 'denied' && (
+            <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase leading-relaxed">
+              NOTIFICATIONS BLOCKED · ENABLE IN iOS SETTINGS → BROTEIN → NOTIFICATIONS
+            </p>
+          )}
+        </div>
+      )}
+
+      {!isNative() && (
+        <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-6">
+          IN-APP NOTICES ON WEB · PUSH ACTIVE IN THE iOS APP
+        </p>
+      )}
     </motion.div>
   );
 }
