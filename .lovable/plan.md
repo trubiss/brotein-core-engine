@@ -1,27 +1,50 @@
-## Context
+## Goal
+Local daily reminders already have most plumbing (`@capacitor/local-notifications` installed, `src/lib/native.ts` wrappers, Dashboard schedules on mount). The gap: there's no explicit user-facing **"enable on this device"** step, no way to test, and scheduling only re-runs when the Dashboard re-mounts — so toggling reminder times in the Profile panel doesn't immediately reschedule. iOS-side, no Xcode capability is required for local notifications, but the plugin needs `npx cap sync` and a couple of config polish items.
 
-`src/components/Paywall.tsx` already has a `RESTORE PURCHASES` button (lines 244–252), but it's gated behind `native && ...`, so it only renders on iOS native builds and is rendered as small, low-contrast tertiary text below the legal microcopy area. Restore does not require an account (it reads RevenueCat `customerInfo` from the App Store receipt on device).
+## Why "push notifications was not set"
+Most likely cause: on iOS the OS permission prompt never appeared (or was denied), and the panel gives no visible affordance to retry. Secondary: changing times in `ReminderSettingsPanel` writes to Firestore but doesn't call `scheduleDailyReminders` until Dashboard re-renders.
 
-For App Store Review (Guideline 3.1.1), restore must be clearly reachable from the paywall itself — reviewers don't always create an account first.
+## Changes
 
-## Plan
+### 1. `src/lib/native.ts`
+- Add `scheduleFromSettings(settings: ReminderSettings)` helper that maps the panel's settings → `ScheduledReminder[]` and calls `scheduleDailyReminders`. (Removes the duplicated mapping in Dashboard.)
+- Add `sendTestNotification()` — schedules a one-off notification ~5 s out so the user can confirm OS-level delivery.
+- Add `getNotificationPermissionState()` returning `'granted' | 'denied' | 'prompt' | 'unsupported'` so the panel can show the right CTA.
 
-1. **Remove the `native &&` gate** on the restore button so it's always rendered on the paywall. On web it can call `restorePurchases()` which will no-op gracefully (or show "nothing to restore" toast).
-2. **Promote its visual weight** so a reviewer can find it without hunting:
-   - Move it directly under the primary CTA's helper line (above the footer microcopy)
-   - Bump from `text-[10px]` muted-foreground to `text-xs` with a thin underline, full-width tap target, still understated but discoverable
-   - Keep brutalist styling (uppercase, mono, wide tracking, no rounded corners)
-3. **Keep the existing `restore` handler** — it already wires to `restorePurchases()` from `@/lib/iap` and surfaces toast feedback. No business-logic changes.
-4. Leave Terms / Privacy / Maybe Later ordering intact.
+### 2. `src/components/ReminderSettingsPanel.tsx`
+- On mount (native only): read current permission state.
+- Show one of:
+  - **"ENABLE ON THIS DEVICE"** button → calls `ensureNotificationPermission()`, then `scheduleFromSettings()`.
+  - **"SEND TEST NOTIFICATION"** button when already granted.
+  - A muted hint "Reminders blocked — enable in iOS Settings → Brotein → Notifications" when denied.
+- After any toggle/time change (persist), immediately call `scheduleFromSettings(newSettings)` or `cancelAllReminders()` so changes apply without waiting for Dashboard re-mount.
 
-## Technical details
+### 3. `src/components/Dashboard.tsx`
+- Replace inline mapping in the effect with `scheduleFromSettings(settings)` to keep one source of truth.
 
-- File: `src/components/Paywall.tsx`
-- Edit: replace the `{native && (...)}` block with an always-rendered button, repositioned above the "Cancel in Settings · Auto-renews" footer line.
-- No changes to `src/lib/iap.ts`, no new dependencies, no routing or backend changes.
+### 4. `capacitor.config.ts`
+- Add a `LocalNotifications` plugin block:
+  ```ts
+  LocalNotifications: {
+    smallIcon: 'ic_stat_icon_config_sample', // Android only; iOS uses app icon
+    iconColor: '#000000',
+    sound: 'default',
+  }
+  ```
+  (Safe defaults; doesn't change iOS behavior but documents intent and helps future Android build.)
+
+### 5. No Xcode capability change needed
+Local notifications do **not** require the "Push Notifications" capability or APNs entitlement — that's only for *remote* push. Reviewers will not flag a missing capability for local reminders. (We'll note this in the response so you don't add it by mistake.)
+
+## After pulling
+```bash
+git pull
+npm install
+npm run build
+npx cap sync ios
+npx cap open ios
+```
+Then in Xcode: Product → Archive. First launch on a real device will trigger the iOS permission prompt the first time the Dashboard mounts OR when the user taps **Enable on this device** in Profile → Reminders.
 
 ## Out of scope
-
-- Changing restore behavior on web (still falls through to the existing iap.ts implementation)
-- Subscription panel in Profile (already shipped)
-- Any copy changes to legal links
+Remote push (APNs key, FCM, device-token storage, server) — explicitly skipped per your choice.

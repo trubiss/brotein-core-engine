@@ -177,21 +177,13 @@ export default function Dashboard({ onNavigate }: Props) {
 
     // Native: schedule repeating daily local notifications from the same settings
     (async () => {
-      const { isNative, ensureNotificationPermission, scheduleDailyReminders, cancelAllReminders } =
+      const { isNative, ensureNotificationPermission, scheduleFromSettings, cancelAllReminders } =
         await import('@/lib/native');
       if (!isNative()) return;
       if (!settings.enabled) { await cancelAllReminders(); return; }
       const ok = await ensureNotificationPermission();
       if (!ok) return;
-      const parse = (t: string) => {
-        const [h, m] = t.split(':').map(Number);
-        return { hour: h || 0, minute: m || 0 };
-      };
-      const scheduled = [];
-      if (settings.morning.enabled) scheduled.push({ id: 1001, title: 'MORNING FUEL', body: 'Start the day with a protein hit.', ...parse(settings.morning.time) });
-      if (settings.midday.enabled)  scheduled.push({ id: 1002, title: 'MIDDAY CHECK-IN', body: 'Time to log your lunch protein.', ...parse(settings.midday.time) });
-      if (settings.evening.enabled) scheduled.push({ id: 1003, title: 'EVENING PUSH', body: 'Close the day on target.', ...parse(settings.evening.time) });
-      await scheduleDailyReminders(scheduled);
+      await scheduleFromSettings(settings);
     })();
 
     return () => clearInterval(id);
