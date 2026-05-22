@@ -52,6 +52,7 @@ export type TrackEvent =
   | 'paywall_plan_selected'
   | 'paywall_purchase'
   | 'paywall_restore'
+  | 'paywall_dismissed'
   | 'trial_started'
   | 'account_deleted'
   | 'password_reset_requested';
