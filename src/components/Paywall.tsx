@@ -281,11 +281,11 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
 
         {onClose && (
           <button
-            onClick={onClose}
+            onClick={() => { void tapHaptic(); track('paywall_dismissed', { plan }); onClose(); }}
             disabled={busy}
-            className="mt-4 mb-2 w-full text-[10px] tracking-[0.3em] uppercase font-bold text-muted-foreground active:opacity-60 hover:opacity-80 transition-opacity"
+            className="mt-5 mb-2 w-full text-sm tracking-[0.25em] uppercase font-bold py-4 underline underline-offset-4 decoration-foreground/40 active:opacity-60 hover:opacity-80 transition-opacity"
           >
-            MAYBE LATER
+            CONTINUE WITH FREE VERSION
           </button>
         )}
       </div>
