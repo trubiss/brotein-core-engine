@@ -51,6 +51,10 @@ const Index = () => {
     prevProfileRef.current = profile;
   }, [profile]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [page, profile]);
+
   const completeStory = () => {
     if (user) localStorage.setItem(storySeenKey(user.uid), '1');
     setStorySeen(true);
