@@ -344,10 +344,11 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
 
   return (
     <div
-      className="h-[100dvh] bg-background flex flex-col relative overflow-hidden touch-none overscroll-none"
+      className="h-[100dvh] bg-background flex flex-col relative overflow-hidden overscroll-none"
       style={{
         paddingTop: 'env(safe-area-inset-top)',
         paddingBottom: 'env(safe-area-inset-bottom)',
+        touchAction: 'pan-y',
       }}
     >
       {/* ── HEADER ── */}
@@ -391,8 +392,19 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
             animate="center"
             exit="exit"
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="absolute inset-0 flex flex-col px-6 pt-4 pb-4 overflow-hidden"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={(_, info) => {
+              const { offset, velocity } = info;
+              const swipedRight = offset.x > 80 || velocity.x > 500;
+              const swipedLeft = offset.x < -80 || velocity.x < -500;
+              if (swipedRight) prev();
+              else if (swipedLeft && current.kind !== 'question') next();
+            }}
+            className="absolute inset-0 flex flex-col px-6 pt-4 pb-4 overflow-hidden cursor-grab active:cursor-grabbing"
           >
+
             {/* Headline block */}
             <div className="flex flex-col shrink-0">
               <h1 className={`${HEADLINE_CLS} max-w-[280px]`}>{current.headline}</h1>
