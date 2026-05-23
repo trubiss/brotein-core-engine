@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import SignInScreen from '@/components/SignInScreen';
@@ -44,6 +44,12 @@ const Index = () => {
     if (!user) { setStorySeen(false); return; }
     setStorySeen(localStorage.getItem(storySeenKey(user.uid)) === '1');
   }, [user]);
+
+  const prevProfileRef = useRef(profile);
+  useEffect(() => {
+    if (!prevProfileRef.current && profile) setPage('dashboard');
+    prevProfileRef.current = profile;
+  }, [profile]);
 
   const completeStory = () => {
     if (user) localStorage.setItem(storySeenKey(user.uid), '1');
