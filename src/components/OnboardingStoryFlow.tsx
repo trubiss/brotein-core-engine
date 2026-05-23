@@ -6,7 +6,7 @@ import {
   CollapsingBarsMotif,
   DeficitCounterMotif,
   GapBarsMotif,
-  StreakGridMotif,
+  StreakCalendarMotif,
   StopwatchMotif,
   ChecklistMotif,
   WeekStripMotif,
@@ -286,7 +286,7 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
       {
         kind: 'statement',
         headline: <>IN 30 DAYS,<br />HITTING YOUR<br />PROTEIN BECOMES<br />AUTOMATIC.</>,
-        motif: <StreakGridMotif />,
+        motif: <StreakCalendarMotif />,
         cta: 'CONTINUE',
       },
       {

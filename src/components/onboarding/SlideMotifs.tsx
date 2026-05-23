@@ -165,38 +165,90 @@ export function GapBarsMotif() {
 // ─────────────────────────────────────────────
 // 7. Streak grid — "in 30 days... automatic"
 // ─────────────────────────────────────────────
-export function StreakGridMotif() {
+export function StreakCalendarMotif() {
   const reduce = useReducedMotion();
+  const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  // 30 cells in a 5x6 grid (rows of 6) — bigger & easier to read than 10x3
   const cells = Array.from({ length: 30 });
+  const CYCLE = 5; // seconds
+  const FILL = 0.7; // proportion of cycle spent filling
+
   return (
-    <div className="w-full max-w-[260px] flex flex-col gap-3">
-      <span className={LABEL}>30 DAY STREAK</span>
-      <div className="grid grid-cols-10 gap-1">
-        {cells.map((_, i) => (
-          <motion.div
+    <div className="w-full max-w-[280px] flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <span className={LABEL}>BUILD THE HABIT</span>
+        <span className={LABEL}>30 DAYS</span>
+      </div>
+
+      {/* day-of-week header */}
+      <div className="grid grid-cols-7 gap-1.5">
+        {dayLabels.map((d, i) => (
+          <span
             key={i}
-            className="aspect-square border border-foreground/30"
-            initial={{ backgroundColor: 'hsl(var(--background))' }}
-            animate={
-              reduce
-                ? { backgroundColor: 'hsl(var(--foreground))' }
-                : {
-                    backgroundColor: [
-                      'hsl(var(--background))',
-                      'hsl(var(--foreground))',
-                      'hsl(var(--foreground))',
-                      'hsl(var(--background))',
-                    ],
-                  }
-            }
-            transition={{
-              duration: 3.5,
-              times: [0, 0.5, 0.85, 1],
-              repeat: Infinity,
-              delay: i * 0.05,
-            }}
-          />
+            className="font-mono text-[10px] font-bold tracking-[0.1em] text-foreground/40 text-center"
+          >
+            {d}
+          </span>
         ))}
+      </div>
+
+      {/* calendar grid */}
+      <div className="grid grid-cols-6 gap-1.5">
+        {cells.map((_, i) => {
+          const t = (i / cells.length) * FILL;
+          return (
+            <motion.div
+              key={i}
+              className="relative aspect-square border-2 border-foreground flex items-center justify-center"
+              initial={{ backgroundColor: 'hsl(var(--background))' }}
+              animate={
+                reduce
+                  ? { backgroundColor: 'hsl(var(--foreground))' }
+                  : {
+                      backgroundColor: [
+                        'hsl(var(--background))',
+                        'hsl(var(--background))',
+                        'hsl(var(--foreground))',
+                        'hsl(var(--foreground))',
+                        'hsl(var(--background))',
+                      ],
+                    }
+              }
+              transition={{
+                duration: CYCLE,
+                times: reduce ? undefined : [0, t, t + 0.02, 0.92, 1],
+                repeat: Infinity,
+                ease: 'linear',
+              }}
+            >
+              <motion.svg
+                viewBox="0 0 16 16"
+                className="w-[55%] h-[55%]"
+                initial={{ opacity: 0 }}
+                animate={
+                  reduce
+                    ? { opacity: 1 }
+                    : { opacity: [0, 0, 1, 1, 0] }
+                }
+                transition={{
+                  duration: CYCLE,
+                  times: [0, t + 0.005, t + 0.04, 0.92, 1],
+                  repeat: Infinity,
+                  ease: 'linear',
+                }}
+              >
+                <path
+                  d="M3 8.5 L7 12 L13 4"
+                  fill="none"
+                  stroke="hsl(var(--background))"
+                  strokeWidth="2.5"
+                  strokeLinecap="square"
+                  strokeLinejoin="miter"
+                />
+              </motion.svg>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
