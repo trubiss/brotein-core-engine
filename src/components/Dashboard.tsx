@@ -444,6 +444,14 @@ export default function Dashboard({ onNavigate }: Props) {
         </p>
       </motion.div>
 
+      {lastEntry && (
+        <motion.div variants={fadeUp} className="mb-2">
+          <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 truncate">
+            LAST · {lastEntry.foodName.toUpperCase()} · {lastEntry.proteinGrams}G · {relTime(lastEntry.timestamp, nowTick)}
+          </p>
+        </motion.div>
+      )}
+
       {(showModal || showScan) && (
         <Suspense fallback={null}>
           {showModal && (
