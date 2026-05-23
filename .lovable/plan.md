@@ -1,14 +1,29 @@
-## Problem
+## Root cause
 
-On notched iPhones (and any device with a status bar / dynamic island), the app content sits too close to the top edge — the "BROTEIN" header is partially behind the dynamic island. The viewport already opts into `viewport-fit=cover`, but the global `.screen-container` only applies a fixed `pt-10` with no `env(safe-area-inset-top)` allowance.
+After tapping +20G/+30G/+40G, the protein number and progress bar feel laggy because the dashboard reads `consumed` from `summary` (a separate `daily_summary` doc):
+
+```
+const consumed = summary?.consumedProtein ?? 0;
+```
+
+The flow on quick-add is:
+1. `addLog` writes the new log doc (instant in Firestore's local cache → `watchLogsForDate` fires immediately).
+2. Then `recomputeSummary` runs: `getDocs` of today's logs → `setDoc` on the summary doc.
+3. Only when step 2 round-trips does `watchSummary` fire and the UI finally reflects the new total.
+
+So the log list is instant, but the headline number, "remaining", and progress bar wait for the summary write to complete — which is what feels slow (often 300–1500ms on cellular).
 
 ## Fix
 
-Update the single shared layout class in `src/index.css`:
+Derive the displayed totals from `logs` (already streamed instantly from local cache) instead of from `summary`. Keep `summary` only for things that genuinely need server-confirmed state (streak / "target hit" celebration unlock).
 
-- `.screen-container` currently: `pt-10` (and `padding-bottom: max(2.5rem, env(safe-area-inset-bottom))`)
-- Change top padding to mirror the bottom: `padding-top: max(2.5rem, env(safe-area-inset-top))`
+Changes in `src/components/Dashboard.tsx`:
 
-This fixes every screen at once (Dashboard, Insights, Profile, History, Onboarding, etc.) since they all use `.screen-container`. Non-notched devices keep the existing 2.5rem; notched devices get whatever the OS reports (typically ~47–59px), pushing the header below the dynamic island/status bar.
+- Replace `const consumed = summary?.consumedProtein ?? 0;` with a memo computed from `logs`:
+  `const consumed = useMemo(() => logs.reduce((s, l) => s + (l.proteinGrams || 0), 0), [logs]);`
+- Make `summaryReady` true as soon as either `logs` has emitted or `summary` has loaded, so the skeleton disappears immediately on quick-add.
+- Keep the existing `summary.hitTarget` effect for the celebratory toast (it only needs to fire once after the server confirms).
 
-No component changes needed. No behavior changes on desktop/web preview.
+Result: tapping +20/+30/+40G updates the number, the progress bar, and "remaining" within ~16ms (next paint). The background summary write still happens, but the UI no longer blocks on it.
+
+No backend, schema, or business-logic changes — purely a frontend data-source swap.
