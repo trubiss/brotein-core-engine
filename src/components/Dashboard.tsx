@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
-import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak } from '@/lib/firestore';
+import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak, watchRecentLogs } from '@/lib/firestore';
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
@@ -55,6 +55,18 @@ const haptic = () => {
   }
 };
 
+function relTime(ts: number, now: number): string {
+  const diff = Math.max(0, now - ts);
+  const s = Math.floor(diff / 1000);
+  if (s < 45) return 'JUST NOW';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}M AGO`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}H AGO`;
+  const d = Math.floor(h / 24);
+  return `${d}D AGO`;
+}
+
 export default function Dashboard({ onNavigate }: Props) {
   const { user, profile } = useAuth();
   const uid = user?.uid ?? '';
@@ -71,6 +83,8 @@ export default function Dashboard({ onNavigate }: Props) {
   const [hasEntitlement, setHasEntitlement] = useState(false);
   const [trialActive, setTrialActive] = useState(() => isTrialActive(uid));
   const [totalLogs, setTotalLogs] = useState(0);
+  const [lastEntry, setLastEntry] = useState<FoodLog | null>(null);
+  const [nowTick, setNowTick] = useState(Date.now());
 
   // Keep trialActive in sync when uid changes (login/logout) — preserves expiry semantics.
   useEffect(() => { setTrialActive(isTrialActive(uid)); }, [uid]);
@@ -160,6 +174,18 @@ export default function Dashboard({ onNavigate }: Props) {
       else clearTimeout(id as number);
     };
   }, [user, streakBump]);
+
+  // Most recent log across all days, for the "LAST" line at the bottom.
+  useEffect(() => {
+    if (!user) return;
+    return watchRecentLogs(user.uid, logs => setLastEntry(logs[0] ?? null), 1);
+  }, [user]);
+
+  // Tick every 30s so the relative time stays fresh.
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   // In-app reminder evaluator (toast fallback) + native push scheduling
   useEffect(() => {
@@ -417,6 +443,14 @@ export default function Dashboard({ onNavigate }: Props) {
           STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'} <BlinkingCursor className="text-foreground/40" />
         </p>
       </motion.div>
+
+      {lastEntry && (
+        <motion.div variants={fadeUp} className="mb-2">
+          <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 truncate">
+            LAST · {lastEntry.foodName.toUpperCase()} · {lastEntry.proteinGrams}G · {relTime(lastEntry.timestamp, nowTick)}
+          </p>
+        </motion.div>
+      )}
 
       {(showModal || showScan) && (
         <Suspense fallback={null}>
