@@ -1,15 +1,23 @@
-# Reset scroll to top on page entry
+## Plan
 
-## Problem
-After finishing onboarding (and when navigating between pages), the dashboard sometimes opens with the window already scrolled down a bit. The browser preserves the previous scroll position from the prior screen (e.g. ResultsScreen / onboarding) instead of starting at the top.
+Fix the scroll reset so it works reliably in the browser preview and in the iOS native WebView.
 
-## Fix
-In `src/pages/Index.tsx`, add a single `useEffect` that calls `window.scrollTo(0, 0)` whenever the active `page` changes, and also when the profile first becomes available (i.e. right after onboarding completes and we switch to the dashboard).
+### Changes
 
-```ts
-useEffect(() => {
-  window.scrollTo(0, 0);
-}, [page, profile]);
-```
+1. **Strengthen the page-level scroll reset**
+   - In `src/pages/Index.tsx`, replace the single `window.scrollTo(0, 0)` effect with a small helper that resets every common scroll container:
+     - `window`
+     - `document.documentElement`
+     - `document.body`
+     - `#root`
 
-That's it — no other files need changes. Pure presentation tweak, no business logic touched.
+2. **Run the reset after layout/animation settles**
+   - Trigger the reset immediately, then again on the next animation frame and shortly after mount.
+   - This handles iOS WKWebView restoring scroll position after React renders or after Framer Motion finishes the page transition.
+
+3. **Add a dashboard-specific safety reset**
+   - In `src/components/Dashboard.tsx`, reset scroll on dashboard mount as a fallback, so the home screen always starts at the top even after finishing onboarding.
+
+### Technical detail
+
+The existing fix only calls `window.scrollTo(0, 0)`. On iOS native WebView, scroll can be held on `body`, `html`, or restored after the first render. Resetting all containers in a delayed frame makes the behavior deterministic without changing app logic or onboarding data.
