@@ -52,7 +52,17 @@ const Index = () => {
   }, [profile]);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const reset = () => {
+      try { window.scrollTo(0, 0); } catch { /* noop */ }
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
+      const root = document.getElementById('root');
+      if (root) root.scrollTop = 0;
+    };
+    reset();
+    const raf = requestAnimationFrame(reset);
+    const t = window.setTimeout(reset, 60);
+    return () => { cancelAnimationFrame(raf); clearTimeout(t); };
   }, [page, profile]);
 
   const completeStory = () => {
