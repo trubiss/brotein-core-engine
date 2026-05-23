@@ -149,7 +149,10 @@ export default function Dashboard({ onNavigate }: Props) {
     setLogs([]);
     setSummary(null);
     setSummaryReady(false);
-    const u1 = watchLogsForDate(user.uid, viewDate, setLogs);
+    const u1 = watchLogsForDate(user.uid, viewDate, logs => {
+      setLogs(logs);
+      setSummaryReady(true);
+    });
     const u2 = watchSummary(user.uid, viewDate, s => {
       setSummary(s);
       setSummaryReady(true);
