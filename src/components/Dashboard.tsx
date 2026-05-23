@@ -55,6 +55,18 @@ const haptic = () => {
   }
 };
 
+function relTime(ts: number, now: number): string {
+  const diff = Math.max(0, now - ts);
+  const s = Math.floor(diff / 1000);
+  if (s < 45) return 'JUST NOW';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}M AGO`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}H AGO`;
+  const d = Math.floor(h / 24);
+  return `${d}D AGO`;
+}
+
 export default function Dashboard({ onNavigate }: Props) {
   const { user, profile } = useAuth();
   const uid = user?.uid ?? '';
