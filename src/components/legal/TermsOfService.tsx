@@ -40,10 +40,23 @@ export default function TermsOfService() {
         <section>
           <h2 className="font-mono text-base font-black uppercase tracking-[0.15em] mb-3">4. SUBSCRIPTION & TRIAL</h2>
           <p>
-            Brotein is currently in beta. The paywall presents a $39 / year plan with a 7-day free
-            trial. While in beta, the trial flow is visual only — no payment is collected. When real
-            billing is enabled, you will be notified before any charge, and you may cancel anytime
-            during the trial without being charged.
+            Brotein offers auto-renewing subscriptions sold through Apple's App Store:
+            an annual plan at <span className="font-mono font-bold">$39.99 / year</span> with a
+            7-day free trial, and a monthly plan at{' '}
+            <span className="font-mono font-bold">$4.99 / month</span> with no trial. Prices may
+            vary by region and are shown in your local currency at purchase.
+          </p>
+          <p className="mt-3">
+            Payment is charged to your Apple ID account at confirmation of purchase. The
+            subscription automatically renews at the same price unless auto-renew is turned off at
+            least 24 hours before the end of the current period. Your account will be charged for
+            renewal within 24 hours prior to the end of the current period. You can manage or cancel
+            your subscription at any time in your iPhone Settings → [your name] → Subscriptions.
+          </p>
+          <p className="mt-3">
+            If you start the free trial and do not cancel before it ends, your Apple ID will be
+            charged for the annual plan. Any unused portion of a free trial is forfeited when you
+            purchase a subscription.
           </p>
         </section>
 
