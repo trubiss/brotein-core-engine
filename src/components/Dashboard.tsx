@@ -234,7 +234,12 @@ export default function Dashboard({ onNavigate }: Props) {
   }, [profile, summary, uid]);
 
   // Pace — safe to compute even when profile not yet loaded (target=0 → on-pace)
-  const consumed = summary?.consumedProtein ?? 0;
+  // Derive consumed from local logs (instant from Firestore cache) instead of
+  // waiting on the summary doc round-trip — makes quick-add feel instant.
+  const consumed = useMemo(
+    () => logs.reduce((s, l) => s + (l.proteinGrams || 0), 0),
+    [logs]
+  );
   const target = profile?.dailyProtein ?? 0;
   const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
 
