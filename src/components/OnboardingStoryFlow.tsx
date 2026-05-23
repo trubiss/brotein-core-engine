@@ -343,9 +343,15 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
-      {/* ── HEADER ── 16px top, 24px horizontal */}
-      <div className="px-6 pt-4 pb-2 flex items-center gap-4">
+    <div
+      className="h-[100dvh] bg-background flex flex-col relative overflow-hidden touch-none overscroll-none"
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
+    >
+      {/* ── HEADER ── */}
+      <div className="px-6 pt-3 pb-2 flex items-center gap-4 shrink-0">
         <button
           onClick={prev}
           aria-label="Back"
@@ -355,7 +361,6 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
           <ArrowLeft className="w-5 h-5" strokeWidth={2.5} />
         </button>
 
-        {/* Progress: 2px, ~65% of screen, centered */}
         <div className="flex-1 flex justify-center">
           <div className="w-[65%] h-[2px] bg-foreground/15 overflow-hidden">
             <motion.div
@@ -376,7 +381,7 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
       </div>
 
       {/* ── BODY ── */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative min-h-0">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={step}
@@ -386,27 +391,29 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
             animate="center"
             exit="exit"
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="absolute inset-0 flex flex-col px-6 pt-6 pb-6"
+            className="absolute inset-0 flex flex-col px-6 pt-4 pb-4 overflow-hidden"
           >
-            {/* Headline block — max-width ~280px, intentional line breaks */}
-            <div className="flex flex-col">
+            {/* Headline block */}
+            <div className="flex flex-col shrink-0">
               <h1 className={`${HEADLINE_CLS} max-w-[280px]`}>{current.headline}</h1>
               {'sub' in current && current.sub && (
                 <>
-                  {/* 12px gap */}
                   <div className="h-3" />
                   <p className={`${SUB_CLS} max-w-[260px]`}>{current.sub}</p>
                 </>
               )}
             </div>
 
-            {/* Center content — 32-48px from headline via flex spacing */}
-            <div className="flex-1 flex items-center justify-center py-8">
-              {current.kind === 'statement' && (current.visual ?? current.motif)}
+            {/* Center content — balanced, not stretched */}
+            <div className="flex-1 flex items-center justify-center min-h-0 py-4 overflow-hidden">
+              {current.kind === 'statement' && (
+                <div className="w-full max-h-full flex items-center justify-center">
+                  {current.visual ?? current.motif}
+                </div>
+              )}
 
               {current.kind === 'question' && (
-                /* Container 48px below headline (mt-12 from py-8 + items-center) */
-                <div className="w-full flex flex-col gap-4 mt-12">
+                <div className="w-full flex flex-col gap-3">
                   {current.choices.map((c) => {
                     const selected = answers[current.key] === c.value;
                     return (
@@ -427,7 +434,7 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
               )}
 
               {current.kind === 'interactive-add' && (
-                <div className="w-full flex flex-col items-center gap-8">
+                <div className="w-full flex flex-col items-center gap-5">
                   <MiniDashboard value={protein} target={TARGET} flash={tapped} />
                   <motion.button
                     onClick={handleAdd}
@@ -446,7 +453,7 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
               )}
 
               {current.kind === 'pace' && (
-                <div className="w-full flex flex-col items-center gap-6">
+                <div className="w-full flex flex-col items-center gap-5">
                   <MiniDashboard value={protein} target={TARGET} />
                   <div
                     className={`px-6 h-10 flex items-center ${BUTTON_TEXT_CLS} ${
@@ -461,11 +468,11 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
               )}
             </div>
 
-            {/* ── CTA ── 56px tall, full width, 24px bottom margin (pb-6 on parent) */}
+            {/* ── CTA ── */}
             {current.kind !== 'question' && (
               <button
                 onClick={next}
-                className={`w-full h-14 bg-foreground text-background hover:opacity-90 transition-opacity active:scale-[0.99] ${BUTTON_TEXT_CLS}`}
+                className={`w-full h-14 bg-foreground text-background hover:opacity-90 transition-opacity active:scale-[0.99] shrink-0 ${BUTTON_TEXT_CLS}`}
               >
                 {current.cta}
               </button>
