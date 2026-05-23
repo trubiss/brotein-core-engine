@@ -1,41 +1,14 @@
-## Goal
-Identify the real Capacitor iOS project and remove the stray `App/` folder so Xcode only shows one.
+## Problem
 
-## Steps (you run these locally — I can't touch your Mac)
+On notched iPhones (and any device with a status bar / dynamic island), the app content sits too close to the top edge — the "BROTEIN" header is partially behind the dynamic island. The viewport already opts into `viewport-fit=cover`, but the global `.screen-container` only applies a fixed `pt-10` with no `env(safe-area-inset-top)` allowance.
 
-1. **Confirm the real project** — in Terminal:
-   ```bash
-   cd ~/brotein-core-engine
-   ls ios/App/App.xcworkspace
-   cat capacitor.config.ts | grep -i ios
-   ```
-   The real Capacitor project must live at `ios/App/App.xcworkspace`. This is what `npx cap sync ios` writes to.
+## Fix
 
-2. **Inspect the stray folder** before deleting:
-   ```bash
-   ls ~/brotein-core-engine/App
-   ```
-   If it contains an `App.xcodeproj` but no `Podfile` or `public/` web assets being updated by `cap sync`, it's the stray copy.
+Update the single shared layout class in `src/index.css`:
 
-3. **Remove the stray folder**:
-   ```bash
-   rm -rf ~/brotein-core-engine/App
-   ```
+- `.screen-container` currently: `pt-10` (and `padding-bottom: max(2.5rem, env(safe-area-inset-bottom))`)
+- Change top padding to mirror the bottom: `padding-top: max(2.5rem, env(safe-area-inset-top))`
 
-4. **Clear Xcode's recent projects list** so the ghost entry disappears:
-   - Open Xcode → Welcome window → right-click the stray `App` entry → **Remove from Recents**.
+This fixes every screen at once (Dashboard, Insights, Profile, History, Onboarding, etc.) since they all use `.screen-container`. Non-notched devices keep the existing 2.5rem; notched devices get whatever the OS reports (typically ~47–59px), pushing the header below the dynamic island/status bar.
 
-5. **Re-sync and open the correct one**:
-   ```bash
-   cd ~/brotein-core-engine
-   git pull
-   npm install
-   npm run build
-   npx cap sync ios
-   open ios/App/App.xcworkspace
-   ```
-   Always open `.xcworkspace` (not `.xcodeproj`) — Capacitor uses CocoaPods.
-
-## Notes
-- No changes needed in the Lovable codebase — this is purely local filesystem cleanup on your Mac.
-- If step 2 reveals the stray `App/` folder actually contains custom native code you added, stop and tell me before deleting.
+No component changes needed. No behavior changes on desktop/web preview.
