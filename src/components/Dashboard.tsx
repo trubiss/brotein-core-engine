@@ -261,6 +261,11 @@ export default function Dashboard({ onNavigate }: Props) {
             startTrial(uid);
             setTrialActive(true);
           }}
+          onClose={() => {
+            track('paywall_dismissed_free', { streak, logs_count: totalLogs });
+            startTrial(uid);
+            setTrialActive(true);
+          }}
         />
       </Suspense>
     );
