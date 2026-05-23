@@ -74,12 +74,6 @@ export default function ResultsScreen({ data, onComplete, onBack, step = 3, tota
     }
   };
 
-  const cells = [
-    { label: 'CALORIES', value: String(macros.calories) },
-    { label: 'CARBS',    value: `${macros.carbs}G` },
-    { label: 'FATS',     value: `${macros.fats}G` },
-    { label: 'MEALS',    value: `${macros.mealFrequency}×` },
-  ];
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
