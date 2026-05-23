@@ -19,8 +19,8 @@ import { isIOS, isNative } from './native';
 import { track } from './track';
 
 // PUBLIC SDK key — safe to ship in client bundles (designed to live in the app binary).
-// TODO: swap to live key (appl_…) from RevenueCat → Project Settings → API Keys before App Store submission.
-const REVENUECAT_IOS_API_KEY = 'test_LIpJqqukaFfMTNtAlMEpeYIfIsw';
+// Live iOS key from RevenueCat → Project Settings → API Keys.
+const REVENUECAT_IOS_API_KEY = 'appl_GMNzqrpWvFAfMqRzNyusqJgZTLw';
 const REVENUECAT_ANDROID_API_KEY = ''; // fill in if/when Android ships
 const ENTITLEMENT_ID = 'Brotein Pro';
 const OFFERING_ID = 'default';
