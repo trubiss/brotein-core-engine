@@ -1,26 +1,24 @@
 ## Goal
 
-Replace the current `StreakGridMotif` (used on the "IN 30 DAYS, HITTING YOUR PROTEIN BECOMES AUTOMATIC." slide) with a more legible calendar-style visual. The current 30 tiny squares don't read well.
+Replace the checkbox-list animation in `ChecklistMotif` ("EAT PROTEIN / LOG IT / REPEAT" slide). Keep the three labels — change the visual. The current checkbox-fill pattern is now reused by the new 30-day calendar motif and the 7-day strip, so this slide needs a different idea.
 
-## New visual: `StreakCalendarMotif`
+## New visual: circular loop ("REPEAT" cycle)
 
-A month-style calendar grid that fills in sequentially, evoking a habit calendar:
+A brutalist B&W triangular loop that visualizes the cycle itself:
 
-- Header label: `BUILD THE HABIT` (replaces the cramped `30 DAY STREAK` label)
-- Row of 7 day-of-week initials: `M T W T F S S` in muted mono, brutalist style
-- Grid: 5 rows × 6 columns (30 cells) — bigger, easier to read than the current 10×3
-- Each cell is a square with a 2px foreground border
-- Animation: cells fill foreground sequentially (stagger ~0.08s) with a small checkmark stroke drawing in via SVG path; loops every ~5s with a brief blank reset
-- Respects `useReducedMotion`: all cells fill statically with checks visible
+- Three labels arranged at the points of an equilateral triangle (top: `EAT PROTEIN`, bottom-right: `LOG IT`, bottom-left: `REPEAT`)
+- Each label sits inside a small 2px-bordered chip
+- A thin foreground stroke connects them in a closed loop (SVG path with three straight segments + arrowheads at each midpoint)
+- Animation: a filled dot travels along the path continuously (`offsetPath` / `motionPath` via framer-motion `motion.circle` animating along the path), pausing briefly at each chip — which scales up ~6% and inverts to filled foreground when the dot arrives, then releases as the dot moves on
+- Reduced-motion: static loop with all three chips filled, no traveling dot
 
-## Wiring
+## Implementation notes
 
-- Add `StreakCalendarMotif` export in `src/components/onboarding/SlideMotifs.tsx`
-- Swap import + usage in `src/components/OnboardingStoryFlow.tsx` from `StreakGridMotif` → `StreakCalendarMotif` on the "IN 30 DAYS..." slide
-- Keep `StreakGridMotif` exported (unused) — or remove it; remove since nothing else uses it
-- No layout, copy, or flow changes elsewhere
+- Keep export name `ChecklistMotif` so `OnboardingStoryFlow.tsx` needs no changes
+- Use a square SVG container (~220×220) inside the existing `max-w-[260px]` wrapper
+- Drive the animation via a single timeline (one `useEffect` + `useState` for active index, or framer `animate` keyframes on the dot's `cx/cy`) — no external libs
+- Pure foreground/background tokens, 0 border-radius (chip = square), Space Mono for labels
 
 ## Files
 
-- `src/components/onboarding/SlideMotifs.tsx` — add new motif, remove old
-- `src/components/OnboardingStoryFlow.tsx` — update import + JSX reference
+- `src/components/onboarding/SlideMotifs.tsx` — rewrite `ChecklistMotif` body
