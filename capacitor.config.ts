@@ -1,5 +1,18 @@
 /// <reference types="@capacitor-firebase/authentication" />
 
+// ──────────────────────────────────────────────────────────────────────────────
+// iOS Info.plist REQUIRED purpose strings (Apple ITMS-90683)
+// After `npx cap add ios` or regenerating the ios/ folder, ensure
+// ios/App/App/Info.plist contains:
+//   NSCameraUsageDescription           — required by @capacitor/camera
+//   NSPhotoLibraryUsageDescription     — required by @capacitor/camera
+//   NSPhotoLibraryAddUsageDescription  — saving scanned meal photos
+//   NSMicrophoneUsageDescription       — referenced by bundled SDKs
+// Missing any of these = App Store rejection.
+// ──────────────────────────────────────────────────────────────────────────────
+
+
+
 import type { CapacitorConfig } from '@capacitor/cli';
 
 // Set CAP_DEV=1 when you want the native shell to hot-reload from the Lovable
