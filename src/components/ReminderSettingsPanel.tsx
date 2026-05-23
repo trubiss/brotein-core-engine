@@ -157,14 +157,6 @@ export default function ReminderSettingsPanel() {
               ENABLE ON THIS DEVICE
             </button>
           )}
-          {permState === 'granted' && (
-            <button
-              onClick={handleTest}
-              className="w-full text-xs font-bold tracking-[0.2em] uppercase py-3 border-2 border-foreground hover:opacity-80 transition-opacity"
-            >
-              SEND TEST NOTIFICATION
-            </button>
-          )}
           {permState === 'denied' && (
             <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase leading-relaxed">
               NOTIFICATIONS BLOCKED · ENABLE IN iOS SETTINGS → BROTEIN → NOTIFICATIONS
