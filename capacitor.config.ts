@@ -7,6 +7,12 @@ import type { CapacitorConfig } from '@capacitor/cli';
 // `dist/` is loaded — Apple rejects apps that fetch their JS from a remote URL.
 const isDev = process.env.CAP_DEV === '1';
 
+if (isDev) {
+  // Loud warning so a dev build can never silently slip into an App Store archive.
+  // eslint-disable-next-line no-console
+  console.warn('[capacitor.config] CAP_DEV=1 — building with remote server URL. DO NOT SHIP.');
+}
+
 const config: CapacitorConfig = {
   appId: 'com.brotein.app',
   appName: 'Brotein',
@@ -22,6 +28,12 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'always',
     backgroundColor: '#ffffff',
+    // Explicit scheme — never leave empty. Foundation on iOS 18+ traps when
+    // URL.appendingPathComponent receives an empty string, which is what
+    // caused the App Store crash on build 5.
+    scheme: 'App',
+    // Ensure we never resolve a relative path to "" inside the bridge.
+    path: 'App',
   },
   plugins: {
     SplashScreen: {

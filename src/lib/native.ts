@@ -9,6 +9,18 @@ export const isIOS = () => Capacitor.getPlatform() === 'ios';
 /** Initialize native chrome (status bar, splash dismiss). Call once at app boot. */
 export async function initNativeShell() {
   if (!isNative()) return;
+  // Defensive: clear any stale Capacitor-Preferences key that could feed an
+  // empty string to URL.appendingPathComponent in the iOS bridge (iOS 18+
+  // traps on that, which crashed App Store build 5).
+  try {
+    const { Preferences } = await import('@capacitor/preferences');
+    for (const key of ['serverBasePath', 'lastBinaryVersionCode', 'lastBinaryVersionName']) {
+      const { value } = await Preferences.get({ key });
+      if (value === '' || value == null) {
+        await Preferences.remove({ key });
+      }
+    }
+  } catch (e) { console.warn('Preferences cleanup failed', e); }
   try {
     const { StatusBar, Style } = await import('@capacitor/status-bar');
     await StatusBar.setStyle({ style: Style.Dark }); // dark text on white
@@ -19,6 +31,7 @@ export async function initNativeShell() {
     await SplashScreen.hide({ fadeOutDuration: 200 });
   } catch (e) { console.warn('SplashScreen hide failed', e); }
 }
+
 
 /** Light tap — log actions, button presses. */
 export async function tapHaptic() {

@@ -7,11 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:ios": "unset CAP_DEV && vite build && npx cap sync ios",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
   },
+
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.2.0",
     "@capacitor/app": "^8.1.0",
