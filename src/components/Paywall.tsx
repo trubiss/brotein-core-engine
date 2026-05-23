@@ -249,13 +249,12 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
           RESTORE PURCHASES
         </button>
 
-        {/* Footer micro-text */}
-        <p className="mt-4 mb-2 text-center text-[10px] opacity-40 tracking-[0.15em] uppercase">
-          {native
-            ? 'Cancel in Settings · Auto-renews'
-            : monthlySelected
-              ? 'Cancel anytime · Auto-renews monthly'
-              : 'Cancel anytime · Charged after trial ends'}
+        {/* Footer micro-text — Apple-required auto-renewing subscription disclosure */}
+        <p className="mt-4 mb-2 text-center text-[10px] opacity-50 tracking-normal leading-relaxed normal-case">
+          Payment is charged to your Apple ID at confirmation of purchase. Subscription
+          automatically renews unless auto-renew is turned off at least 24 hours before the end of
+          the current period. Your account is charged for renewal within 24 hours prior to the end
+          of the current period. Manage or cancel anytime in iPhone Settings → Subscriptions.
         </p>
 
         {/* Legal links — required by App Store for subscription paywalls */}
