@@ -338,6 +338,10 @@ export default function OnboardingStoryFlow({ onComplete, onStartTrial }: Onboar
   };
 
   const handleAdd = () => {
+    try {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(8);
+    } catch { /* noop */ }
+    void import('@/lib/native').then(m => m.tapHaptic()).catch(() => {});
     setProtein((p) => Math.min(TARGET + 20, p + 20));
     setTapped((t) => t + 1);
   };
