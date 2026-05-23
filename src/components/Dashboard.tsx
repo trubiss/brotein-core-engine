@@ -175,6 +175,18 @@ export default function Dashboard({ onNavigate }: Props) {
     };
   }, [user, streakBump]);
 
+  // Most recent log across all days, for the "LAST" line at the bottom.
+  useEffect(() => {
+    if (!user) return;
+    return watchRecentLogs(user.uid, logs => setLastEntry(logs[0] ?? null), 1);
+  }, [user]);
+
+  // Tick every 30s so the relative time stays fresh.
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   // In-app reminder evaluator (toast fallback) + native push scheduling
   useEffect(() => {
     if (!profile || !uid) return;
