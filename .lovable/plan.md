@@ -1,21 +1,15 @@
-## Goal
-After completing onboarding, land the user on the home (Dashboard) screen instead of the Profile screen.
+# Reset scroll to top on page entry
 
-## Change
-In `src/pages/Index.tsx`, force `page` back to `'dashboard'` the moment the user's profile first becomes available (i.e. transitions from null → set, which happens right after `refreshProfile()` at the end of onboarding).
+## Problem
+After finishing onboarding (and when navigating between pages), the dashboard sometimes opens with the window already scrolled down a bit. The browser preserves the previous scroll position from the prior screen (e.g. ResultsScreen / onboarding) instead of starting at the top.
 
-Add a `useEffect` that tracks the previous profile state with a ref, and calls `setPage('dashboard')` when profile flips from absent to present. This guarantees that whatever value `page` held before (or any future code path) cannot leave the user on Profile right after onboarding completes.
+## Fix
+In `src/pages/Index.tsx`, add a single `useEffect` that calls `window.scrollTo(0, 0)` whenever the active `page` changes, and also when the profile first becomes available (i.e. right after onboarding completes and we switch to the dashboard).
 
 ```ts
-const prevProfileRef = useRef(profile);
 useEffect(() => {
-  if (!prevProfileRef.current && profile) setPage('dashboard');
-  prevProfileRef.current = profile;
-}, [profile]);
+  window.scrollTo(0, 0);
+}, [page, profile]);
 ```
 
-No other files need changes. Dashboard, ProfileScreen, and OnboardingFlow all stay as-is.
-
-## Out of scope
-- No changes to onboarding steps or styling.
-- No changes to navigation within Dashboard (profile button still works).
+That's it — no other files need changes. Pure presentation tweak, no business logic touched.
