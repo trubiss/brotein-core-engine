@@ -121,32 +121,6 @@ export default function ResultsScreen({ data, onComplete, onBack, step = 3, tota
           style={{ transformOrigin: 'center' }}
           className="w-24 h-[2px] bg-foreground mt-8"
         />
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.85 }}
-          className="font-mono text-[10px] font-bold tracking-[0.3em] uppercase text-foreground/50 mt-4 mb-6"
-        >
-          SUPPORTING METRICS
-        </motion.p>
-
-        <div className="grid grid-cols-4 gap-4 w-full max-w-sm text-center">
-          {cells.map((c, i) => (
-            <motion.div
-              key={c.label}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.95 + i * 0.06, ease: 'easeOut' }}
-              className="min-w-0"
-            >
-              <p className="font-mono text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/50 mb-1">
-                {c.label}
-              </p>
-              <p className="font-mono text-base font-black tracking-tight tabular-nums">{c.value}</p>
-            </motion.div>
-          ))}
-        </div>
       </div>
 
       <motion.button
