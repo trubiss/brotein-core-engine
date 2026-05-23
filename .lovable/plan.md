@@ -1,40 +1,64 @@
-## Problem
+# Fix iOS Launch Crash (Apple Review Rejection)
 
-The "CONTINUE WITH FREE VERSION" button on the Paywall only renders when an `onClose` prop is passed (see `Paywall.tsx` line 282). The paywall that's shown on the iOS device is the one rendered from `Dashboard.tsx` (the post-onboarding paywall triggered by `shouldShowPaywall`), and that render site does **not** pass `onClose` — so there's no way to dismiss it on the free tier.
+## What the crash logs say
 
-The `Index.tsx` render site already passes `onClose` correctly, which is why it appears in the Lovable preview but not on the actual app screen the user is stuck on.
+All five `.ips` files show the **same crash** on different devices (iPhone 17 / iPad Pro M-series), all on iOS 26.5, build 5 of `com.brotein.app`:
 
-## Fix
+- **Exception:** `EXC_BREAKPOINT (SIGTRAP)` — a Swift `_assertionFailure` (not a memory bug, a deliberate trap)
+- **When:** ~200–400 ms after launch (`procLaunch` → `procExit` is sub-second)
+- **Where:** Capacitor's **`bridge`** dispatch queue, inside:
+  ```
+  URL.appendingPathComponent(_:)
+    → _SwiftURL.appending(path:directoryHint:encodingSlashes:compatibility:)
+      → URLComponents._uncheckedString
+        → _StringGuts.append → assertion failure
+  ```
 
-One small change in `src/components/Dashboard.tsx` (around line 257): add an `onClose` prop to the `<Paywall>` element so the free-version exit button renders.
+This is the well-known iOS 18+ Foundation behavior: `URL.appendingPathComponent("")` (empty string) or appending to a URL built from an empty/invalid string now traps instead of silently returning. Capacitor's iOS bridge calls this while resolving the start URL / served bundle path right after launch.
 
-```tsx
-<Paywall
-  streak={streak}
-  onStart={() => {
-    track('trial_started', { streak, logs_count: totalLogs });
-    startTrial(uid);
-    setTrialActive(true);
-  }}
-  onClose={() => {
-    // Dismiss paywall and let the user continue on the free tier.
-    // Mark paywall as dismissed so it doesn't immediately re-trigger.
-    track('paywall_dismissed_free', { streak, logs_count: totalLogs });
-    // Use the same "start" path so Dashboard re-renders the app shell.
-    startTrial(uid);
-    setTrialActive(true);
-  }}
-/>
+## Most likely root causes (in order)
+
+1. **Stale `serverBasePath` in `UserDefaults`** — Capacitor persists the last live-update / hot-reload path. If a previous build wrote an empty string (or the dev `server.url` was toggled), the next cold launch appends `""` to the bundle URL and traps. This matches the timing exactly (bridge queue, first 200 ms).
+2. **`CAP_DEV=1` accidentally compiled into the App Store build** — would leave `server.url` set, and on iOS 26 an empty path component along that URL traps.
+3. **A plugin (Firebase Auth / Camera / Local Notifications) reading an empty config value** and appending it to a file URL on the bridge queue.
+
+## Fix plan
+
+### 1. Harden `capacitor.config.ts` against the empty-path trap
+- Confirm production builds are produced with `CAP_DEV` **unset** (document this in `README.md` and add an `npm run build:ios` script that explicitly `unset CAP_DEV` before `vite build && cap sync ios`).
+- Add an `ios.scheme: 'app'` and `ios.path` is left as default — never empty strings.
+- Remove the `server` block entirely in production (already conditional, but add an `assert(!isDev)` log for safety).
+
+### 2. Clear stale `serverBasePath` on launch
+Add a tiny native-side reset in `src/lib/native.ts` `initNativeShell()`:
+- On native iOS, call `Capacitor` Preferences to remove the keys `serverBasePath` and `lastBinaryVersionCode` / `lastBinaryVersionName` so a corrupted persisted path can't crash subsequent launches.
+- This is a JS-side mitigation; safe and reversible.
+
+### 3. Bump Capacitor iOS runtime
+We're already on the latest 8.x (`@capacitor/ios@8.3.4`, `@capacitor/core@8.2.0`). Bump `@capacitor/core` to `^8.3.4` to match `ios` and re-run `npx cap sync ios` — version skew between core and ios is a known source of bridge bugs.
+
+### 4. Rebuild & re-submit
+After applying the above:
+```
+unset CAP_DEV
+rm -rf node_modules dist
+npm install
+npm run build
+npx cap sync ios
+# In Xcode: Product → Clean Build Folder, archive, upload build 6.
 ```
 
-Note on behavior: tapping "CONTINUE WITH FREE VERSION" will call `startTrial(uid)` so the user gets into the app immediately. This matches the existing free-tier exit behavior used by the onboarding SKIP path. If you'd prefer a stricter "no trial, just dismiss" behavior (i.e. don't grant the trial, just close the paywall), say so and I'll adjust — but then we also need a flag so `shouldShowPaywall` doesn't re-show it on the next render.
+### 5. If the crash still reproduces on build 6
+Add a one-shot diagnostic: wrap `initNativeShell()` in a try/catch that writes the error to `Preferences` so the next launch can surface it. Also temporarily remove `@capacitor/camera` and `@capacitor-firebase/authentication` one at a time to bisect which plugin's path resolution is the culprit (the crash is on the shared bridge queue, but the offending call originates from a plugin).
 
-## After implementing
+## Files to change
 
-Standard rebuild for the device:
+- `capacitor.config.ts` — explicit `ios.scheme`, comment hardening, prod assert
+- `src/lib/native.ts` — reset stale `serverBasePath` on iOS launch
+- `package.json` — bump `@capacitor/core` to `^8.3.4`, add `build:ios` script
+- `README.md` — document `unset CAP_DEV` requirement for App Store builds
 
-```bash
-npm run build && npx cap sync ios
-```
+## Risks
 
-Then in Xcode: delete the app from the iPhone, Clean Build Folder (Shift+Cmd+K), Run (Cmd+R).
+- Clearing `serverBasePath` will disable any live-update behavior on next launch (we don't use live updates, so this is safe).
+- No user-facing changes.
