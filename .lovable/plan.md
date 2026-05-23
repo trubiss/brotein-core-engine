@@ -1,24 +1,21 @@
 ## Goal
+After completing onboarding, land the user on the home (Dashboard) screen instead of the Profile screen.
 
-Replace the checkbox-list animation in `ChecklistMotif` ("EAT PROTEIN / LOG IT / REPEAT" slide). Keep the three labels — change the visual. The current checkbox-fill pattern is now reused by the new 30-day calendar motif and the 7-day strip, so this slide needs a different idea.
+## Change
+In `src/pages/Index.tsx`, force `page` back to `'dashboard'` the moment the user's profile first becomes available (i.e. transitions from null → set, which happens right after `refreshProfile()` at the end of onboarding).
 
-## New visual: circular loop ("REPEAT" cycle)
+Add a `useEffect` that tracks the previous profile state with a ref, and calls `setPage('dashboard')` when profile flips from absent to present. This guarantees that whatever value `page` held before (or any future code path) cannot leave the user on Profile right after onboarding completes.
 
-A brutalist B&W triangular loop that visualizes the cycle itself:
+```ts
+const prevProfileRef = useRef(profile);
+useEffect(() => {
+  if (!prevProfileRef.current && profile) setPage('dashboard');
+  prevProfileRef.current = profile;
+}, [profile]);
+```
 
-- Three labels arranged at the points of an equilateral triangle (top: `EAT PROTEIN`, bottom-right: `LOG IT`, bottom-left: `REPEAT`)
-- Each label sits inside a small 2px-bordered chip
-- A thin foreground stroke connects them in a closed loop (SVG path with three straight segments + arrowheads at each midpoint)
-- Animation: a filled dot travels along the path continuously (`offsetPath` / `motionPath` via framer-motion `motion.circle` animating along the path), pausing briefly at each chip — which scales up ~6% and inverts to filled foreground when the dot arrives, then releases as the dot moves on
-- Reduced-motion: static loop with all three chips filled, no traveling dot
+No other files need changes. Dashboard, ProfileScreen, and OnboardingFlow all stay as-is.
 
-## Implementation notes
-
-- Keep export name `ChecklistMotif` so `OnboardingStoryFlow.tsx` needs no changes
-- Use a square SVG container (~220×220) inside the existing `max-w-[260px]` wrapper
-- Drive the animation via a single timeline (one `useEffect` + `useState` for active index, or framer `animate` keyframes on the dot's `cx/cy`) — no external libs
-- Pure foreground/background tokens, 0 border-radius (chip = square), Space Mono for labels
-
-## Files
-
-- `src/components/onboarding/SlideMotifs.tsx` — rewrite `ChecklistMotif` body
+## Out of scope
+- No changes to onboarding steps or styling.
+- No changes to navigation within Dashboard (profile button still works).
