@@ -309,56 +309,104 @@ export function StopwatchMotif() {
 export function ChecklistMotif() {
   const reduce = useReducedMotion();
   const items = ['EAT PROTEIN', 'LOG IT', 'REPEAT'];
+  // Triangle node positions (top, bottom-right, bottom-left) in a 240x220 box
+  const W = 240;
+  const H = 220;
+  const nodes = [
+    { x: W / 2, y: 32 },
+    { x: W - 32, y: H - 32 },
+    { x: 32, y: H - 32 },
+  ];
+
+  const STEP_MS = 1100; // dwell + travel per leg
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    if (reduce) return;
+    const id = setInterval(() => setActive((a) => (a + 1) % nodes.length), STEP_MS);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reduce]);
+
+  // Build closed-loop path for the traveling dot
+  const pathD = `M ${nodes[0].x} ${nodes[0].y} L ${nodes[1].x} ${nodes[1].y} L ${nodes[2].x} ${nodes[2].y} Z`;
+
+  // Chip dimensions
+  const CHIP_W = 108;
+  const CHIP_H = 28;
+
   return (
-    <div className="w-full max-w-[260px] flex flex-col gap-3">
-      {items.map((label, i) => (
-        <div key={label} className="flex items-center gap-3">
-          <motion.div
-            className="w-5 h-5 border-2 border-foreground flex items-center justify-center"
-            initial={{ backgroundColor: 'hsl(var(--background))' }}
-            animate={
-              reduce
-                ? { backgroundColor: 'hsl(var(--foreground))' }
-                : {
-                    backgroundColor: [
-                      'hsl(var(--background))',
-                      'hsl(var(--background))',
-                      'hsl(var(--foreground))',
-                      'hsl(var(--foreground))',
-                      'hsl(var(--background))',
-                    ],
-                  }
-            }
-            transition={{
-              duration: 4,
-              times: [0, 0.15 + i * 0.15, 0.2 + i * 0.15, 0.9, 1],
-              repeat: Infinity,
-            }}
-          >
-            <motion.svg
-              viewBox="0 0 12 12"
-              className="w-3 h-3"
-              initial={{ opacity: 0 }}
-              animate={reduce ? { opacity: 1 } : { opacity: [0, 0, 1, 1, 0] }}
-              transition={{
-                duration: 4,
-                times: [0, 0.15 + i * 0.15, 0.22 + i * 0.15, 0.9, 1],
-                repeat: Infinity,
+    <div className="w-full max-w-[260px] flex items-center justify-center">
+      <div className="relative" style={{ width: W, height: H }}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 w-full h-full overflow-visible">
+          {/* loop path */}
+          <path
+            d={pathD}
+            fill="none"
+            stroke="hsl(var(--foreground))"
+            strokeWidth="2"
+            strokeOpacity="0.25"
+          />
+
+          {/* arrowheads at each leg midpoint */}
+          {nodes.map((n, i) => {
+            const next = nodes[(i + 1) % nodes.length];
+            const mx = (n.x + next.x) / 2;
+            const my = (n.y + next.y) / 2;
+            const angle = (Math.atan2(next.y - n.y, next.x - n.x) * 180) / Math.PI;
+            return (
+              <g key={`arr-${i}`} transform={`translate(${mx} ${my}) rotate(${angle})`}>
+                <path
+                  d="M -5 -5 L 3 0 L -5 5 Z"
+                  fill="hsl(var(--foreground))"
+                  opacity="0.5"
+                />
+              </g>
+            );
+          })}
+
+          {/* traveling dot */}
+          {!reduce && (
+            <motion.circle
+              r="6"
+              fill="hsl(var(--foreground))"
+              initial={false}
+              animate={{ cx: nodes[active].x, cy: nodes[active].y }}
+              transition={{ duration: STEP_MS / 1000, ease: [0.6, 0.05, 0.4, 0.95] }}
+            />
+          )}
+        </svg>
+
+        {/* label chips */}
+        {items.map((label, i) => {
+          const n = nodes[i];
+          const isActive = reduce ? true : active === i;
+          return (
+            <motion.div
+              key={label}
+              className="absolute flex items-center justify-center border-2 border-foreground"
+              style={{
+                width: CHIP_W,
+                height: CHIP_H,
+                left: n.x - CHIP_W / 2,
+                top: n.y - CHIP_H / 2,
               }}
+              animate={{
+                scale: isActive ? 1.06 : 1,
+                backgroundColor: isActive
+                  ? 'hsl(var(--foreground))'
+                  : 'hsl(var(--background))',
+                color: isActive ? 'hsl(var(--background))' : 'hsl(var(--foreground))',
+              }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
             >
-              <path
-                d="M2 6 L5 9 L10 3"
-                stroke="hsl(var(--background))"
-                strokeWidth="2"
-                fill="none"
-              />
-            </motion.svg>
-          </motion.div>
-          <span className="font-mono text-[13px] font-bold tracking-[0.06em] uppercase text-foreground">
-            {label}
-          </span>
-        </div>
-      ))}
+              <span className="font-mono text-[11px] font-bold tracking-[0.08em] uppercase">
+                {label}
+              </span>
+            </motion.div>
+          );
+        })}
+      </div>
     </div>
   );
 }
