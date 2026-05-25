@@ -164,8 +164,24 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
           ))}
         </ul>
 
+        {/* Offer-load error banner — native only */}
+        {native && offersStatus === 'error' && (
+          <div className="mt-10 border border-foreground/40 p-4">
+            <p className="text-[13px] leading-snug">
+              Couldn't reach the App Store. Check your connection and try again.
+            </p>
+            <button
+              type="button"
+              onClick={() => { void tapHaptic(); loadOffers(); }}
+              className="mt-3 w-full bg-foreground text-background font-black tracking-[0.2em] text-xs py-3 active:opacity-90"
+            >
+              RETRY
+            </button>
+          </div>
+        )}
+
         {/* Plan cards */}
-        <div className="mt-12 space-y-4">
+        <div className={`mt-12 space-y-4 ${offersBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
           {/* Annual card */}
           <motion.button
             type="button"
