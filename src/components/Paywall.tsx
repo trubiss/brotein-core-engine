@@ -16,16 +16,32 @@ interface Props {
 export default function Paywall({ streak = 0, onStart, onClose }: Props) {
   const native = isNative() && isIOS();
   const [offers, setOffers] = useState<Offers>({ annual: null, monthly: null });
+  const [offersStatus, setOffersStatus] = useState<'loading' | 'ready' | 'error'>(
+    native ? 'loading' : 'ready'
+  );
   const [plan, setPlan] = useState<PlanId>('annual');
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    if (!native) return;
+  const loadOffers = () => {
+    if (!native) return undefined;
+    setOffersStatus('loading');
     let cancelled = false;
     void getOffers()
-      .then(o => { if (!cancelled) setOffers(o); })
-      .catch(() => { /* keep fallback */ });
+      .then(o => {
+        if (cancelled) return;
+        setOffers(o);
+        setOffersStatus(o.annual || o.monthly ? 'ready' : 'error');
+      })
+      .catch(() => {
+        if (!cancelled) setOffersStatus('error');
+      });
     return () => { cancelled = true; };
+  };
+
+  useEffect(() => {
+    const cleanup = loadOffers();
+    return cleanup;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [native]);
 
   const annualPrice  = offers.annual?.priceString  ?? '$39.99';
@@ -46,7 +62,10 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
     ? `$${(annualNum / 52).toFixed(2)}`
     : '$0.77';
 
+  const offersBlocked = native && offersStatus !== 'ready';
+
   const selectPlan = (which: PlanId) => {
+    if (offersBlocked) return;
     void tapHaptic();
     setPlan(which);
     track('paywall_plan_selected', { plan: which });
@@ -55,6 +74,10 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
   const purchase = async (which: PlanId) => {
     void tapHaptic();
     if (busy) return;
+    if (offersBlocked) {
+      toast.error('Subscriptions unavailable right now. Tap retry to try again.');
+      return;
+    }
     setPlan(which);
     track('paywall_plan_selected', { plan: which });
     if (!native) { onStart(); return; }
@@ -85,11 +108,15 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
 
   const primaryCta = busy
     ? 'WORKING…'
-    : plan === 'monthly'
-      ? `SUBSCRIBE ${monthlyPrice}/MO`
-      : trialAvailable
-        ? 'START 7-DAY FREE TRIAL'
-        : `SUBSCRIBE ${annualPrice}/YR`;
+    : native && offersStatus === 'loading'
+      ? 'LOADING…'
+      : native && offersStatus === 'error'
+        ? 'TAP RETRY ABOVE'
+        : plan === 'monthly'
+          ? `SUBSCRIBE ${monthlyPrice}/MO`
+          : trialAvailable
+            ? 'START 7-DAY FREE TRIAL'
+            : `SUBSCRIBE ${annualPrice}/YR`;
 
   const annualSelected = plan === 'annual';
   const monthlySelected = plan === 'monthly';
@@ -137,8 +164,24 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
           ))}
         </ul>
 
+        {/* Offer-load error banner — native only */}
+        {native && offersStatus === 'error' && (
+          <div className="mt-10 border border-foreground/40 p-4">
+            <p className="text-[13px] leading-snug">
+              Couldn't reach the App Store. Check your connection and try again.
+            </p>
+            <button
+              type="button"
+              onClick={() => { void tapHaptic(); loadOffers(); }}
+              className="mt-3 w-full bg-foreground text-background font-black tracking-[0.2em] text-xs py-3 active:opacity-90"
+            >
+              RETRY
+            </button>
+          </div>
+        )}
+
         {/* Plan cards */}
-        <div className="mt-12 space-y-4">
+        <div className={`mt-12 space-y-4 ${offersBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
           {/* Annual card */}
           <motion.button
             type="button"
@@ -224,13 +267,13 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
         {/* Primary CTA */}
         <motion.button
           onClick={() => purchase(plan)}
-          disabled={busy}
+          disabled={busy || offersBlocked}
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
           className="mt-5 w-full bg-foreground text-background font-black tracking-[0.15em] text-sm py-5 active:opacity-90"
-          style={{ opacity: busy ? 0.5 : 1 }}
+          style={{ opacity: busy || offersBlocked ? 0.5 : 1 }}
         >
-          {busy ? 'WORKING…' : primaryCta}
+          {primaryCta}
         </motion.button>
 
         <p className="mt-3 text-center text-[11px] opacity-50 leading-relaxed">
