@@ -108,11 +108,15 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
 
   const primaryCta = busy
     ? 'WORKING…'
-    : plan === 'monthly'
-      ? `SUBSCRIBE ${monthlyPrice}/MO`
-      : trialAvailable
-        ? 'START 7-DAY FREE TRIAL'
-        : `SUBSCRIBE ${annualPrice}/YR`;
+    : native && offersStatus === 'loading'
+      ? 'LOADING…'
+      : native && offersStatus === 'error'
+        ? 'TAP RETRY ABOVE'
+        : plan === 'monthly'
+          ? `SUBSCRIBE ${monthlyPrice}/MO`
+          : trialAvailable
+            ? 'START 7-DAY FREE TRIAL'
+            : `SUBSCRIBE ${annualPrice}/YR`;
 
   const annualSelected = plan === 'annual';
   const monthlySelected = plan === 'monthly';
