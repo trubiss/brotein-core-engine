@@ -267,13 +267,13 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
         {/* Primary CTA */}
         <motion.button
           onClick={() => purchase(plan)}
-          disabled={busy}
+          disabled={busy || offersBlocked}
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
           className="mt-5 w-full bg-foreground text-background font-black tracking-[0.15em] text-sm py-5 active:opacity-90"
-          style={{ opacity: busy ? 0.5 : 1 }}
+          style={{ opacity: busy || offersBlocked ? 0.5 : 1 }}
         >
-          {busy ? 'WORKING…' : primaryCta}
+          {primaryCta}
         </motion.button>
 
         <p className="mt-3 text-center text-[11px] opacity-50 leading-relaxed">
