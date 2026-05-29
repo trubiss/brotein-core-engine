@@ -272,7 +272,7 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
           {monthlySelected
             ? <>{monthlyPrice} per month. Cancel anytime in Settings.</>
             : trialAvailable
-              ? <>Free for 7 days, then {annualPrice}/year. Cancel anytime in Settings.</>
+              ? <>{annualPrice}/year after a 7-day free trial. Cancel anytime in Settings.</>
               : <>{annualPrice} per year. Cancel anytime in Settings.</>}
         </p>
 
