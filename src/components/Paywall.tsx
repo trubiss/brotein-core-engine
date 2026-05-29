@@ -115,7 +115,7 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
         : plan === 'monthly'
           ? `SUBSCRIBE ${monthlyPrice}/MO`
           : trialAvailable
-            ? 'START 7-DAY FREE TRIAL'
+            ? `SUBSCRIBE ${annualPrice}/YR · 7-DAY FREE TRIAL`
             : `SUBSCRIBE ${annualPrice}/YR`;
 
   const annualSelected = plan === 'annual';
