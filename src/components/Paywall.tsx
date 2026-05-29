@@ -115,7 +115,7 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
         : plan === 'monthly'
           ? `SUBSCRIBE ${monthlyPrice}/MO`
           : trialAvailable
-            ? 'START 7-DAY FREE TRIAL'
+            ? `SUBSCRIBE ${annualPrice}/YR · 7-DAY FREE TRIAL`
             : `SUBSCRIBE ${annualPrice}/YR`;
 
   const annualSelected = plan === 'annual';
@@ -204,29 +204,21 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
                 SAVE {savingsPct}%
               </span>
             )}
-            {trialAvailable ? (
-              <>
-                <p className="font-display font-black text-3xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
-                  7-DAY FREE TRIAL
-                </p>
-                <p className="mt-2 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
-                  THEN {annualPrice} / YEAR · BILLED YEARLY
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="flex items-baseline justify-between">
-                  <p className="font-display font-black text-3xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
-                    {annualPrice}
-                  </p>
-                  <p className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-60">
-                    / YEAR
-                  </p>
-                </div>
-                <p className="mt-2 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
-                  BILLED YEARLY
-                </p>
-              </>
+            <div className="flex items-baseline justify-between">
+              <p className="font-display font-black text-3xl tracking-tight" style={{ letterSpacing: '-0.03em' }}>
+                {annualPrice}
+              </p>
+              <p className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-60">
+                / YEAR
+              </p>
+            </div>
+            <p className="mt-2 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
+              BILLED YEARLY
+            </p>
+            {trialAvailable && (
+              <p className="mt-1 font-mono text-[11px] font-bold tracking-[0.2em] uppercase opacity-70">
+                INCLUDES 7-DAY FREE TRIAL
+              </p>
             )}
             <p className="mt-3 font-mono text-[10px] font-bold tracking-[0.2em] uppercase opacity-50">
               JUST {perWeek} / WEEK
@@ -280,7 +272,7 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
           {monthlySelected
             ? <>{monthlyPrice} per month. Cancel anytime in Settings.</>
             : trialAvailable
-              ? <>Free for 7 days, then {annualPrice}/year. Cancel anytime in Settings.</>
+              ? <>{annualPrice}/year after a 7-day free trial. Cancel anytime in Settings.</>
               : <>{annualPrice} per year. Cancel anytime in Settings.</>}
         </p>
 
