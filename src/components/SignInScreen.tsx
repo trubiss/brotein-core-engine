@@ -109,7 +109,7 @@ export default function SignInScreen() {
           className="w-full border-2 border-foreground bg-foreground text-background py-3 flex items-center justify-center gap-2 text-xs font-bold tracking-[0.2em] uppercase active:scale-[0.98] transition-transform"
           style={{ opacity: busy ? 0.5 : 1 }}
         >
-          <Apple size={14} strokeWidth={2.5} fill="currentColor" />
+          <AppleLogo size={14} />
           CONTINUE WITH APPLE
         </button>
 
