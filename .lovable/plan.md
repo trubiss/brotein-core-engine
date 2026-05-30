@@ -1,39 +1,38 @@
 ## Goal
-Make the Paywall the final step before the app — after onboarding story AND structural data (biometrics / goals / results).
+Make every visible time locale-aware: use the device's region defaults (24h vs 12h) instead of hardcoding a format, and update the "behind pace" copy to read `NEED 162G BY [localized time]`.
 
-## Current flow (wrong)
-SignIn → Story (CTA can open Paywall mid-story) → OnboardingFlow (bio/goals/results) → Dashboard
+## Approach
+Add one shared formatter and route all UI time renders through it. `Intl.DateTimeFormat`/`toLocaleTimeString` with `locale = undefined` and **no `hour12` override** automatically follows the user's OS/browser region (e.g. `22:00` in DE, `10:00 PM` in US).
 
-The paywall fires from inside the Story via `onStartTrial`, so the structural data screens come AFTER it.
+## New helper — `src/lib/time.ts`
+```ts
+export function formatLocalTime(d: Date): string {
+  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+// Today's end-of-day deadline (used by pace copy)
+export function endOfDay(d = new Date()): Date {
+  const e = new Date(d); e.setHours(23, 59, 0, 0); return e;
+}
+```
+No `hour12` field, no locale arg → respects device.
 
-## Desired flow
-SignIn → Story → OnboardingFlow (bio/goals/results, creates profile) → **Paywall** → Dashboard
+## Edits
 
-Paywall becomes a hard gate keyed per user, shown exactly once after the profile is created.
+1. **`src/components/HistoryScreen.tsx:185`** — replace
+   `new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })`
+   with `formatLocalTime(new Date(log.timestamp))`.
 
-## Changes (all in `src/pages/Index.tsx`)
+2. **`src/components/ProteinPace.tsx`** — in the `behind` branch, change
+   ``NEED ${Math.max(0, target - consumed)}G TODAY``
+   to
+   ``NEED ${Math.max(0, target - consumed)}G BY ${formatLocalTime(endOfDay(now)).toUpperCase()}``
+   so the existing all-caps label style is preserved (e.g. `NEED 162G BY 11:59 PM` / `NEED 162G BY 23:59`).
 
-1. Add a new per-user flag `brotein_paywall_seen:{uid}` with state `paywallSeen`, hydrated in the same effect that hydrates `storySeen`.
-2. Remove the mid-story paywall trigger:
-   - Drop `onStartTrial` prop passed to `<OnboardingStoryFlow>` (the story's "Start trial" CTA now just completes the story — paywall will appear later automatically).
-   - Remove `handleStartTrial` and the `paywallOpen` state used for mid-flow opening.
-3. Replace the conditional render order so the gate runs in this order:
-   ```
-   if (!user) SignIn
-   else if (!storySeen) OnboardingStoryFlow
-   else if (!profile) OnboardingFlow
-   else if (!paywallSeen) Paywall   ← new gate
-   else Dashboard
-   ```
-4. Paywall handlers:
-   - `onStart`: call `startTrial(user.uid)`, set `paywallSeen=true`, persist flag.
-   - `onClose`: set `paywallSeen=true`, persist flag (user dismissed — don't re-show; matches "last thing before entering the app").
-5. Render Paywall full-screen (not as the floating overlay it is today) by returning it directly from the gate instead of mounting it alongside `mainContent`.
+3. **Audit pass** — `rg "toLocaleTimeString|hour12|new Intl\.DateTimeFormat"` shows only HistoryScreen formats raw times today. `ReminderSettingsPanel` uses a native `<input type="time">` which the browser already localizes — no change needed. No other hardcoded `AM/PM` or `HH:` strings exist in user-facing code.
 
 ## Notes
-- No changes to `OnboardingFlow.tsx`, `OnboardingStoryFlow.tsx`, or `Paywall.tsx` internals — only the orchestration in `Index.tsx`.
-- `OnboardingStoryFlow`'s `onStartTrial` prop is optional (already typed `?`), so dropping it is safe.
-- Existing users who already have a profile but never saw the paywall will see it once on next load — acceptable since trial hasn't started for them.
+- Deadline is end-of-day (midnight) because the app resets daily totals at midnight (per core memory); that's the natural "by when" for today's protein target.
+- Helper kept tiny and isolated so future time displays have one obvious place to import from.
 
 ## Summary
-Reorder gates in `Index.tsx` so Paywall renders after profile creation, and remove the mid-story paywall trigger.
+Add `src/lib/time.ts` with a device-locale time formatter, use it in HistoryScreen, and rewrite the behind-pace sub-line to `NEED {g}G BY {localized time}`.
