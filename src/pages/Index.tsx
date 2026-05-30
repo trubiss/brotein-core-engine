@@ -12,10 +12,10 @@ const OnboardingStoryFlow = lazy(() => import('@/components/OnboardingStoryFlow'
 const HistoryScreen = lazy(() => import('@/components/HistoryScreen'));
 const ProfileScreen = lazy(() => import('@/components/ProfileScreen'));
 const InsightsScreen = lazy(() => import('@/components/InsightsScreen'));
-const RankScreen = lazy(() => import('@/components/RankScreen'));
+const RankScreen = lazy(() => import('@/components/IdentityScreen'));
 const Paywall = lazy(() => import('@/components/Paywall'));
 
-type Page = 'dashboard' | 'history' | 'profile' | 'insights' | 'rank';
+type Page = 'dashboard' | 'history' | 'profile' | 'insights' | 'identity';
 
 const getResetCode = (): string | null => {
   if (typeof window === 'undefined') return null;
@@ -129,7 +129,7 @@ const Index = () => {
           {page === 'history' && <HistoryScreen onBack={() => setPage('dashboard')} />}
           {page === 'profile' && <ProfileScreen onBack={() => setPage('dashboard')} />}
           {page === 'insights' && <InsightsScreen onBack={() => setPage('dashboard')} />}
-          {page === 'rank' && <RankScreen onBack={() => setPage('dashboard')} />}
+          {page === 'identity' && <RankScreen onBack={() => setPage('dashboard')} />}
           {page === 'dashboard' && <Dashboard onNavigate={setPage} />}
         </Suspense>
       </motion.div>

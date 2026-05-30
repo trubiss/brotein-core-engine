@@ -17,7 +17,7 @@ const FoodScanModal = lazy(() => import('./FoodScanModal'));
 const Paywall = lazy(() => import('./Paywall'));
 
 import { AmbientGrid, BlinkingCursor } from './ui/AmbientGrid';
-import RankCard from './RankCard';
+import IdentityCard from './IdentityCard';
 
 /** Counter that tweens between values for a satisfying count-up/down on log. */
 function AnimatedGrams({ value }: { value: number }) {
@@ -41,7 +41,7 @@ function AnimatedGrams({ value }: { value: number }) {
 }
 
 interface Props {
-  onNavigate: (page: 'history' | 'profile' | 'insights' | 'rank') => void;
+  onNavigate: (page: 'history' | 'profile' | 'insights' | 'identity') => void;
 }
 
 const stagger = { animate: { transition: { staggerChildren: 0.02 } } };
@@ -393,7 +393,7 @@ export default function Dashboard({ onNavigate }: Props) {
         </p>
       </motion.div>
 
-      <RankCard summaries={summaries30} streak={streak} onOpen={() => onNavigate('rank')} />
+      <IdentityCard summaries={summaries30} streak={streak} onOpen={() => onNavigate('identity')} />
 
       {/* Boxed progress card — primary tool panel */}
       <motion.div variants={fadeUp} className="border border-foreground/70 p-4 mb-3">
