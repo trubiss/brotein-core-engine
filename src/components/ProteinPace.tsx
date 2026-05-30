@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { computePace } from '@/lib/pace';
+import { formatLocalTime, endOfDay } from '@/lib/time';
 
 interface Props {
   consumed: number;
@@ -29,7 +30,7 @@ const ProteinPace = forwardRef<HTMLDivElement, Props>(function ProteinPace({ con
 
   const sub =
     pace.status === 'behind'
-      ? `NEED ${Math.max(0, target - consumed)}G TODAY`
+      ? `NEED ${Math.max(0, target - consumed)}G BY ${formatLocalTime(endOfDay(now)).toUpperCase()}`
       : pace.status === 'ahead'
         ? `+${pace.diff}G VS EXPECTED`
         : `${consumed}G OF ${pace.expected}G EXPECTED`;
