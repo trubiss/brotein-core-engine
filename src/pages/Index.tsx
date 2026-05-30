@@ -12,10 +12,9 @@ const OnboardingStoryFlow = lazy(() => import('@/components/OnboardingStoryFlow'
 const HistoryScreen = lazy(() => import('@/components/HistoryScreen'));
 const ProfileScreen = lazy(() => import('@/components/ProfileScreen'));
 const InsightsScreen = lazy(() => import('@/components/InsightsScreen'));
-const BodyMapScreen = lazy(() => import('@/components/BodyMapScreen'));
 const Paywall = lazy(() => import('@/components/Paywall'));
 
-type Page = 'dashboard' | 'history' | 'profile' | 'insights' | 'bodymap';
+type Page = 'dashboard' | 'history' | 'profile' | 'insights';
 
 const getResetCode = (): string | null => {
   if (typeof window === 'undefined') return null;
@@ -121,7 +120,6 @@ const Index = () => {
           {page === 'history' && <HistoryScreen onBack={() => setPage('dashboard')} />}
           {page === 'profile' && <ProfileScreen onBack={() => setPage('dashboard')} />}
           {page === 'insights' && <InsightsScreen onBack={() => setPage('dashboard')} />}
-          {page === 'bodymap' && <BodyMapScreen onBack={() => setPage('dashboard')} />}
           {page === 'dashboard' && <Dashboard onNavigate={setPage} />}
         </Suspense>
       </motion.div>
