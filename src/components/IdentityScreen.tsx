@@ -11,7 +11,7 @@ import {
   progressToNext,
   getOrSnapshotStartIdentity,
 } from '@/lib/identity';
-import SilhouetteFigure from './identity/SilhouetteFigure';
+import AnatomyFigure from './identity/AnatomyFigure';
 import IdentityShareCard from './identity/IdentityShareCard';
 import { AmbientGrid } from './ui/AmbientGrid';
 
@@ -94,7 +94,7 @@ export default function IdentityScreen({ onBack }: Props) {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
-          <SilhouetteFigure identity={b.identity} size="hero" className="!w-56" />
+          <AnatomyFigure identity={b.identity} size="hero" className="!w-56" />
         </motion.div>
         <p
           className="font-display font-black tracking-[0.14em] mt-6"
@@ -113,14 +113,14 @@ export default function IdentityScreen({ onBack }: Props) {
           </div>
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
             <div className="flex flex-col items-center min-w-0">
-              <SilhouetteFigure identity={start!.id} size="lg" />
+              <AnatomyFigure identity={start!.id} size="lg" />
               <p className="font-display text-[11px] font-black tracking-[0.18em] mt-3 truncate">
                 {start!.label}
               </p>
             </div>
             <ArrowRight size={32} strokeWidth={2.5} className="opacity-80" />
             <div className="flex flex-col items-center min-w-0">
-              <SilhouetteFigure identity={b.identity} size="lg" />
+              <AnatomyFigure identity={b.identity} size="lg" />
               <p className="font-display text-[11px] font-black tracking-[0.18em] mt-3 truncate">
                 {b.label}
               </p>
@@ -193,7 +193,7 @@ export default function IdentityScreen({ onBack }: Props) {
                 ].join(' ')}
               >
                 <div className="shrink-0 w-10 flex justify-center">
-                  <SilhouetteFigure identity={t.id} size="sm" />
+                  <AnatomyFigure identity={t.id} size="sm" />
                 </div>
                 <p className="font-display text-xs font-black tracking-[0.18em] truncate flex-1">
                   {t.label}

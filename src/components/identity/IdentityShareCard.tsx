@@ -1,5 +1,5 @@
 import { Identity, tierFor, progressToNext } from '@/lib/identity';
-import SilhouetteFigure from './SilhouetteFigure';
+import AnatomyFigure from './AnatomyFigure';
 
 interface Props {
   identity: Identity;
@@ -20,7 +20,7 @@ export default function IdentityShareCard({ identity, score, streak }: Props) {
       </div>
 
       <div className="flex items-center gap-5 min-w-0">
-        <SilhouetteFigure identity={identity} size="hero" />
+        <AnatomyFigure identity={identity} size="hero" />
         <div className="min-w-0 flex-1">
           <p
             className="font-display font-black leading-none tracking-[0.06em] break-words"
