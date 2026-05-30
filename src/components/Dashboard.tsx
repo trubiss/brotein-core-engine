@@ -17,6 +17,7 @@ const FoodScanModal = lazy(() => import('./FoodScanModal'));
 const Paywall = lazy(() => import('./Paywall'));
 
 import { AmbientGrid, BlinkingCursor } from './ui/AmbientGrid';
+import RankCard from './RankCard';
 
 /** Counter that tweens between values for a satisfying count-up/down on log. */
 function AnimatedGrams({ value }: { value: number }) {
@@ -40,7 +41,7 @@ function AnimatedGrams({ value }: { value: number }) {
 }
 
 interface Props {
-  onNavigate: (page: 'history' | 'profile' | 'insights') => void;
+  onNavigate: (page: 'history' | 'profile' | 'insights' | 'rank') => void;
 }
 
 const stagger = { animate: { transition: { staggerChildren: 0.02 } } };
@@ -76,6 +77,7 @@ export default function Dashboard({ onNavigate }: Props) {
   const [summary, setSummary] = useState<DailySummary | null>(null);
   const [summaryReady, setSummaryReady] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [summaries30, setSummaries30] = useState<DailySummary[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [showScan, setShowScan] = useState(false);
 
@@ -180,7 +182,11 @@ export default function Dashboard({ onNavigate }: Props) {
     let cancelled = false;
     const run = () => {
       getRecentSummaries(user.uid, 30)
-        .then(all => { if (!cancelled) setStreak(computeStreak(all)); })
+        .then(all => {
+          if (cancelled) return;
+          setSummaries30(all);
+          setStreak(computeStreak(all));
+        })
         .catch(() => {});
     };
     const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
