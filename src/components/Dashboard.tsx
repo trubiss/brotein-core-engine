@@ -451,6 +451,10 @@ export default function Dashboard({ onNavigate }: Props) {
       </motion.div>
 
       {/* Secondary one-tap shortcuts — feel like extensions of the card */}
+      {/* Body Map — protein consistency made visible */}
+      <BodyMapCard hitDays={hitDays} onOpen={() => onNavigate('bodymap')} />
+
+      {/* Secondary one-tap shortcuts — feel like extensions of the card */}
       <motion.div variants={fadeUp} className="grid grid-cols-3 gap-1.5 mb-8">
         {[20, 30, 40].map(g => (
           <motion.button
