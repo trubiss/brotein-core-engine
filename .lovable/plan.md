@@ -1,87 +1,89 @@
-## Body Map — Protein Progress Visualization
+## Body Map v2 — Anatomical + Colored Tiers
 
-A signature feature on the Dashboard that turns daily protein consistency into a visible, growing anatomical figure. Front + back views, brutalist line-art style matching the app.
+Rebuild the Body Map to look like the reference: real anatomical muscle definition + colorful tier-based fills. This intentionally overrides the brutalist B&W rule for this one feature because it's the app's hero selling point and needs to feel rewarding.
 
-### Concept
+### What changes
 
-Each muscle group on a stylized human body "fills in" as the user accumulates **days where they hit their daily protein target**. The body starts as an empty wireframe outline and progressively gets filled with solid black (the app's brutalist accent) as muscle groups unlock at milestone thresholds.
+**1. Replace the crude polygon body with a proper anatomical SVG**
 
-This becomes the emotional payoff for daily logging — every hit day visibly builds the body.
+Hand-draw a detailed anatomical figure (front + back) using bezier curves. Each muscle group becomes a properly-shaped path:
 
-### Unlock progression (cumulative hit days)
+- Pecs: two curved upper-chest shapes with cleavage gap
+- Deltoids: rounded shoulder caps
+- Biceps: peaked upper-arm bulges
+- Triceps (back): horseshoe shape
+- Forearms: tapered curves
+- Abs: 6-pack with proper rectus segmentation + linea alba split
+- Obliques: angled side-flank shapes
+- Quads: four-headed thigh shapes with split
+- Hamstrings: curved back-thigh
+- Glutes: rounded buttock shapes
+- Calves: diamond-shaped lower-leg bulges
+- Lats: V-shaped wing
+- Traps: upper-back diamond
+- Neck: sternocleidomastoid lines
+
+Body silhouette stays as a thin outline (no more skinny rectangle limbs). Head becomes a proper rounded oval with subtle neck taper.
+
+**2. Tier-based color system (instead of unlock B&W fills)**
+
+Each muscle group displays the color of the **highest tier the user has reached at the time it unlocked**. The whole figure changes color as the user progresses, exactly like the reference:
 
 ```
-Day  1  →  Core (abs) lights up
-Day  3  →  Chest
-Day  7  →  Shoulders + Arms (biceps, triceps)
-Day 14  →  Quads + Hamstrings
-Day 21  →  Back (lats, traps) — back view unlocks
-Day 30  →  Glutes + Calves
-Day 60  →  Forearms + Obliques
-Day 90  →  Neck + full definition layer (cross-hatching detail)
+DORMANT   → outline only, no fill
+NOVICE    (Day 1)   → RED      #ef4444
+BUILDER   (Day 7)   → ORANGE   #f97316
+FORGED    (Day 21)  → GREEN    #22c55e
+ARCHITECT (Day 60)  → BLUE     #3b82f6
+MONOLITH  (Day 90)  → PURPLE   #a855f7
+LEGEND    (Day 180) → PINK     #ec4899   (new top tier)
 ```
 
-A small label under the body shows current tier:
-`NOVICE → BUILDER → FORGED → ARCHITECT → MONOLITH`
-(replacing the colorful "Beginner/Novice/Intermediate" pills from the reference — same idea, but typographic and brutalist.)
+Locked muscles render as thin outline only. Unlocked muscles fill with the color of the tier active when they unlocked, so an Architect-tier user sees:
+- abs/chest (unlocked at NOVICE) = red
+- arms/legs (unlocked at BUILDER) = orange
+- back/glutes (unlocked at FORGED) = green
+- forearms/obliques (unlocked at ARCHITECT) = blue
 
-### Placement on Dashboard
+This gives the layered rainbow look from the reference and visually shows progression history.
 
-A new collapsed card sits between Fuel Status and the daily log list:
+**3. Dashboard card layout**
+
+Make the card match the reference's split layout — Start (gray outline) on the left, Now (your current colored body) on the right, with a `›` between. This is the "selling moment": users see their actual transformation.
 
 ```
-┌─────────────────────────────┐
-│ // ARCHITECTURE             │
-│ 14 / 90 DAYS                │
-│                             │
-│   [body silhouette,         │
-│    partially filled]        │
-│                             │
-│ TIER: BUILDER          ›    │
-└─────────────────────────────┘
+┌──────────────────────────────────────┐
+│ // YOUR ARCHITECTURE                 │
+│                                      │
+│   [outline]    >    [your body]      │
+│    START                NOW          │
+│                                      │
+│ ━━━━━━━━━━━━━━━━━━░░░░░░░░  47%     │
+│ TIER: FORGED          14 / 90 DAYS › │
+└──────────────────────────────────────┘
 ```
 
-Tap → opens full-screen `BodyMapScreen` with:
-- Front / Back toggle (swipe or tab)
-- Larger figure with all unlocked groups filled
-- Milestone list showing next unlock ("CHEST UNLOCKED · BACK IN 7 DAYS")
-- Total protein-hit days, current streak, longest streak
+**4. Detail screen layout**
 
-### Visual style
-
-- Pure brutalist: black outline figure on cream background (light mode) / white outline on black (dark mode)
-- Unlocked muscles = solid `--foreground` fill
-- Locked muscles = thin outline only, low-opacity dashed stroke
-- Zero gradients, zero color (matches existing aesthetic — no rainbow tiers)
-- Subtle scale-in animation when a new group unlocks (one-time celebration on the day it triggers)
-- All labels Space Mono, ALL CAPS, tracking-wide
-
-### Data model
-
-Uses existing `protein-hit-days` data already tracked for streaks. No new database tables needed — derive `unlockedGroups` from a single count of historical hit days (stored in local storage / Firestore profile). Reuses current persistence layer.
+Match the reference closer:
+- Front view on top, back view below (no toggle — show both stacked, like the reference)
+- Tier pills bar in the middle showing current tier highlighted
+- Milestone list underneath
 
 ### Files
 
-**New:**
-- `src/components/BodyMap.tsx` — SVG component, front + back, takes `hitDays: number` prop, renders correct fills
-- `src/components/BodyMapCard.tsx` — collapsed Dashboard card
-- `src/components/BodyMapScreen.tsx` — full-screen detail view with front/back toggle, milestone list
-- `src/lib/bodyMap.ts` — unlock thresholds, tier names, helper to compute unlocked groups from hit-day count
-- `src/assets/body-front.svg` + `src/assets/body-back.svg` — base anatomical line art (or inline JSX paths in BodyMap.tsx)
-
 **Modified:**
-- `src/components/Dashboard.tsx` — insert `<BodyMapCard />` and route to detail screen
-- `src/lib/store.ts` or wherever hit-day count lives — expose a `getProteinHitDays()` selector if not already there
+- `src/components/BodyMap.tsx` — full rewrite with proper anatomical paths + color prop per muscle
+- `src/components/BodyMapCard.tsx` — split Start/Now layout
+- `src/components/BodyMapScreen.tsx` — stacked front+back, tier pills bar
+- `src/lib/bodyMap.ts` — add tier color map, add LEGEND tier at day 180, add helper `tierForGroup(group, hitDays)` returning the tier active when that group unlocked
 
-### Why this sells the app
+### Aesthetic note
 
-- Turns invisible consistency into a tangible avatar that grows with the user
-- Creates a long-term goal (90 days to full unlock) beyond daily streaks
-- Becomes the natural paywall hook: "Unlock your full body map — Premium"
-- Screenshot-worthy for App Store listing and social sharing
+This breaks the project's brutalist B&W rule on purpose, scoped to this feature only. Everything else (Dashboard chrome, Fuel Status, typography) stays B&W. The Body Map becomes the one colorful artifact in the app — exactly what makes it a selling point.
 
-### Out of scope (for now)
+### Not in scope
 
-- No real body-fat or weight tracking
-- No multi-color tiers (intentional — matches brutalist B&W aesthetic)
-- No animation library beyond what's already in the project (framer-motion)
+- Hand-drawn pixel-perfect anatomy (we're doing stylized vector, not medical-textbook detail)
+- Front/back toggle (replaced with stacked view per the reference)
+- Animated transition between unlock states beyond a simple fade

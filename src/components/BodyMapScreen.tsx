@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { getRecentSummaries } from '@/lib/firestore';
 import BodyMap from './BodyMap';
@@ -10,6 +10,8 @@ import {
   MILESTONES,
   nextMilestone,
   progressPct,
+  TIER_COLORS,
+  TIER_ORDER,
 } from '@/lib/bodyMap';
 
 interface Props {
@@ -19,7 +21,6 @@ interface Props {
 export default function BodyMapScreen({ onBack }: Props) {
   const { user } = useAuth();
   const [hitDays, setHitDays] = useState(0);
-  const [view, setView] = useState<'front' | 'back'>('front');
 
   useEffect(() => {
     if (!user) return;
@@ -36,6 +37,7 @@ export default function BodyMapScreen({ onBack }: Props) {
   const tier = currentTier(hitDays);
   const pct = progressPct(hitDays);
   const next = nextMilestone(hitDays);
+  const tierColor = TIER_COLORS[tier];
 
   return (
     <motion.div
@@ -44,7 +46,7 @@ export default function BodyMapScreen({ onBack }: Props) {
       transition={{ duration: 0.25, ease: 'easeOut' }}
       className="screen-container pb-32"
     >
-      <div className="flex items-center justify-between mb-10">
+      <div className="flex items-center justify-between mb-8">
         <button
           onClick={onBack}
           className="p-2 -ml-2 active:opacity-50 transition-opacity"
@@ -58,16 +60,73 @@ export default function BodyMapScreen({ onBack }: Props) {
         <div className="w-9" />
       </div>
 
-      <div className="mb-2">
+      <div className="mb-6">
         <p className="font-display text-[10px] font-bold tracking-[0.25em] uppercase text-muted-foreground/70 mb-1">
-          TIER
+          YOUR STRENGTH PROGRESS
         </p>
-        <h1 className="font-display font-black text-5xl tracking-[-0.01em] leading-none uppercase">
+        <h1
+          className="font-display font-black text-5xl tracking-[-0.01em] leading-none uppercase"
+          style={{ color: tierColor }}
+        >
           {tier}
         </h1>
       </div>
 
-      <div className="mt-6 mb-2 flex items-baseline justify-between">
+      {/* Start → Now front */}
+      <div className="border border-foreground/70 p-4 mb-3">
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <p className="font-display text-[10px] font-bold tracking-[0.25em] uppercase text-foreground/50 text-center">START</p>
+          <p className="font-display text-[10px] font-bold tracking-[0.25em] uppercase text-center" style={{ color: tierColor }}>NOW</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 flex justify-center">
+            <BodyMap hitDays={0} view="front" dormant className="w-full max-w-[140px] text-foreground/40" />
+          </div>
+          <ChevronRight size={22} className="text-foreground/50 shrink-0" strokeWidth={2.5} />
+          <div className="flex-1 flex justify-center">
+            <BodyMap hitDays={hitDays} view="front" className="w-full max-w-[140px]" />
+          </div>
+        </div>
+      </div>
+
+      {/* Tier pills */}
+      <div className="flex gap-1 mb-3 overflow-x-auto pb-1">
+        {TIER_ORDER.map(t => {
+          const active = t === tier;
+          const color = TIER_COLORS[t];
+          return (
+            <div
+              key={t}
+              className={`px-2.5 py-1.5 font-display text-[9px] font-black tracking-[0.15em] uppercase whitespace-nowrap shrink-0 border ${
+                active ? 'text-background' : 'text-foreground/60 border-foreground/20'
+              }`}
+              style={active ? { background: color, borderColor: color } : undefined}
+            >
+              {t}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Back view */}
+      <div className="border border-foreground/70 p-4 mb-6">
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <p className="font-display text-[10px] font-bold tracking-[0.25em] uppercase text-foreground/50 text-center">START</p>
+          <p className="font-display text-[10px] font-bold tracking-[0.25em] uppercase text-center" style={{ color: tierColor }}>NOW</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 flex justify-center">
+            <BodyMap hitDays={0} view="back" dormant className="w-full max-w-[140px] text-foreground/40" />
+          </div>
+          <ChevronRight size={22} className="text-foreground/50 shrink-0" strokeWidth={2.5} />
+          <div className="flex-1 flex justify-center">
+            <BodyMap hitDays={hitDays} view="back" className="w-full max-w-[140px]" />
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="flex items-baseline justify-between mb-2">
         <p className="font-display text-xs font-black tracking-[0.1em] uppercase">
           {hitDays} / {MAX_DAYS} DAYS
         </p>
@@ -75,39 +134,12 @@ export default function BodyMapScreen({ onBack }: Props) {
       </div>
       <div className="h-[10px] w-full bg-foreground/10 mb-8 overflow-hidden">
         <motion.div
-          className="h-full bg-foreground"
+          className="h-full"
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
+          style={{ background: tierColor }}
         />
-      </div>
-
-      {/* Front / Back toggle */}
-      <div className="grid grid-cols-2 mb-6 border border-foreground/70">
-        {(['front', 'back'] as const).map(v => (
-          <button
-            key={v}
-            onClick={() => setView(v)}
-            className={`py-2.5 font-display font-black text-xs tracking-[0.18em] uppercase transition-colors ${
-              view === v ? 'bg-foreground text-background' : 'text-foreground/60'
-            }`}
-          >
-            {v}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex justify-center mb-10">
-        <div className="w-[60%] max-w-[260px]">
-          <motion.div
-            key={view}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-          >
-            <BodyMap hitDays={hitDays} view={view} />
-          </motion.div>
-        </div>
       </div>
 
       {next && (
@@ -115,7 +147,10 @@ export default function BodyMapScreen({ onBack }: Props) {
           <p className="font-display text-[10px] font-bold tracking-[0.2em] uppercase text-muted-foreground mb-1">
             NEXT UNLOCK
           </p>
-          <p className="font-display font-black text-lg tracking-[0.06em] uppercase leading-tight">
+          <p
+            className="font-display font-black text-lg tracking-[0.06em] uppercase leading-tight"
+            style={{ color: TIER_COLORS[next.tier] }}
+          >
             {next.label}
           </p>
           <p className="text-[10px] tracking-[0.18em] uppercase text-muted-foreground/70 mt-1">
@@ -124,32 +159,32 @@ export default function BodyMapScreen({ onBack }: Props) {
         </div>
       )}
 
-      {/* Milestones */}
       <p className="font-display text-[10px] font-bold tracking-[0.25em] uppercase text-muted-foreground/70 mb-3">
         MILESTONES
       </p>
       <div className="border-t border-foreground/20">
-        {MILESTONES.map(m => {
+        {MILESTONES.filter(m => m.groups.length > 0 || m.tier === 'LEGEND').map(m => {
           const done = hitDays >= m.day;
+          const color = TIER_COLORS[m.tier];
           return (
             <div
               key={m.day}
-              className={`flex items-center justify-between py-3 border-b border-foreground/20 ${
-                done ? '' : 'opacity-50'
-              }`}
+              className="flex items-center justify-between py-3 border-b border-foreground/20"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span
-                  className={`w-3 h-3 shrink-0 ${
-                    done ? 'bg-foreground' : 'border border-foreground/40'
-                  }`}
+                  className="w-3 h-3 shrink-0"
+                  style={done ? { background: color } : { border: '1px solid hsl(var(--foreground) / 0.4)' }}
                   aria-hidden
                 />
-                <p className="font-display text-xs font-black tracking-[0.08em] uppercase truncate">
+                <p
+                  className={`font-display text-xs font-black tracking-[0.08em] uppercase truncate ${done ? '' : 'text-foreground/40'}`}
+                  style={done ? { color } : undefined}
+                >
                   {m.label}
                 </p>
               </div>
-              <p className="font-display text-[10px] font-bold tracking-[0.2em] uppercase shrink-0 ml-3">
+              <p className={`font-display text-[10px] font-bold tracking-[0.2em] uppercase shrink-0 ml-3 ${done ? '' : 'text-foreground/40'}`}>
                 DAY {m.day}
               </p>
             </div>
@@ -158,8 +193,7 @@ export default function BodyMapScreen({ onBack }: Props) {
       </div>
 
       <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground/60 mt-8 leading-relaxed">
-        Every day you hit your protein target builds your body. Miss a day, the build pauses. Hit
-        90 to reach MONOLITH.
+        Every day you hit your protein target builds your body. Miss a day, the build pauses. Hit 90 to reach MONOLITH, 180 for LEGEND.
       </p>
     </motion.div>
   );
