@@ -24,6 +24,7 @@ const getResetCode = (): string | null => {
 };
 
 const storySeenKey = (uid: string) => `brotein_story_seen:${uid}`;
+const paywallSeenKey = (uid: string) => `brotein_paywall_seen:${uid}`;
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
