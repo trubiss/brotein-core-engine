@@ -102,13 +102,19 @@ const Index = () => {
   if (!user) return <SignInScreen />;
   if (!storySeen) return (
     <Suspense fallback={null}>
-      <OnboardingStoryFlow onComplete={completeStory} onStartTrial={handleStartTrial} />
+      <OnboardingStoryFlow onComplete={completeStory} />
     </Suspense>
   );
 
-  const mainContent = !profile ? (
-    <OnboardingFlow />
-  ) : (
+  if (!profile) return <OnboardingFlow />;
+
+  if (!paywallSeen) return (
+    <Suspense fallback={null}>
+      <Paywall onStart={handlePaywallStart} onClose={markPaywallSeen} />
+    </Suspense>
+  );
+
+  return (
     <AnimatePresence mode="wait">
       <motion.div
         key={page}
@@ -126,17 +132,6 @@ const Index = () => {
         </Suspense>
       </motion.div>
     </AnimatePresence>
-  );
-
-  return (
-    <>
-      {mainContent}
-      {paywallOpen && (
-        <Suspense fallback={null}>
-          <Paywall onStart={handlePaywallStart} onClose={() => setPaywallOpen(false)} />
-        </Suspense>
-      )}
-    </>
   );
 };
 
