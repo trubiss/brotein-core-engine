@@ -1,7 +1,13 @@
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import BodyMap from './BodyMap';
-import { currentTier, MAX_DAYS, nextMilestone, progressPct } from '@/lib/bodyMap';
+import {
+  currentTier,
+  MAX_DAYS,
+  nextMilestone,
+  progressPct,
+  TIER_COLORS,
+} from '@/lib/bodyMap';
 
 interface Props {
   hitDays: number;
@@ -12,6 +18,7 @@ export default function BodyMapCard({ hitDays, onOpen }: Props) {
   const tier = currentTier(hitDays);
   const pct = progressPct(hitDays);
   const next = nextMilestone(hitDays);
+  const tierColor = TIER_COLORS[tier];
 
   return (
     <motion.button
@@ -23,38 +30,41 @@ export default function BodyMapCard({ hitDays, onOpen }: Props) {
     >
       <div className="flex items-center justify-between mb-3 min-w-0">
         <p className="font-display text-[10px] font-bold tracking-[0.2em] uppercase text-muted-foreground mb-0">
-          // ARCHITECTURE
+          // YOUR ARCHITECTURE
         </p>
         <p className="font-display text-[10px] font-bold tracking-[0.18em] uppercase shrink-0">
-          {hitDays} / {MAX_DAYS} DAYS
+          {hitDays} / {MAX_DAYS} D
         </p>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="w-20 shrink-0">
-          <BodyMap hitDays={hitDays} view="front" animate={false} />
-        </div>
-        <div className="w-20 shrink-0">
-          <BodyMap hitDays={hitDays} view="back" animate={false} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-display text-xl font-black tracking-[0.08em] uppercase leading-none mb-2">
-            {tier}
+      {/* Start → Now split */}
+      <div className="flex items-center gap-2 mb-4">
+        <div className="flex-1 flex flex-col items-center">
+          <BodyMap hitDays={0} view="front" animate={false} dormant className="w-full max-w-[110px] text-foreground/40" />
+          <p className="font-display text-[9px] font-bold tracking-[0.22em] uppercase text-foreground/40 mt-1">
+            START
           </p>
-          <div className="h-[6px] w-full bg-foreground/10 mb-2 overflow-hidden">
-            <div className="h-full bg-foreground" style={{ width: `${pct}%` }} />
-          </div>
-          {next ? (
-            <p className="text-[9px] tracking-[0.18em] uppercase text-muted-foreground/70 leading-tight">
-              NEXT · {next.label} IN {next.day - hitDays}D
-            </p>
-          ) : (
-            <p className="text-[9px] tracking-[0.18em] uppercase text-foreground leading-tight">
-              MAX BUILD ACHIEVED
-            </p>
-          )}
         </div>
-        <ChevronRight size={16} className="text-foreground/40 shrink-0" />
+        <ChevronRight size={20} className="text-foreground/50 shrink-0" strokeWidth={2.5} />
+        <div className="flex-1 flex flex-col items-center">
+          <BodyMap hitDays={hitDays} view="front" animate={false} className="w-full max-w-[110px]" />
+          <p className="font-display text-[9px] font-bold tracking-[0.22em] uppercase mt-1" style={{ color: tierColor }}>
+            NOW
+          </p>
+        </div>
+      </div>
+
+      {/* Progress */}
+      <div className="h-[6px] w-full bg-foreground/10 mb-2 overflow-hidden">
+        <div className="h-full" style={{ width: `${pct}%`, background: tierColor }} />
+      </div>
+      <div className="flex items-center justify-between min-w-0">
+        <p className="font-display text-xs font-black tracking-[0.1em] uppercase truncate" style={{ color: tierColor }}>
+          {tier}
+        </p>
+        <p className="text-[9px] tracking-[0.18em] uppercase text-muted-foreground/70 shrink-0 ml-2">
+          {next ? `NEXT IN ${next.day - hitDays}D` : 'MAX BUILD'}
+        </p>
       </div>
     </motion.button>
   );
