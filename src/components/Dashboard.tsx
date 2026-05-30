@@ -17,6 +17,7 @@ const FoodScanModal = lazy(() => import('./FoodScanModal'));
 const Paywall = lazy(() => import('./Paywall'));
 
 import { AmbientGrid, BlinkingCursor } from './ui/AmbientGrid';
+import BodyMapCard from './BodyMapCard';
 
 /** Counter that tweens between values for a satisfying count-up/down on log. */
 function AnimatedGrams({ value }: { value: number }) {
@@ -40,7 +41,7 @@ function AnimatedGrams({ value }: { value: number }) {
 }
 
 interface Props {
-  onNavigate: (page: 'history' | 'profile' | 'insights') => void;
+  onNavigate: (page: 'history' | 'profile' | 'insights' | 'bodymap') => void;
 }
 
 const stagger = { animate: { transition: { staggerChildren: 0.02 } } };
@@ -80,6 +81,7 @@ export default function Dashboard({ onNavigate }: Props) {
   const [showScan, setShowScan] = useState(false);
 
   const [streakBump, setStreakBump] = useState(0);
+  const [hitDays, setHitDays] = useState(0);
   const [hasEntitlement, setHasEntitlement] = useState(false);
   const [trialActive, setTrialActive] = useState(() => isTrialActive(uid));
   const [totalLogs, setTotalLogs] = useState(0);
@@ -174,13 +176,17 @@ export default function Dashboard({ onNavigate }: Props) {
     });
   }, [summary?.hitTarget, summary?.date, summary?.consumedProtein, summary?.targetProtein, uid]);
 
-  // Streak: one-shot, deferred to idle, refetched after mutations.
+  // Streak + total hit-day count: one-shot, deferred to idle, refetched after mutations.
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     const run = () => {
-      getRecentSummaries(user.uid, 30)
-        .then(all => { if (!cancelled) setStreak(computeStreak(all)); })
+      getRecentSummaries(user.uid, 120)
+        .then(all => {
+          if (cancelled) return;
+          setStreak(computeStreak(all));
+          setHitDays(all.filter(s => s.hitTarget).length);
+        })
         .catch(() => {});
     };
     const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
@@ -443,6 +449,10 @@ export default function Dashboard({ onNavigate }: Props) {
           SCAN FOOD WITH AI
         </motion.button>
       </motion.div>
+
+      {/* Secondary one-tap shortcuts — feel like extensions of the card */}
+      {/* Body Map — protein consistency made visible */}
+      <BodyMapCard hitDays={hitDays} onOpen={() => onNavigate('bodymap')} />
 
       {/* Secondary one-tap shortcuts — feel like extensions of the card */}
       <motion.div variants={fadeUp} className="grid grid-cols-3 gap-1.5 mb-8">
