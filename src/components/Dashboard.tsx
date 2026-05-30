@@ -393,6 +393,8 @@ export default function Dashboard({ onNavigate }: Props) {
         </p>
       </motion.div>
 
+      <RankCard summaries={summaries30} streak={streak} onOpen={() => onNavigate('rank')} />
+
       {/* Boxed progress card — primary tool panel */}
       <motion.div variants={fadeUp} className="border border-foreground/70 p-4 mb-3">
         <div className="flex items-baseline justify-between mb-2 min-w-0">
