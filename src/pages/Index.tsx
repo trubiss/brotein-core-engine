@@ -24,6 +24,7 @@ const getResetCode = (): string | null => {
 };
 
 const storySeenKey = (uid: string) => `brotein_story_seen:${uid}`;
+const paywallSeenKey = (uid: string) => `brotein_paywall_seen:${uid}`;
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -36,13 +37,14 @@ const Index = () => {
   const [page, setPage] = useState<Page>('dashboard');
   const [resetCode, setResetCode] = useState<string | null>(() => getResetCode());
   const [storySeen, setStorySeen] = useState(false);
-  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [paywallSeen, setPaywallSeen] = useState(false);
 
   // Recompute per-user when auth state changes — prevents User A's "seen"
   // state from suppressing the story for User B on the same device.
   useEffect(() => {
-    if (!user) { setStorySeen(false); return; }
+    if (!user) { setStorySeen(false); setPaywallSeen(false); return; }
     setStorySeen(localStorage.getItem(storySeenKey(user.uid)) === '1');
+    setPaywallSeen(localStorage.getItem(paywallSeenKey(user.uid)) === '1');
   }, [user]);
 
   const prevProfileRef = useRef(profile);
@@ -70,14 +72,14 @@ const Index = () => {
     setStorySeen(true);
   };
 
-  const handleStartTrial = () => {
-    completeStory();
-    setPaywallOpen(true);
+  const markPaywallSeen = () => {
+    if (user) localStorage.setItem(paywallSeenKey(user.uid), '1');
+    setPaywallSeen(true);
   };
 
   const handlePaywallStart = () => {
     if (user) startTrial(user.uid);
-    setPaywallOpen(false);
+    markPaywallSeen();
   };
 
   const clearResetCode = () => {
@@ -100,13 +102,19 @@ const Index = () => {
   if (!user) return <SignInScreen />;
   if (!storySeen) return (
     <Suspense fallback={null}>
-      <OnboardingStoryFlow onComplete={completeStory} onStartTrial={handleStartTrial} />
+      <OnboardingStoryFlow onComplete={completeStory} />
     </Suspense>
   );
 
-  const mainContent = !profile ? (
-    <OnboardingFlow />
-  ) : (
+  if (!profile) return <OnboardingFlow />;
+
+  if (!paywallSeen) return (
+    <Suspense fallback={null}>
+      <Paywall onStart={handlePaywallStart} onClose={markPaywallSeen} />
+    </Suspense>
+  );
+
+  return (
     <AnimatePresence mode="wait">
       <motion.div
         key={page}
@@ -124,17 +132,6 @@ const Index = () => {
         </Suspense>
       </motion.div>
     </AnimatePresence>
-  );
-
-  return (
-    <>
-      {mainContent}
-      {paywallOpen && (
-        <Suspense fallback={null}>
-          <Paywall onStart={handlePaywallStart} onClose={() => setPaywallOpen(false)} />
-        </Suspense>
-      )}
-    </>
   );
 };
 
