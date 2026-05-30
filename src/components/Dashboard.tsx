@@ -17,6 +17,7 @@ const FoodScanModal = lazy(() => import('./FoodScanModal'));
 const Paywall = lazy(() => import('./Paywall'));
 
 import { AmbientGrid, BlinkingCursor } from './ui/AmbientGrid';
+import BodyMapCard from './BodyMapCard';
 
 /** Counter that tweens between values for a satisfying count-up/down on log. */
 function AnimatedGrams({ value }: { value: number }) {
@@ -40,7 +41,7 @@ function AnimatedGrams({ value }: { value: number }) {
 }
 
 interface Props {
-  onNavigate: (page: 'history' | 'profile' | 'insights') => void;
+  onNavigate: (page: 'history' | 'profile' | 'insights' | 'bodymap') => void;
 }
 
 const stagger = { animate: { transition: { staggerChildren: 0.02 } } };
