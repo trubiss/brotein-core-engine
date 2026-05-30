@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { useMemo } from 'react';
 import { DailySummary } from '@/lib/types';
 import { computeIdentityScore, progressToNext } from '@/lib/identity';
-import SilhouetteFigure from './identity/SilhouetteFigure';
+import AnatomyFigure from './identity/AnatomyFigure';
 
 interface Props {
   summaries: DailySummary[];
@@ -33,7 +33,7 @@ export default function IdentityCard({ summaries, streak, onOpen }: Props) {
 
       <div className="flex items-stretch gap-5 min-w-0">
         <div className="shrink-0 flex items-center justify-center">
-          <SilhouetteFigure identity={b.identity} size="md" />
+          <AnatomyFigure identity={b.identity} size="md" />
         </div>
         <div className="min-w-0 flex-1 flex flex-col justify-center">
           <motion.p
