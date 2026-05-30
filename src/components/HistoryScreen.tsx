@@ -8,6 +8,7 @@ import QuickLogModal from './QuickLogModal';
 import SwipeableLogRow from './SwipeableLogRow';
 import { toast } from 'sonner';
 import { AmbientGrid } from './ui/AmbientGrid';
+import { formatLocalTime } from '@/lib/time';
 
 interface Props { onBack: () => void; }
 
@@ -182,7 +183,7 @@ export default function HistoryScreen({ onBack }: Props) {
                       <div className="min-w-0 flex-1">
                         <p className="text-sm uppercase tracking-[0.12em] truncate">{log.foodName}</p>
                         <p className="text-[10px] text-muted-foreground mt-1 tracking-wider">
-                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {formatLocalTime(new Date(log.timestamp))}
                           {log.mealType ? ` · ${log.mealType.toUpperCase()}` : ''}
                         </p>
                       </div>
