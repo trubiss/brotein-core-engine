@@ -64,6 +64,8 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
       setAi(result);
       setFoodName(result.foodName);
       setProtein(String(result.proteinGrams));
+      setCarbs(result.carbsGrams != null ? String(result.carbsGrams) : '');
+      setFats(result.fatsGrams != null ? String(result.fatsGrams) : '');
       if (result.mealType) setMealType(result.mealType);
       track('ai_scan_completed', { ai_grams: result.proteinGrams, confidence: result.confidence });
       setStage('review');
@@ -94,7 +96,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   };
 
   const reset = () => {
-    setImageDataUrl(null); setAi(null); setFoodName(''); setProtein(''); setMealType(undefined); setErrorMsg(''); setStage('pick');
+    setImageDataUrl(null); setAi(null); setFoodName(''); setProtein(''); setCarbs(''); setFats(''); setMealType(undefined); setErrorMsg(''); setStage('pick');
   };
 
   const canConfirm = foodName.trim().length > 0 && Number(protein) > 0;
@@ -107,6 +109,8 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
       await onConfirm({
         foodName: foodName.trim(),
         proteinGrams: Number(protein),
+        carbsGrams: Number(carbs) || undefined,
+        fatsGrams: Number(fats) || undefined,
         mealType,
         ai,
         imageDataUrl,
