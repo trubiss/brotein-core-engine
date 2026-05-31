@@ -131,6 +131,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
           proteinGrams: Number(protein),
           carbsGrams: Number(carbs) || undefined,
           fatsGrams: Number(fats) || undefined,
+          caloriesKcal: Number(calories) || undefined,
           mealType,
         });
         toast.success('SAVED TO FAVORITES');
@@ -147,6 +148,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
       proteinGrams: Number(protein),
       carbsGrams: Number(carbs) || undefined,
       fatsGrams: Number(fats) || undefined,
+      caloriesKcal: Number(calories) || undefined,
       mealType,
     };
     Promise.resolve(onSubmit(payload)).catch((e) => {
