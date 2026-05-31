@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { motion, useMotionValue, useTransform, type PanInfo } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useDragControls, animate, type PanInfo } from 'framer-motion';
 import { MealType, FoodLog } from '@/lib/types';
 import { FOOD_DATABASE, searchFoods, FoodItem } from '@/lib/foods';
 import { useAuth } from '@/lib/auth';
@@ -140,9 +140,10 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
 
   const TabBtn = ({ id, label }: { id: Tab; label: string }) => (
     <button
+      type="button"
       onClick={() => setTab(id)}
-      className={`flex-1 py-2 text-[10px] font-bold tracking-widest border-2 ${
-        tab === id ? 'border-foreground bg-foreground text-background' : 'border-foreground'
+      className={`flex-1 py-2 text-[10px] font-bold tracking-widest border-2 border-foreground touch-manipulation ${
+        tab === id ? 'bg-foreground text-background relative z-10' : ''
       }`}
     >
       {label}
@@ -151,12 +152,13 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
 
   const y = useMotionValue(0);
   const overlayOpacity = useTransform(y, [0, 300], [1, 0]);
+  const dragControls = useDragControls();
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     if (info.offset.y > 120 || info.velocity.y > 500) {
       onClose();
     } else {
-      y.set(0);
+      animate(y, 0, { type: 'spring', damping: 30, stiffness: 300 });
     }
   };
 
@@ -177,27 +179,39 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         style={{ y }}
+        drag="y"
+        dragListener={false}
+        dragControls={dragControls}
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.4 }}
+        onDragEnd={handleDragEnd}
       >
-        {/* Drag handle area — drag from here to dismiss */}
-        <motion.div
-          drag="y"
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={{ top: 0, bottom: 0.6 }}
-          onDragEnd={handleDragEnd}
-          className="px-6 pt-6 pb-2 cursor-grab active:cursor-grabbing touch-none"
+        {/* Drag handle area — start drag from here to dismiss */}
+        <div
+          onPointerDown={(e) => dragControls.start(e)}
+          className="px-6 pt-6 pb-2 cursor-grab active:cursor-grabbing touch-none select-none"
         >
           <div className="w-12 h-1 bg-foreground/30 mx-auto mb-5 rounded-full" />
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-black tracking-[0.1em]">{title}</h2>
-            <button onClick={onClose} className="p-1.5 border-2 border-foreground active:scale-95"><X size={14} /></button>
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={onClose}
+              className="p-1.5 border-2 border-foreground active:scale-95 touch-manipulation"
+            >
+              <X size={14} />
+            </button>
           </div>
-        </motion.div>
+        </div>
+
 
         <div className="px-6 pb-[max(1rem,env(safe-area-inset-bottom))] overflow-y-auto flex-1 pt-3">
         {!initial && onScan && (
           <button
+            type="button"
             onClick={onScan}
-            className="w-full mb-4 border-2 border-foreground p-3 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform bg-foreground text-background"
+            className="w-full mb-4 border-2 border-foreground p-3 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform bg-foreground text-background touch-manipulation"
           >
             <Camera size={14} strokeWidth={2.5} />
             <span className="text-xs font-bold tracking-[0.2em] uppercase">SCAN FOOD WITH AI</span>
@@ -230,9 +244,10 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
                 <p className="py-6 text-center text-[10px] tracking-[0.2em] uppercase text-muted-foreground">NO MATCHES</p>
               ) : results.map(f => (
                 <button
+                  type="button"
                   key={f.id}
                   onClick={() => pickFood(f)}
-                  className="w-full flex items-center justify-between gap-3 py-3 border-b border-border min-w-0 active:bg-foreground/5"
+                  className="w-full flex items-center justify-between gap-3 py-3 border-b border-border min-w-0 active:bg-foreground/5 touch-manipulation"
                 >
                   <div className="min-w-0 text-left">
                     <p className="text-sm uppercase tracking-[0.12em] truncate">{f.name}</p>
@@ -256,15 +271,16 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
               </div>
             ) : favorites.map(f => (
               <div key={f.id} className="flex items-center justify-between gap-2 py-3 border-b border-border min-w-0">
-                <button onClick={() => pickFavorite(f)} className="flex-1 text-left min-w-0 active:opacity-60">
+                <button type="button" onClick={() => pickFavorite(f)} className="flex-1 text-left min-w-0 active:opacity-60 touch-manipulation">
                   <p className="text-sm uppercase tracking-[0.12em] truncate">{f.foodName}</p>
                   <p className="text-[10px] text-muted-foreground tracking-wider uppercase">
                     {f.proteinGrams}G{f.mealType ? ` · ${f.mealType}` : ''}
                   </p>
                 </button>
                 <button
+                  type="button"
                   onClick={() => removeFavorite(user!.uid, f.id)}
-                  className="p-2 border-2 border-foreground active:scale-95 shrink-0"
+                  className="p-2 border-2 border-foreground active:scale-95 shrink-0 touch-manipulation"
                   aria-label="Remove favorite"
                 >
                   <Star size={12} fill="currentColor" />
@@ -287,8 +303,9 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
                 className="flex items-stretch gap-2 border-b border-border min-w-0"
               >
                 <button
+                  type="button"
                   onClick={() => pickRecent(r)}
-                  className="flex-1 flex items-center justify-between gap-3 py-3 pr-2 min-w-0 active:bg-foreground/5 text-left"
+                  className="flex-1 flex items-center justify-between gap-3 py-3 pr-2 min-w-0 active:bg-foreground/5 text-left touch-manipulation"
                 >
                   <div className="min-w-0">
                     <p className="text-sm uppercase tracking-[0.12em] truncate">{r.foodName}</p>
@@ -298,9 +315,10 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
                   </div>
                 </button>
                 <motion.button
-                  whileTap={{ scale: 1.08 }}
+                  type="button"
+                  whileTap={{ scale: 0.92 }}
                   onClick={(e) => { e.stopPropagation(); quickAdd(r.foodName, r.proteinGrams, r.mealType); }}
-                  className="my-2 w-11 h-11 border-2 border-foreground flex items-center justify-center shrink-0 bg-background active:bg-foreground active:text-background"
+                  className="my-2 w-11 h-11 border-2 border-foreground flex items-center justify-center shrink-0 bg-background active:bg-foreground active:text-background touch-manipulation"
                   aria-label={`Add ${r.proteinGrams}g ${r.foodName}`}
                 >
                   <Plus size={16} strokeWidth={3} />
@@ -337,15 +355,21 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
             </div>
 
             <div className="flex gap-2 mb-5 flex-wrap">
-              {PRESETS.map(g => (
-                <button
-                  key={g}
-                  className="btn-outline flex-1 min-w-[60px] px-3 py-2 text-xs font-bold tracking-widest"
-                  onClick={() => setProtein(String(g))}
-                >
-                  +{g}G
-                </button>
-              ))}
+              {PRESETS.map(g => {
+                const active = Number(protein) === g;
+                return (
+                  <button
+                    type="button"
+                    key={g}
+                    className={`flex-1 min-w-[60px] px-3 py-2 text-xs font-bold tracking-widest border-2 border-foreground touch-manipulation ${
+                      active ? 'bg-foreground text-background' : ''
+                    }`}
+                    onClick={() => setProtein(String(g))}
+                  >
+                    +{g}G
+                  </button>
+                );
+              })}
             </div>
 
             <div className="mb-5">
@@ -353,10 +377,11 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
               <div className="grid grid-cols-4 gap-2">
                 {MEALS.map(m => (
                   <button
+                    type="button"
                     key={m.value}
                     onClick={() => setMealType(mealType === m.value ? undefined : m.value)}
-                    className={`p-2 border-2 text-[10px] font-bold tracking-widest ${
-                      mealType === m.value ? 'border-foreground bg-foreground text-background' : 'border-foreground'
+                    className={`p-2 border-2 border-foreground text-[10px] font-bold tracking-widest touch-manipulation ${
+                      mealType === m.value ? 'bg-foreground text-background' : ''
                     }`}
                   >
                     {m.label}
@@ -367,9 +392,10 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
 
             {!initial && (
               <button
+                type="button"
                 onClick={toggleFavoriteCurrent}
                 disabled={!canLog}
-                className="w-full mb-5 py-2 border-2 border-foreground text-[10px] font-bold tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-30"
+                className="w-full mb-5 py-2 border-2 border-foreground text-[10px] font-bold tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-30 touch-manipulation"
               >
                 <Star size={12} fill={isFavorited(name.trim(), Number(protein)) ? 'currentColor' : 'none'} />
                 {isFavorited(name.trim(), Number(protein)) ? 'SAVED TO FAVORITES' : 'SAVE TO FAVORITES'}
@@ -377,9 +403,10 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
             )}
 
             <div className="flex gap-3">
-              <button className="btn-outline flex-1" onClick={onClose} disabled={busy}>CANCEL</button>
+              <button type="button" className="btn-outline flex-1 touch-manipulation" onClick={onClose} disabled={busy}>CANCEL</button>
               <button
-                className="btn-primary flex-1"
+                type="button"
+                className="btn-primary flex-1 touch-manipulation"
                 disabled={!canLog || busy}
                 onClick={handleSubmit}
                 style={{ opacity: canLog && !busy ? 1 : 0.3 }}
