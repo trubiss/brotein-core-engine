@@ -47,7 +47,7 @@ serve(async (req) => {
           {
             role: "user",
             content: [
-              { type: "text", text: "Analyze this food photo. Estimate protein, carbs, and fat in grams." },
+              { type: "text", text: "Analyze this food photo. Estimate protein, carbs, fat in grams, and calories in kcal." },
               { type: "image_url", image_url: { url: imageDataUrl } },
             ],
           },
@@ -65,12 +65,13 @@ serve(async (req) => {
                   proteinGrams: { type: "integer", description: "Estimated protein grams (whole number)." },
                   carbsGrams: { type: "integer", description: "Estimated carbohydrate grams (whole number, 0 if negligible)." },
                   fatsGrams: { type: "integer", description: "Estimated fat grams (whole number, 0 if negligible)." },
+                  caloriesKcal: { type: "integer", description: "Estimated calories in kcal (whole number)." },
                   portion: { type: "string", description: "Estimated portion e.g. '1 breast (~150g)'." },
                   confidence: { type: "number", description: "0.0 to 1.0" },
                   mealType: { type: ["string", "null"], enum: ["breakfast", "lunch", "dinner", "snack", null] },
                   notes: { type: "string" },
                 },
-                required: ["foodName", "proteinGrams", "carbsGrams", "fatsGrams", "confidence", "portion"],
+                required: ["foodName", "proteinGrams", "carbsGrams", "fatsGrams", "caloriesKcal", "confidence", "portion"],
                 additionalProperties: false,
               },
             },
