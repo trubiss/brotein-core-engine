@@ -567,8 +567,8 @@ export default function Dashboard({ onNavigate }: Props) {
         <Suspense fallback={null}>
           {showModal && (
             <QuickLogModal
-              onSubmit={async ({ foodName, proteinGrams, mealType }) => {
-                await log(foodName, proteinGrams, mealType);
+              onSubmit={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, mealType }) => {
+                await log(foodName, proteinGrams, mealType, carbsGrams, fatsGrams);
               }}
               onScan={() => { setShowModal(false); setShowScan(true); }}
               onClose={() => setShowModal(false)}
