@@ -9,9 +9,9 @@ interface Props {
 }
 
 // Distance (px) past which releasing triggers a delete.
-const DELETE_THRESHOLD = 120;
+const DELETE_THRESHOLD = 110;
 // Velocity (px/s) that triggers delete regardless of distance.
-const VELOCITY_THRESHOLD = 600;
+const VELOCITY_THRESHOLD = 500;
 
 const SwipeableLogRow = forwardRef<HTMLDivElement, Props>(function SwipeableLogRow(
   { onTap, onDelete, children },
@@ -20,10 +20,13 @@ const SwipeableLogRow = forwardRef<HTMLDivElement, Props>(function SwipeableLogR
   const x = useMotionValue(0);
   const dragged = useRef(false);
 
-  // Background reveal opacity scales with drag distance.
-  const bgOpacity = useTransform(x, [-DELETE_THRESHOLD, -20, 0], [1, 0.3, 0]);
-  const iconScale = useTransform(x, [-DELETE_THRESHOLD, -40, 0], [1, 0.6, 0.4]);
-  const iconOpacity = useTransform(x, [-DELETE_THRESHOLD, -30, 0], [1, 0.5, 0]);
+  // Background reveal opacity scales with drag distance — smoother ramp.
+  const bgOpacity = useTransform(x, [-DELETE_THRESHOLD, 0], [1, 0], { clamp: true });
+  const iconScale = useTransform(x, [-DELETE_THRESHOLD, -30, 0], [1.1, 0.7, 0.5], { clamp: true });
+  const iconOpacity = useTransform(x, [-DELETE_THRESHOLD, -20, 0], [1, 0.4, 0], { clamp: true });
+  const iconX = useTransform(x, [-DELETE_THRESHOLD * 1.5, -DELETE_THRESHOLD, 0], [-20, 0, 30], {
+    clamp: true,
+  });
 
   const handleDragStart = () => {
     dragged.current = true;
@@ -38,14 +41,23 @@ const SwipeableLogRow = forwardRef<HTMLDivElement, Props>(function SwipeableLogR
       info.offset.x < -DELETE_THRESHOLD || info.velocity.x < -VELOCITY_THRESHOLD;
 
     if (shouldDelete) {
-      // Animate fully off-screen, then commit delete.
+      // Carry the swipe momentum off-screen for a natural feel.
+      const velocity = Math.min(info.velocity.x, -800);
       animate(x, -window.innerWidth, {
-        duration: 0.18,
-        ease: 'easeOut',
+        type: 'tween',
+        duration: 0.22,
+        ease: [0.32, 0.72, 0, 1],
         onComplete: () => onDelete(),
       });
     } else {
-      animate(x, 0, { type: 'spring', stiffness: 500, damping: 40 });
+      // Soft, iOS-like settle.
+      animate(x, 0, {
+        type: 'spring',
+        stiffness: 380,
+        damping: 34,
+        mass: 0.9,
+        velocity: info.velocity.x,
+      });
     }
   };
 
@@ -62,7 +74,10 @@ const SwipeableLogRow = forwardRef<HTMLDivElement, Props>(function SwipeableLogR
         className="absolute inset-0 bg-foreground flex items-center justify-end pr-6 pointer-events-none"
         aria-hidden
       >
-        <motion.div style={{ scale: iconScale, opacity: iconOpacity }} className="text-background">
+        <motion.div
+          style={{ scale: iconScale, opacity: iconOpacity, x: iconX }}
+          className="text-background"
+        >
           <Trash2 size={18} strokeWidth={2.5} />
         </motion.div>
       </motion.div>
@@ -70,11 +85,12 @@ const SwipeableLogRow = forwardRef<HTMLDivElement, Props>(function SwipeableLogR
       <motion.div
         drag="x"
         dragConstraints={{ left: -window.innerWidth, right: 0 }}
-        dragElastic={{ left: 0.6, right: 0 }}
+        dragElastic={{ left: 0.15, right: 0 }}
+        dragMomentum={false}
         dragDirectionLock
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        style={{ x }}
+        style={{ x, touchAction: 'pan-y' }}
         onClick={handleClick}
         className="bg-background cursor-pointer select-none active:bg-foreground/5"
       >
