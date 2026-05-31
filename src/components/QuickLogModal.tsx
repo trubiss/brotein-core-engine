@@ -355,15 +355,21 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
             </div>
 
             <div className="flex gap-2 mb-5 flex-wrap">
-              {PRESETS.map(g => (
-                <button
-                  key={g}
-                  className="btn-outline flex-1 min-w-[60px] px-3 py-2 text-xs font-bold tracking-widest"
-                  onClick={() => setProtein(String(g))}
-                >
-                  +{g}G
-                </button>
-              ))}
+              {PRESETS.map(g => {
+                const active = Number(protein) === g;
+                return (
+                  <button
+                    type="button"
+                    key={g}
+                    className={`flex-1 min-w-[60px] px-3 py-2 text-xs font-bold tracking-widest border-2 border-foreground touch-manipulation ${
+                      active ? 'bg-foreground text-background' : ''
+                    }`}
+                    onClick={() => setProtein(String(g))}
+                  >
+                    +{g}G
+                  </button>
+                );
+              })}
             </div>
 
             <div className="mb-5">
@@ -371,10 +377,11 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
               <div className="grid grid-cols-4 gap-2">
                 {MEALS.map(m => (
                   <button
+                    type="button"
                     key={m.value}
                     onClick={() => setMealType(mealType === m.value ? undefined : m.value)}
-                    className={`p-2 border-2 text-[10px] font-bold tracking-widest ${
-                      mealType === m.value ? 'border-foreground bg-foreground text-background' : 'border-foreground'
+                    className={`p-2 border-2 border-foreground text-[10px] font-bold tracking-widest touch-manipulation ${
+                      mealType === m.value ? 'bg-foreground text-background' : ''
                     }`}
                   >
                     {m.label}
@@ -385,9 +392,10 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
 
             {!initial && (
               <button
+                type="button"
                 onClick={toggleFavoriteCurrent}
                 disabled={!canLog}
-                className="w-full mb-5 py-2 border-2 border-foreground text-[10px] font-bold tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-30"
+                className="w-full mb-5 py-2 border-2 border-foreground text-[10px] font-bold tracking-widest flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-30 touch-manipulation"
               >
                 <Star size={12} fill={isFavorited(name.trim(), Number(protein)) ? 'currentColor' : 'none'} />
                 {isFavorited(name.trim(), Number(protein)) ? 'SAVED TO FAVORITES' : 'SAVE TO FAVORITES'}
@@ -395,9 +403,10 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
             )}
 
             <div className="flex gap-3">
-              <button className="btn-outline flex-1" onClick={onClose} disabled={busy}>CANCEL</button>
+              <button type="button" className="btn-outline flex-1 touch-manipulation" onClick={onClose} disabled={busy}>CANCEL</button>
               <button
-                className="btn-primary flex-1"
+                type="button"
+                className="btn-primary flex-1 touch-manipulation"
                 disabled={!canLog || busy}
                 onClick={handleSubmit}
                 style={{ opacity: canLog && !busy ? 1 : 0.3 }}
