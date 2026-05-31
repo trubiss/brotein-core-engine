@@ -244,9 +244,10 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
                 <p className="py-6 text-center text-[10px] tracking-[0.2em] uppercase text-muted-foreground">NO MATCHES</p>
               ) : results.map(f => (
                 <button
+                  type="button"
                   key={f.id}
                   onClick={() => pickFood(f)}
-                  className="w-full flex items-center justify-between gap-3 py-3 border-b border-border min-w-0 active:bg-foreground/5"
+                  className="w-full flex items-center justify-between gap-3 py-3 border-b border-border min-w-0 active:bg-foreground/5 touch-manipulation"
                 >
                   <div className="min-w-0 text-left">
                     <p className="text-sm uppercase tracking-[0.12em] truncate">{f.name}</p>
