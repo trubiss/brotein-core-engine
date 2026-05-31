@@ -136,11 +136,26 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
                 AI ESTIMATES PROTEIN FROM A FOOD PHOTO. YOU CAN EDIT BEFORE LOGGING.
               </p>
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <button onClick={() => cameraRef.current?.click()} className="border-2 border-foreground p-6 flex flex-col items-center gap-3 active:scale-[0.98] transition-transform">
+                <button onClick={async () => {
+                  void tapHaptic();
+                  if (isNative()) {
+                    const dataUrl = await takeFoodPhoto();
+                    if (dataUrl) void handleDataUrl(dataUrl);
+                  } else {
+                    cameraRef.current?.click();
+                  }
+                }} className="border-2 border-foreground p-6 flex flex-col items-center gap-3 active:scale-[0.98] transition-transform">
                   <Camera size={28} strokeWidth={2} />
                   <span className="text-xs font-bold tracking-widest">CAMERA</span>
                 </button>
-                <button onClick={() => fileRef.current?.click()} className="border-2 border-foreground p-6 flex flex-col items-center gap-3 active:scale-[0.98] transition-transform">
+                <button onClick={async () => {
+                  if (isNative()) {
+                    const dataUrl = await pickFoodPhoto();
+                    if (dataUrl) void handleDataUrl(dataUrl);
+                  } else {
+                    fileRef.current?.click();
+                  }
+                }} className="border-2 border-foreground p-6 flex flex-col items-center gap-3 active:scale-[0.98] transition-transform">
                   <Upload size={28} strokeWidth={2} />
                   <span className="text-xs font-bold tracking-widest">UPLOAD</span>
                 </button>
