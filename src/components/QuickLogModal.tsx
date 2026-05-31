@@ -209,8 +209,9 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
         <div className="px-6 pb-[max(1rem,env(safe-area-inset-bottom))] overflow-y-auto flex-1 pt-3">
         {!initial && onScan && (
           <button
+            type="button"
             onClick={onScan}
-            className="w-full mb-4 border-2 border-foreground p-3 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform bg-foreground text-background"
+            className="w-full mb-4 border-2 border-foreground p-3 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform bg-foreground text-background touch-manipulation"
           >
             <Camera size={14} strokeWidth={2.5} />
             <span className="text-xs font-bold tracking-[0.2em] uppercase">SCAN FOOD WITH AI</span>
