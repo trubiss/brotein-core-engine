@@ -85,7 +85,6 @@ export default function Dashboard({ onNavigate }: Props) {
   const [hasEntitlement, setHasEntitlement] = useState(false);
   const [trialActive, setTrialActive] = useState(() => isTrialActive(uid));
   const [totalLogs, setTotalLogs] = useState(0);
-  const [lastEntry, setLastEntry] = useState<FoodLog | null>(null);
   const [nowTick, setNowTick] = useState(Date.now());
 
   // Keep trialActive in sync when uid changes (login/logout) — preserves expiry semantics.
