@@ -102,7 +102,7 @@ export async function updateProfileFields(uid: string, partial: Partial<UserProf
   return merged;
 }
 
-type Targets = { protein: number; carbs?: number; fats?: number };
+type Targets = { protein: number; carbs?: number; fats?: number; calories?: number };
 
 function normalizeTargets(t: number | Targets | undefined): Targets | undefined {
   if (t === undefined) return undefined;
@@ -115,7 +115,7 @@ async function resolveTargets(uid: string, t: number | Targets | undefined): Pro
   if (norm) return norm;
   const profile = await getProfile(uid);
   if (!profile) throw new Error('Profile required');
-  return { protein: profile.dailyProtein, carbs: profile.dailyCarbs, fats: profile.dailyFats };
+  return { protein: profile.dailyProtein, carbs: profile.dailyCarbs, fats: profile.dailyFats, calories: profile.dailyCalories };
 }
 
 async function recomputeSummary(uid: string, date: string, targets: Targets) {
@@ -124,11 +124,13 @@ async function recomputeSummary(uid: string, date: string, targets: Targets) {
   let consumed = 0;
   let consumedCarbs = 0;
   let consumedFats = 0;
+  let consumedCalories = 0;
   snap.forEach(d => {
     const data = d.data() as FoodLog;
     consumed += data.proteinGrams || 0;
     consumedCarbs += data.carbsGrams || 0;
     consumedFats += data.fatsGrams || 0;
+    consumedCalories += data.caloriesKcal ?? kcalFromMacros(data.proteinGrams, data.carbsGrams, data.fatsGrams);
   });
   const summary: DailySummary = {
     date,
@@ -139,8 +141,10 @@ async function recomputeSummary(uid: string, date: string, targets: Targets) {
     logCount: snap.size,
     consumedCarbs,
     consumedFats,
+    consumedCalories,
     targetCarbs: targets.carbs ?? 0,
     targetFats: targets.fats ?? 0,
+    targetCalories: targets.calories ?? 0,
   };
   await setDoc(summaryDoc(uid, date), summary, { merge: true });
   return summary;
@@ -153,6 +157,7 @@ export async function addLog(
     proteinGrams: number;
     carbsGrams?: number;
     fatsGrams?: number;
+    caloriesKcal?: number;
     mealType?: MealType;
     date?: string;
     timestamp?: number;
@@ -161,6 +166,7 @@ export async function addLog(
     aiEstimatedGrams?: number;
     aiEstimatedCarbs?: number;
     aiEstimatedFats?: number;
+    aiEstimatedCalories?: number;
     aiConfidence?: number;
     aiPortion?: string;
     aiEdited?: boolean;
@@ -181,12 +187,14 @@ export async function addLog(
       proteinGrams: input.proteinGrams,
       carbsGrams: input.carbsGrams,
       fatsGrams: input.fatsGrams,
+      caloriesKcal: input.caloriesKcal,
       mealType: input.mealType,
       source: input.source,
       aiDetectedName: input.aiDetectedName,
       aiEstimatedGrams: input.aiEstimatedGrams,
       aiEstimatedCarbs: input.aiEstimatedCarbs,
       aiEstimatedFats: input.aiEstimatedFats,
+      aiEstimatedCalories: input.aiEstimatedCalories,
       aiConfidence: input.aiConfidence,
       aiPortion: input.aiPortion,
       aiEdited: input.aiEdited,
