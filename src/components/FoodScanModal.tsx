@@ -11,6 +11,8 @@ interface Props {
   onConfirm: (data: {
     foodName: string;
     proteinGrams: number;
+    carbsGrams?: number;
+    fatsGrams?: number;
     mealType?: MealType;
     ai: ScanResult;
     imageDataUrl: string;
@@ -34,6 +36,8 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   const [ai, setAi] = useState<ScanResult | null>(null);
   const [foodName, setFoodName] = useState('');
   const [protein, setProtein] = useState('');
+  const [carbs, setCarbs] = useState('');
+  const [fats, setFats] = useState('');
   const [mealType, setMealType] = useState<MealType | undefined>(undefined);
   const [errorMsg, setErrorMsg] = useState('');
   const [busy, setBusy] = useState(false);
