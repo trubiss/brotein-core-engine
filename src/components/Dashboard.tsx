@@ -239,7 +239,18 @@ export default function Dashboard({ onNavigate }: Props) {
     () => logs.reduce((s, l) => s + (l.proteinGrams || 0), 0),
     [logs]
   );
+  const consumedCarbs = useMemo(
+    () => logs.reduce((s, l) => s + (l.carbsGrams || 0), 0),
+    [logs]
+  );
+  const consumedFats = useMemo(
+    () => logs.reduce((s, l) => s + (l.fatsGrams || 0), 0),
+    [logs]
+  );
   const target = profile?.dailyProtein ?? 0;
+  const targetCarbs = profile?.dailyCarbs ?? 0;
+  const targetFats = profile?.dailyFats ?? 0;
+  const macroTargets = { protein: target, carbs: targetCarbs, fats: targetFats };
   const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
 
   // Paywall tracking (must be declared before any conditional return)
@@ -288,12 +299,12 @@ export default function Dashboard({ onNavigate }: Props) {
     return { headline: 'ON TRACK', sub: 'STAY CONSISTENT.' };
   })();
 
-  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
+  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number) => {
     haptic();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
     track('food_logged', { grams: proteinGrams, meal: mealType ?? 'unspecified', source: 'manual', is_today: isToday });
-    return addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate }, profile.dailyProtein)
+    return addLog(user.uid, { foodName, proteinGrams, carbsGrams, fatsGrams, mealType, date: viewDate }, macroTargets)
       .catch((e: unknown) => {
         toast.error(e instanceof Error ? e.message : 'Failed to log');
       });
@@ -450,7 +461,7 @@ export default function Dashboard({ onNavigate }: Props) {
       </motion.div>
 
       {/* Secondary one-tap shortcuts — feel like extensions of the card */}
-      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-1.5 mb-8">
+      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-1.5 mb-3">
         {[20, 30, 40].map(g => (
           <motion.button
             key={g}
@@ -464,6 +475,40 @@ export default function Dashboard({ onNavigate }: Props) {
           </motion.button>
         ))}
       </motion.div>
+
+      {/* Secondary macros — protein remains the hero above */}
+      <motion.div variants={fadeUp} className="mb-8">
+        <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 mb-2">
+          MACROS
+        </p>
+        {[
+          { label: 'CARBS', value: consumedCarbs, goal: targetCarbs },
+          { label: 'FAT', value: consumedFats, goal: targetFats },
+        ].map(m => {
+          const pct = m.goal > 0 ? Math.min(100, (m.value / m.goal) * 100) : 0;
+          return (
+            <div key={m.label} className="mb-2 last:mb-0">
+              <div className="flex items-baseline justify-between mb-1 min-w-0">
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted-foreground/70">
+                  {m.label}
+                </span>
+                <span className="text-[10px] font-bold tracking-[0.04em] text-muted-foreground/70 shrink-0">
+                  {Math.round(m.value)} / {m.goal}G
+                </span>
+              </div>
+              <div className="h-[3px] w-full bg-foreground/10 overflow-hidden">
+                <motion.div
+                  className="h-full bg-foreground/50"
+                  initial={false}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </motion.div>
+
 
       {/* Today's Entries — swipe a row left to delete a mis-tap */}
       <motion.div variants={fadeUp} className="mb-2">
@@ -490,7 +535,7 @@ export default function Dashboard({ onNavigate }: Props) {
                 onDelete={async () => {
                   haptic();
                   try {
-                    await deleteLog(user.uid, l.id, profile.dailyProtein);
+                    await deleteLog(user.uid, l.id, macroTargets);
                     setStreakBump(b => b + 1);
                     toast.success('ENTRY DELETED', { duration: 900 });
                   } catch (e: unknown) {
@@ -522,8 +567,8 @@ export default function Dashboard({ onNavigate }: Props) {
         <Suspense fallback={null}>
           {showModal && (
             <QuickLogModal
-              onSubmit={async ({ foodName, proteinGrams, mealType }) => {
-                await log(foodName, proteinGrams, mealType);
+              onSubmit={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, mealType }) => {
+                await log(foodName, proteinGrams, mealType, carbsGrams, fatsGrams);
               }}
               onScan={() => { setShowModal(false); setShowScan(true); }}
               onClose={() => setShowModal(false)}
@@ -533,20 +578,24 @@ export default function Dashboard({ onNavigate }: Props) {
           {showScan && (
             <FoodScanModal
               onClose={() => setShowScan(false)}
-              onConfirm={async ({ foodName, proteinGrams, mealType, ai, edited }) => {
+              onConfirm={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, mealType, ai, edited }) => {
                 try {
                   await addLog(user.uid, {
                     foodName,
                     proteinGrams,
+                    carbsGrams,
+                    fatsGrams,
                     mealType,
                     date: viewDate,
                     source: 'ai-scan',
                     aiDetectedName: ai.foodName,
                     aiEstimatedGrams: ai.proteinGrams,
+                    aiEstimatedCarbs: ai.carbsGrams,
+                    aiEstimatedFats: ai.fatsGrams,
                     aiConfidence: ai.confidence,
                     aiPortion: ai.portion,
                     aiEdited: edited,
-                  }, profile.dailyProtein);
+                  }, macroTargets);
                   setStreakBump(b => b + 1);
                   track('ai_scan_logged', {
                     grams: proteinGrams,

@@ -8,6 +8,8 @@ export interface FoodItem {
   id: string;
   name: string;
   proteinGrams: number;       // grams of protein per typical serving
+  carbsGrams?: number;        // grams of carbs per typical serving
+  fatsGrams?: number;         // grams of fat per typical serving
   servingLabel?: string;      // human-friendly serving size
   category: FoodCategory;
   suggestedMeal?: MealType;

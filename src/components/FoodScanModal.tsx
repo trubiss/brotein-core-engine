@@ -11,6 +11,8 @@ interface Props {
   onConfirm: (data: {
     foodName: string;
     proteinGrams: number;
+    carbsGrams?: number;
+    fatsGrams?: number;
     mealType?: MealType;
     ai: ScanResult;
     imageDataUrl: string;
@@ -34,6 +36,8 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   const [ai, setAi] = useState<ScanResult | null>(null);
   const [foodName, setFoodName] = useState('');
   const [protein, setProtein] = useState('');
+  const [carbs, setCarbs] = useState('');
+  const [fats, setFats] = useState('');
   const [mealType, setMealType] = useState<MealType | undefined>(undefined);
   const [errorMsg, setErrorMsg] = useState('');
   const [busy, setBusy] = useState(false);
@@ -60,6 +64,8 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
       setAi(result);
       setFoodName(result.foodName);
       setProtein(String(result.proteinGrams));
+      setCarbs(result.carbsGrams != null ? String(result.carbsGrams) : '');
+      setFats(result.fatsGrams != null ? String(result.fatsGrams) : '');
       if (result.mealType) setMealType(result.mealType);
       track('ai_scan_completed', { ai_grams: result.proteinGrams, confidence: result.confidence });
       setStage('review');
@@ -90,7 +96,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   };
 
   const reset = () => {
-    setImageDataUrl(null); setAi(null); setFoodName(''); setProtein(''); setMealType(undefined); setErrorMsg(''); setStage('pick');
+    setImageDataUrl(null); setAi(null); setFoodName(''); setProtein(''); setCarbs(''); setFats(''); setMealType(undefined); setErrorMsg(''); setStage('pick');
   };
 
   const canConfirm = foodName.trim().length > 0 && Number(protein) > 0;
@@ -103,6 +109,8 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
       await onConfirm({
         foodName: foodName.trim(),
         proteinGrams: Number(protein),
+        carbsGrams: Number(carbs) || undefined,
+        fatsGrams: Number(fats) || undefined,
         mealType,
         ai,
         imageDataUrl,
@@ -211,6 +219,16 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
                 <div>
                   <label className="label-spaced">PROTEIN (G)</label>
                   <input className="input-underline" type="number" inputMode="numeric" value={protein} onChange={e => setProtein(e.target.value)} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label-spaced opacity-70">CARBS (G)</label>
+                    <input className="input-underline" type="number" inputMode="numeric" value={carbs} onChange={e => setCarbs(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="label-spaced opacity-70">FAT (G)</label>
+                    <input className="input-underline" type="number" inputMode="numeric" value={fats} onChange={e => setFats(e.target.value)} />
+                  </div>
                 </div>
               </div>
 

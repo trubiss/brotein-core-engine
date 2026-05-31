@@ -36,11 +36,15 @@ export interface FoodLog {
   timestamp: number;
   foodName: string;
   proteinGrams: number;
+  carbsGrams?: number;
+  fatsGrams?: number;
   mealType?: MealType;
   source?: LogSource;
   // AI scan metadata (only present when source === 'ai-scan')
   aiDetectedName?: string;
   aiEstimatedGrams?: number;
+  aiEstimatedCarbs?: number;
+  aiEstimatedFats?: number;
   aiConfidence?: number;
   aiPortion?: string;
   aiEdited?: boolean;
@@ -56,6 +60,10 @@ export interface DailySummary {
   remainingProtein: number;
   hitTarget: boolean;
   logCount: number;
+  consumedCarbs?: number;
+  targetCarbs?: number;
+  consumedFats?: number;
+  targetFats?: number;
 }
 
 export function calculateMacros(weight: number, activityLevel: ActivityLevel, goal: Goal) {

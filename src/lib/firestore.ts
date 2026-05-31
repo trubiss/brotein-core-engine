@@ -9,6 +9,8 @@ export interface FavoriteFood {
   id: string;
   foodName: string;
   proteinGrams: number;
+  carbsGrams?: number;
+  fatsGrams?: number;
   mealType?: MealType;
   createdAt: number;
 }
@@ -24,16 +26,20 @@ export function watchFavorites(uid: string, cb: (items: FavoriteFood[]) => void)
   });
 }
 
-export async function addFavorite(uid: string, input: { foodName: string; proteinGrams: number; mealType?: MealType }) {
+export async function addFavorite(uid: string, input: { foodName: string; proteinGrams: number; carbsGrams?: number; fatsGrams?: number; mealType?: MealType }) {
   const ref = doc(favoritesCol(uid));
   const fav: FavoriteFood = {
     id: ref.id,
     foodName: input.foodName,
     proteinGrams: input.proteinGrams,
+    carbsGrams: input.carbsGrams,
+    fatsGrams: input.fatsGrams,
     mealType: input.mealType,
     createdAt: Date.now(),
   };
-  await setDoc(ref, fav);
+  // Strip undefined for Firestore
+  const clean = Object.fromEntries(Object.entries(fav).filter(([, v]) => v !== undefined)) as FavoriteFood;
+  await setDoc(ref, clean);
   return fav;
 }
 
@@ -94,18 +100,45 @@ export async function updateProfileFields(uid: string, partial: Partial<UserProf
   return merged;
 }
 
-async function recomputeSummary(uid: string, date: string, target: number) {
+type Targets = { protein: number; carbs?: number; fats?: number };
+
+function normalizeTargets(t: number | Targets | undefined): Targets | undefined {
+  if (t === undefined) return undefined;
+  if (typeof t === 'number') return { protein: t };
+  return t;
+}
+
+async function resolveTargets(uid: string, t: number | Targets | undefined): Promise<Targets> {
+  const norm = normalizeTargets(t);
+  if (norm) return norm;
+  const profile = await getProfile(uid);
+  if (!profile) throw new Error('Profile required');
+  return { protein: profile.dailyProtein, carbs: profile.dailyCarbs, fats: profile.dailyFats };
+}
+
+async function recomputeSummary(uid: string, date: string, targets: Targets) {
   const q = query(logsCol(uid), where('date', '==', date));
   const snap = await getDocs(q);
   let consumed = 0;
-  snap.forEach(d => { consumed += (d.data() as FoodLog).proteinGrams || 0; });
+  let consumedCarbs = 0;
+  let consumedFats = 0;
+  snap.forEach(d => {
+    const data = d.data() as FoodLog;
+    consumed += data.proteinGrams || 0;
+    consumedCarbs += data.carbsGrams || 0;
+    consumedFats += data.fatsGrams || 0;
+  });
   const summary: DailySummary = {
     date,
     consumedProtein: consumed,
-    targetProtein: target,
-    remainingProtein: Math.max(0, target - consumed),
-    hitTarget: consumed >= target,
+    targetProtein: targets.protein,
+    remainingProtein: Math.max(0, targets.protein - consumed),
+    hitTarget: consumed >= targets.protein,
     logCount: snap.size,
+    consumedCarbs,
+    consumedFats,
+    targetCarbs: targets.carbs ?? 0,
+    targetFats: targets.fats ?? 0,
   };
   await setDoc(summaryDoc(uid, date), summary, { merge: true });
   return summary;
@@ -116,25 +149,24 @@ export async function addLog(
   input: {
     foodName: string;
     proteinGrams: number;
+    carbsGrams?: number;
+    fatsGrams?: number;
     mealType?: MealType;
     date?: string;
     timestamp?: number;
     source?: FoodLog['source'];
     aiDetectedName?: string;
     aiEstimatedGrams?: number;
+    aiEstimatedCarbs?: number;
+    aiEstimatedFats?: number;
     aiConfidence?: number;
     aiPortion?: string;
     aiEdited?: boolean;
     imageRef?: string;
   },
-  dailyProtein?: number,
+  targetsInput?: number | Targets,
 ) {
-  let target = dailyProtein;
-  if (target === undefined) {
-    const profile = await getProfile(uid);
-    if (!profile) throw new Error('Profile required');
-    target = profile.dailyProtein;
-  }
+  const targets = await resolveTargets(uid, targetsInput);
   const now = Date.now();
   const date = input.date ?? todayKey();
   const ref = doc(logsCol(uid));
@@ -145,10 +177,14 @@ export async function addLog(
       timestamp: input.timestamp ?? now,
       foodName: input.foodName,
       proteinGrams: input.proteinGrams,
+      carbsGrams: input.carbsGrams,
+      fatsGrams: input.fatsGrams,
       mealType: input.mealType,
       source: input.source,
       aiDetectedName: input.aiDetectedName,
       aiEstimatedGrams: input.aiEstimatedGrams,
+      aiEstimatedCarbs: input.aiEstimatedCarbs,
+      aiEstimatedFats: input.aiEstimatedFats,
       aiConfidence: input.aiConfidence,
       aiPortion: input.aiPortion,
       aiEdited: input.aiEdited,
@@ -157,51 +193,38 @@ export async function addLog(
       updatedAt: now,
     }).filter(([, v]) => v !== undefined)
   ) as unknown as FoodLog;
-  // Don't await — Firestore's local cache emits the change to onSnapshot
-  // listeners synchronously, so the UI updates instantly. Server sync and
-  // summary recompute happen in the background.
-  setDoc(ref, log).then(() => recomputeSummary(uid, date, target!)).catch(() => { /* surfaced elsewhere */ });
+  setDoc(ref, log).then(() => recomputeSummary(uid, date, targets)).catch(() => { /* surfaced elsewhere */ });
   return log;
 }
 
-export async function updateLog(uid: string, logId: string, patch: Partial<FoodLog>, dailyProtein?: number) {
-  let target = dailyProtein;
-  if (target === undefined) {
-    const profile = await getProfile(uid);
-    if (!profile) throw new Error('Profile required');
-    target = profile.dailyProtein;
-  }
+export async function updateLog(uid: string, logId: string, patch: Partial<FoodLog>, targetsInput?: number | Targets) {
+  const targets = await resolveTargets(uid, targetsInput);
   const ref = doc(logsCol(uid), logId);
   const existing = await getDoc(ref);
   if (!existing.exists()) return;
   const data = existing.data() as FoodLog;
   const date = (patch.date as string) ?? data.date;
-  // Fire-and-forget for instant UI; onSnapshot reflects local writes immediately.
   updateDoc(ref, { ...patch, updatedAt: Date.now() })
-    .then(() => recomputeSummary(uid, date, target!))
+    .then(() => recomputeSummary(uid, date, targets))
     .then(() => {
       if (patch.date && patch.date !== data.date) {
-        return recomputeSummary(uid, data.date, target!);
+        return recomputeSummary(uid, data.date, targets);
       }
     })
     .catch(() => { /* surfaced elsewhere */ });
 }
 
-export async function deleteLog(uid: string, logId: string, dailyProtein?: number) {
-  let target = dailyProtein;
-  if (target === undefined) {
-    const profile = await getProfile(uid);
-    if (!profile) throw new Error('Profile required');
-    target = profile.dailyProtein;
-  }
+export async function deleteLog(uid: string, logId: string, targetsInput?: number | Targets) {
+  const targets = await resolveTargets(uid, targetsInput);
   const ref = doc(logsCol(uid), logId);
   const existing = await getDoc(ref);
   if (!existing.exists()) return;
   const data = existing.data() as FoodLog;
   deleteDoc(ref)
-    .then(() => recomputeSummary(uid, data.date, target!))
+    .then(() => recomputeSummary(uid, data.date, targets))
     .catch(() => { /* surfaced elsewhere */ });
 }
+
 
 export async function getRecentSummaries(uid: string, days = 30): Promise<DailySummary[]> {
   const q = query(summariesCol(uid), orderBy('date', 'desc'), limit(days));

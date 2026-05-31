@@ -11,11 +11,13 @@ interface Props {
   initial?: {
     foodName: string;
     proteinGrams: number;
+    carbsGrams?: number;
+    fatsGrams?: number;
     mealType?: MealType;
   };
   title?: string;
   submitLabel?: string;
-  onSubmit: (data: { foodName: string; proteinGrams: number; mealType?: MealType }) => void | Promise<void>;
+  onSubmit: (data: { foodName: string; proteinGrams: number; carbsGrams?: number; fatsGrams?: number; mealType?: MealType }) => void | Promise<void>;
   onClose: () => void;
   onScan?: () => void;
 }
@@ -35,6 +37,8 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   const [tab, setTab] = useState<Tab>(initial ? 'manual' : 'recent');
   const [name, setName] = useState(initial?.foodName ?? '');
   const [protein, setProtein] = useState(initial ? String(initial.proteinGrams) : '');
+  const [carbs, setCarbs] = useState(initial?.carbsGrams ? String(initial.carbsGrams) : '');
+  const [fats, setFats] = useState(initial?.fatsGrams ? String(initial.fatsGrams) : '');
   const [mealType, setMealType] = useState<MealType | undefined>(initial?.mealType);
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState('');
@@ -80,6 +84,8 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   const pickFood = (f: FoodItem) => {
     setName(f.name);
     setProtein(String(f.proteinGrams));
+    setCarbs(f.carbsGrams ? String(f.carbsGrams) : '');
+    setFats(f.fatsGrams ? String(f.fatsGrams) : '');
     if (f.suggestedMeal && !mealType) setMealType(f.suggestedMeal);
     setTab('manual');
   };
@@ -87,6 +93,8 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   const pickFavorite = (f: FavoriteFood) => {
     setName(f.foodName);
     setProtein(String(f.proteinGrams));
+    setCarbs(f.carbsGrams ? String(f.carbsGrams) : '');
+    setFats(f.fatsGrams ? String(f.fatsGrams) : '');
     if (f.mealType) setMealType(f.mealType);
     setTab('manual');
   };
@@ -94,6 +102,8 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   const pickRecent = (r: FoodLog) => {
     setName(r.foodName);
     setProtein(String(r.proteinGrams));
+    setCarbs(r.carbsGrams ? String(r.carbsGrams) : '');
+    setFats(r.fatsGrams ? String(r.fatsGrams) : '');
     if (r.mealType) setMealType(r.mealType);
     setTab('manual');
   };
@@ -111,7 +121,13 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
         await removeFavorite(user.uid, existing.id);
         toast.success('REMOVED FROM FAVORITES');
       } else {
-        await addFavorite(user.uid, { foodName: name.trim(), proteinGrams: Number(protein), mealType });
+        await addFavorite(user.uid, {
+          foodName: name.trim(),
+          proteinGrams: Number(protein),
+          carbsGrams: Number(carbs) || undefined,
+          fatsGrams: Number(fats) || undefined,
+          mealType,
+        });
         toast.success('SAVED TO FAVORITES');
       }
     } catch (e: unknown) {
@@ -121,8 +137,13 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
 
   const handleSubmit = () => {
     if (!canLog || busy) return;
-    // Fire-and-forget for instant UI. Errors surface via toast inside onSubmit.
-    const payload = { foodName: name.trim(), proteinGrams: Number(protein), mealType };
+    const payload = {
+      foodName: name.trim(),
+      proteinGrams: Number(protein),
+      carbsGrams: Number(carbs) || undefined,
+      fatsGrams: Number(fats) || undefined,
+      mealType,
+    };
     Promise.resolve(onSubmit(payload)).catch((e) => {
       toast.error(e instanceof Error ? e.message : 'Log failed');
     });
@@ -351,6 +372,30 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
                   value={protein}
                   onChange={e => setProtein(e.target.value)}
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="label-spaced opacity-70">CARBS (G)</label>
+                  <input
+                    className="input-underline"
+                    type="number"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={carbs}
+                    onChange={e => setCarbs(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="label-spaced opacity-70">FAT (G)</label>
+                  <input
+                    className="input-underline"
+                    type="number"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={fats}
+                    onChange={e => setFats(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
 
