@@ -181,6 +181,14 @@ export async function sendTestNotification(): Promise<boolean> {
  * Returns null if the user cancels.
  */
 export async function takeFoodPhoto(): Promise<string | null> {
+  return getFoodPhoto('camera');
+}
+
+export async function pickFoodPhoto(): Promise<string | null> {
+  return getFoodPhoto('photos');
+}
+
+async function getFoodPhoto(src: 'camera' | 'photos'): Promise<string | null> {
   if (!isNative()) return null; // web flow continues to use <input type="file">
   try {
     const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
@@ -188,7 +196,7 @@ export async function takeFoodPhoto(): Promise<string | null> {
       quality: 82,
       allowEditing: false,
       resultType: CameraResultType.DataUrl,
-      source: CameraSource.Prompt, // user picks camera vs library
+      source: src === 'camera' ? CameraSource.Camera : CameraSource.Photos,
       width: 1024,
       correctOrientation: true,
     });
