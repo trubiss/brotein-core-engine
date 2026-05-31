@@ -1,1 +1,1 @@
-Bump time input font-size from `text-sm` (14px) to `text-base` (16px) in `src/components/ReminderSettingsPanel.tsx` line 118. iOS Safari auto-zooms any input under 16px on focus — this stops the zoom-in bug when tapping MORNING/MIDDAY/EVENING.
+Create `src/components/ScrollToTop.tsx` that calls `window.scrollTo({ top: 0 })` on pathname change, and mount it as the first child inside `<BrowserRouter>` in `src/App.tsx`. Fixes Privacy Policy / Terms opening scrolled to the bottom.
