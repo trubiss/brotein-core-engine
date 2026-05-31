@@ -3,6 +3,8 @@ import { MealType } from './types';
 export interface ScanResult {
   foodName: string;
   proteinGrams: number;
+  carbsGrams?: number;
+  fatsGrams?: number;
   portion: string;
   confidence: number; // 0..1
   mealType: MealType | null;
