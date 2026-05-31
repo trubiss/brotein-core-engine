@@ -4,7 +4,7 @@ import { Camera, Upload, X, RefreshCw, Check, Loader2, AlertTriangle } from 'luc
 import { MealType } from '@/lib/types';
 import { scanFoodImage, fileToCompressedDataUrl, ScanResult } from '@/lib/scan';
 import { track } from '@/lib/track';
-import { isNative, takeFoodPhoto, tapHaptic } from '@/lib/native';
+import { isNative, takeFoodPhoto, pickFoodPhoto, tapHaptic } from '@/lib/native';
 import { toast } from 'sonner';
 
 interface Props {
@@ -80,7 +80,12 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
     }
     const f = e.target.files?.[0]; if (f) void handleFile(f);
   };
-  const onUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isNative()) {
+      const dataUrl = await pickFoodPhoto();
+      if (dataUrl) void handleDataUrl(dataUrl);
+      return;
+    }
     const f = e.target.files?.[0]; if (f) void handleFile(f);
   };
 
@@ -118,7 +123,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-foreground/50 animate-in fade-in duration-200" onClick={busy ? undefined : onClose} />
       <div className="relative bg-background w-full max-w-md p-6 border-t-2 border-foreground animate-in slide-in-from-bottom duration-300 max-h-[92vh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="w-12 h-0.5 bg-foreground/30 mx-auto mb-6" />
+        
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl font-black tracking-[0.1em]">SCAN FOOD</h2>
           <button onClick={onClose} className="p-1.5 border-2 border-foreground active:scale-95" disabled={busy}><X size={14} /></button>
@@ -131,11 +136,26 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
                 AI ESTIMATES PROTEIN FROM A FOOD PHOTO. YOU CAN EDIT BEFORE LOGGING.
               </p>
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <button onClick={() => cameraRef.current?.click()} className="border-2 border-foreground p-6 flex flex-col items-center gap-3 active:scale-[0.98] transition-transform">
+                <button onClick={async () => {
+                  void tapHaptic();
+                  if (isNative()) {
+                    const dataUrl = await takeFoodPhoto();
+                    if (dataUrl) void handleDataUrl(dataUrl);
+                  } else {
+                    cameraRef.current?.click();
+                  }
+                }} className="border-2 border-foreground p-6 flex flex-col items-center gap-3 active:scale-[0.98] transition-transform">
                   <Camera size={28} strokeWidth={2} />
                   <span className="text-xs font-bold tracking-widest">CAMERA</span>
                 </button>
-                <button onClick={() => fileRef.current?.click()} className="border-2 border-foreground p-6 flex flex-col items-center gap-3 active:scale-[0.98] transition-transform">
+                <button onClick={async () => {
+                  if (isNative()) {
+                    const dataUrl = await pickFoodPhoto();
+                    if (dataUrl) void handleDataUrl(dataUrl);
+                  } else {
+                    fileRef.current?.click();
+                  }
+                }} className="border-2 border-foreground p-6 flex flex-col items-center gap-3 active:scale-[0.98] transition-transform">
                   <Upload size={28} strokeWidth={2} />
                   <span className="text-xs font-bold tracking-widest">UPLOAD</span>
                 </button>
