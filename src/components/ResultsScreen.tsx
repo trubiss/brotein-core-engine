@@ -15,6 +15,7 @@ interface Props {
     age: number;
     activityLevel: ActivityLevel;
     goal: Goal;
+    units?: 'metric' | 'imperial';
   };
   onComplete: () => void | Promise<void>;
   onBack: () => void;
@@ -66,6 +67,7 @@ export default function ResultsScreen({ data, onComplete, onBack, step = 3, tota
         dailyFats: macros.fats,
         mealFrequency: macros.mealFrequency,
         notifications: true,
+        units: data.units,
       });
       await onComplete();
     } catch (e: unknown) {
