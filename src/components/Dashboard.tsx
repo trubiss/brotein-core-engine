@@ -333,11 +333,8 @@ export default function Dashboard({ onNavigate }: Props) {
       <motion.div variants={fadeUp} className="flex items-center justify-between mb-12 min-w-0 gap-3">
         <h1 className="font-black tracking-[0.15em] font-sans text-3xl truncate">BROTEIN</h1>
         <div className="flex items-center gap-2 shrink-0">
-          <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 mr-1 hidden xs:inline-block sm:inline-block">
-            STREAK · {streak}{streak === 1 ? 'D' : 'D'} <BlinkingCursor className="text-foreground/40" />
-          </p>
-          <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 mr-1 xs:hidden sm:hidden">
-            {streak}D <BlinkingCursor className="text-foreground/40" />
+          <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 mr-1 whitespace-nowrap">
+            STREAK · {streak}D <BlinkingCursor className="text-foreground/40" />
           </p>
           <button onClick={() => onNavigate('insights')} className="p-2 border-2 border-foreground active:scale-95 transition-transform" aria-label="Insights">
             <BarChart3 size={20} />
