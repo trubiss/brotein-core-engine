@@ -404,6 +404,17 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
                   />
                 </div>
               </div>
+              <div>
+                <label className="label-spaced opacity-70">CALORIES (KCAL)</label>
+                <input
+                  className="input-underline"
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={calories}
+                  onChange={e => setCalories(e.target.value)}
+                />
+              </div>
             </div>
 
             <div className="flex gap-2 mb-5 flex-wrap">
