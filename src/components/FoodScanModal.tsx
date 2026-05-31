@@ -13,6 +13,7 @@ interface Props {
     proteinGrams: number;
     carbsGrams?: number;
     fatsGrams?: number;
+    caloriesKcal?: number;
     mealType?: MealType;
     ai: ScanResult;
     imageDataUrl: string;
