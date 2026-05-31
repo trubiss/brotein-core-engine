@@ -151,7 +151,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   );
 
   const y = useMotionValue(0);
-  const overlayOpacity = useTransform(y, [0, 300], [1, 0]);
+  const overlayOpacity = useTransform(y, [0, 120], [1, 0]);
   const dragControls = useDragControls();
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
