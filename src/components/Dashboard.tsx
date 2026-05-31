@@ -239,7 +239,18 @@ export default function Dashboard({ onNavigate }: Props) {
     () => logs.reduce((s, l) => s + (l.proteinGrams || 0), 0),
     [logs]
   );
+  const consumedCarbs = useMemo(
+    () => logs.reduce((s, l) => s + (l.carbsGrams || 0), 0),
+    [logs]
+  );
+  const consumedFats = useMemo(
+    () => logs.reduce((s, l) => s + (l.fatsGrams || 0), 0),
+    [logs]
+  );
   const target = profile?.dailyProtein ?? 0;
+  const targetCarbs = profile?.dailyCarbs ?? 0;
+  const targetFats = profile?.dailyFats ?? 0;
+  const macroTargets = { protein: target, carbs: targetCarbs, fats: targetFats };
   const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
 
   // Paywall tracking (must be declared before any conditional return)
@@ -288,12 +299,12 @@ export default function Dashboard({ onNavigate }: Props) {
     return { headline: 'ON TRACK', sub: 'STAY CONSISTENT.' };
   })();
 
-  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType']) => {
+  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number) => {
     haptic();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
     track('food_logged', { grams: proteinGrams, meal: mealType ?? 'unspecified', source: 'manual', is_today: isToday });
-    return addLog(user.uid, { foodName, proteinGrams, mealType, date: viewDate }, profile.dailyProtein)
+    return addLog(user.uid, { foodName, proteinGrams, carbsGrams, fatsGrams, mealType, date: viewDate }, macroTargets)
       .catch((e: unknown) => {
         toast.error(e instanceof Error ? e.message : 'Failed to log');
       });
