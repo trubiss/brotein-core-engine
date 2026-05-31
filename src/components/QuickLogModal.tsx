@@ -88,6 +88,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
     setProtein(String(f.proteinGrams));
     setCarbs(f.carbsGrams ? String(f.carbsGrams) : '');
     setFats(f.fatsGrams ? String(f.fatsGrams) : '');
+    setCalories(String(f.caloriesKcal ?? kcalFromMacros(f.proteinGrams, f.carbsGrams, f.fatsGrams)));
     if (f.suggestedMeal && !mealType) setMealType(f.suggestedMeal);
     setTab('manual');
   };
@@ -97,6 +98,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
     setProtein(String(f.proteinGrams));
     setCarbs(f.carbsGrams ? String(f.carbsGrams) : '');
     setFats(f.fatsGrams ? String(f.fatsGrams) : '');
+    setCalories(String(f.caloriesKcal ?? kcalFromMacros(f.proteinGrams, f.carbsGrams, f.fatsGrams)));
     if (f.mealType) setMealType(f.mealType);
     setTab('manual');
   };
@@ -106,6 +108,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
     setProtein(String(r.proteinGrams));
     setCarbs(r.carbsGrams ? String(r.carbsGrams) : '');
     setFats(r.fatsGrams ? String(r.fatsGrams) : '');
+    setCalories(String(r.caloriesKcal ?? kcalFromMacros(r.proteinGrams, r.carbsGrams, r.fatsGrams)));
     if (r.mealType) setMealType(r.mealType);
     setTab('manual');
   };
