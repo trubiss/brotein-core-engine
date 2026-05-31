@@ -115,7 +115,7 @@ export default function ReminderSettingsPanel() {
                   type="time"
                   value={cfg.time}
                   onChange={e => persist({ ...settings, [s.key]: { ...cfg, time: e.target.value } })}
-                  className="bg-transparent border-b-2 border-foreground font-display text-sm font-bold tracking-widest mt-1 focus:outline-none"
+                  className="bg-transparent border-b-2 border-foreground font-display text-base font-bold tracking-widest mt-1 focus:outline-none"
                   style={{ borderRadius: 0 }}
                 />
               </div>
