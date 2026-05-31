@@ -373,6 +373,30 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
                   onChange={e => setProtein(e.target.value)}
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="label-spaced opacity-70">CARBS (G)</label>
+                  <input
+                    className="input-underline"
+                    type="number"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={carbs}
+                    onChange={e => setCarbs(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="label-spaced opacity-70">FAT (G)</label>
+                  <input
+                    className="input-underline"
+                    type="number"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={fats}
+                    onChange={e => setFats(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-2 mb-5 flex-wrap">
