@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, useMotionValue, useTransform, useDragControls, animate, type PanInfo } from 'framer-motion';
-import { MealType, FoodLog } from '@/lib/types';
+import { MealType, FoodLog, kcalFromMacros } from '@/lib/types';
 import { FOOD_DATABASE, searchFoods, FoodItem } from '@/lib/foods';
 import { useAuth } from '@/lib/auth';
 import { watchFavorites, watchRecentLogs, addFavorite, removeFavorite, FavoriteFood } from '@/lib/firestore';
