@@ -10,6 +10,7 @@ export interface FoodItem {
   proteinGrams: number;       // grams of protein per typical serving
   carbsGrams?: number;        // grams of carbs per typical serving
   fatsGrams?: number;         // grams of fat per typical serving
+  caloriesKcal?: number;      // kcal per typical serving (auto-derived if omitted)
   servingLabel?: string;      // human-friendly serving size
   category: FoodCategory;
   suggestedMeal?: MealType;
