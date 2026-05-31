@@ -271,15 +271,16 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
               </div>
             ) : favorites.map(f => (
               <div key={f.id} className="flex items-center justify-between gap-2 py-3 border-b border-border min-w-0">
-                <button onClick={() => pickFavorite(f)} className="flex-1 text-left min-w-0 active:opacity-60">
+                <button type="button" onClick={() => pickFavorite(f)} className="flex-1 text-left min-w-0 active:opacity-60 touch-manipulation">
                   <p className="text-sm uppercase tracking-[0.12em] truncate">{f.foodName}</p>
                   <p className="text-[10px] text-muted-foreground tracking-wider uppercase">
                     {f.proteinGrams}G{f.mealType ? ` · ${f.mealType}` : ''}
                   </p>
                 </button>
                 <button
+                  type="button"
                   onClick={() => removeFavorite(user!.uid, f.id)}
-                  className="p-2 border-2 border-foreground active:scale-95 shrink-0"
+                  className="p-2 border-2 border-foreground active:scale-95 shrink-0 touch-manipulation"
                   aria-label="Remove favorite"
                 >
                   <Star size={12} fill="currentColor" />
