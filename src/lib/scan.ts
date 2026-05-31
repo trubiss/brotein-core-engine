@@ -5,6 +5,7 @@ export interface ScanResult {
   proteinGrams: number;
   carbsGrams?: number;
   fatsGrams?: number;
+  caloriesKcal?: number;
   portion: string;
   confidence: number; // 0..1
   mealType: MealType | null;

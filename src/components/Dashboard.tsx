@@ -3,7 +3,7 @@ import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import { addLog, deleteLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak } from '@/lib/firestore';
 import SwipeableLogRow from './SwipeableLogRow';
-import { todayKey, FoodLog, DailySummary } from '@/lib/types';
+import { todayKey, FoodLog, DailySummary, kcalFromMacros } from '@/lib/types';
 
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 
@@ -247,10 +247,15 @@ export default function Dashboard({ onNavigate }: Props) {
     () => logs.reduce((s, l) => s + (l.fatsGrams || 0), 0),
     [logs]
   );
+  const consumedCalories = useMemo(
+    () => logs.reduce((s, l) => s + (l.caloriesKcal ?? kcalFromMacros(l.proteinGrams, l.carbsGrams, l.fatsGrams)), 0),
+    [logs]
+  );
   const target = profile?.dailyProtein ?? 0;
   const targetCarbs = profile?.dailyCarbs ?? 0;
   const targetFats = profile?.dailyFats ?? 0;
-  const macroTargets = { protein: target, carbs: targetCarbs, fats: targetFats };
+  const targetCalories = profile?.dailyCalories ?? 0;
+  const macroTargets = { protein: target, carbs: targetCarbs, fats: targetFats, calories: targetCalories };
   const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
 
   // Paywall tracking (must be declared before any conditional return)
@@ -299,12 +304,12 @@ export default function Dashboard({ onNavigate }: Props) {
     return { headline: 'ON TRACK', sub: 'STAY CONSISTENT.' };
   })();
 
-  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number) => {
+  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number, caloriesKcal?: number) => {
     haptic();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
     track('food_logged', { grams: proteinGrams, meal: mealType ?? 'unspecified', source: 'manual', is_today: isToday });
-    return addLog(user.uid, { foodName, proteinGrams, carbsGrams, fatsGrams, mealType, date: viewDate }, macroTargets)
+    return addLog(user.uid, { foodName, proteinGrams, carbsGrams, fatsGrams, caloriesKcal, mealType, date: viewDate }, macroTargets)
       .catch((e: unknown) => {
         toast.error(e instanceof Error ? e.message : 'Failed to log');
       });
@@ -482,8 +487,9 @@ export default function Dashboard({ onNavigate }: Props) {
           MACROS
         </p>
         {[
-          { label: 'CARBS', value: consumedCarbs, goal: targetCarbs },
-          { label: 'FAT', value: consumedFats, goal: targetFats },
+          { label: 'CALORIES', value: consumedCalories, goal: targetCalories, unit: 'KCAL' },
+          { label: 'CARBS', value: consumedCarbs, goal: targetCarbs, unit: 'G' },
+          { label: 'FAT', value: consumedFats, goal: targetFats, unit: 'G' },
         ].map(m => {
           const pct = m.goal > 0 ? Math.min(100, (m.value / m.goal) * 100) : 0;
           return (
@@ -493,7 +499,7 @@ export default function Dashboard({ onNavigate }: Props) {
                   {m.label}
                 </span>
                 <span className="text-[10px] font-bold tracking-[0.04em] text-muted-foreground/70 shrink-0">
-                  {Math.round(m.value)} / {m.goal}G
+                  {Math.round(m.value)} / {m.goal}{m.unit === 'KCAL' ? ' KCAL' : 'G'}
                 </span>
               </div>
               <div className="h-[3px] w-full bg-foreground/10 overflow-hidden">
@@ -567,8 +573,8 @@ export default function Dashboard({ onNavigate }: Props) {
         <Suspense fallback={null}>
           {showModal && (
             <QuickLogModal
-              onSubmit={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, mealType }) => {
-                await log(foodName, proteinGrams, mealType, carbsGrams, fatsGrams);
+              onSubmit={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, caloriesKcal, mealType }) => {
+                await log(foodName, proteinGrams, mealType, carbsGrams, fatsGrams, caloriesKcal);
               }}
               onScan={() => { setShowModal(false); setShowScan(true); }}
               onClose={() => setShowModal(false)}
@@ -578,13 +584,14 @@ export default function Dashboard({ onNavigate }: Props) {
           {showScan && (
             <FoodScanModal
               onClose={() => setShowScan(false)}
-              onConfirm={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, mealType, ai, edited }) => {
+              onConfirm={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, caloriesKcal, mealType, ai, edited }) => {
                 try {
                   await addLog(user.uid, {
                     foodName,
                     proteinGrams,
                     carbsGrams,
                     fatsGrams,
+                    caloriesKcal,
                     mealType,
                     date: viewDate,
                     source: 'ai-scan',
@@ -592,6 +599,7 @@ export default function Dashboard({ onNavigate }: Props) {
                     aiEstimatedGrams: ai.proteinGrams,
                     aiEstimatedCarbs: ai.carbsGrams,
                     aiEstimatedFats: ai.fatsGrams,
+                    aiEstimatedCalories: ai.caloriesKcal,
                     aiConfidence: ai.confidence,
                     aiPortion: ai.portion,
                     aiEdited: edited,

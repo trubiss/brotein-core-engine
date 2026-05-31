@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, useMotionValue, useTransform, useDragControls, animate, type PanInfo } from 'framer-motion';
-import { MealType, FoodLog } from '@/lib/types';
+import { MealType, FoodLog, kcalFromMacros } from '@/lib/types';
 import { FOOD_DATABASE, searchFoods, FoodItem } from '@/lib/foods';
 import { useAuth } from '@/lib/auth';
 import { watchFavorites, watchRecentLogs, addFavorite, removeFavorite, FavoriteFood } from '@/lib/firestore';
@@ -13,11 +13,12 @@ interface Props {
     proteinGrams: number;
     carbsGrams?: number;
     fatsGrams?: number;
+    caloriesKcal?: number;
     mealType?: MealType;
   };
   title?: string;
   submitLabel?: string;
-  onSubmit: (data: { foodName: string; proteinGrams: number; carbsGrams?: number; fatsGrams?: number; mealType?: MealType }) => void | Promise<void>;
+  onSubmit: (data: { foodName: string; proteinGrams: number; carbsGrams?: number; fatsGrams?: number; caloriesKcal?: number; mealType?: MealType }) => void | Promise<void>;
   onClose: () => void;
   onScan?: () => void;
 }
@@ -39,6 +40,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   const [protein, setProtein] = useState(initial ? String(initial.proteinGrams) : '');
   const [carbs, setCarbs] = useState(initial?.carbsGrams ? String(initial.carbsGrams) : '');
   const [fats, setFats] = useState(initial?.fatsGrams ? String(initial.fatsGrams) : '');
+  const [calories, setCalories] = useState(initial?.caloriesKcal ? String(initial.caloriesKcal) : '');
   const [mealType, setMealType] = useState<MealType | undefined>(initial?.mealType);
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState('');
@@ -86,6 +88,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
     setProtein(String(f.proteinGrams));
     setCarbs(f.carbsGrams ? String(f.carbsGrams) : '');
     setFats(f.fatsGrams ? String(f.fatsGrams) : '');
+    setCalories(String(f.caloriesKcal ?? kcalFromMacros(f.proteinGrams, f.carbsGrams, f.fatsGrams)));
     if (f.suggestedMeal && !mealType) setMealType(f.suggestedMeal);
     setTab('manual');
   };
@@ -95,6 +98,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
     setProtein(String(f.proteinGrams));
     setCarbs(f.carbsGrams ? String(f.carbsGrams) : '');
     setFats(f.fatsGrams ? String(f.fatsGrams) : '');
+    setCalories(String(f.caloriesKcal ?? kcalFromMacros(f.proteinGrams, f.carbsGrams, f.fatsGrams)));
     if (f.mealType) setMealType(f.mealType);
     setTab('manual');
   };
@@ -104,6 +108,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
     setProtein(String(r.proteinGrams));
     setCarbs(r.carbsGrams ? String(r.carbsGrams) : '');
     setFats(r.fatsGrams ? String(r.fatsGrams) : '');
+    setCalories(String(r.caloriesKcal ?? kcalFromMacros(r.proteinGrams, r.carbsGrams, r.fatsGrams)));
     if (r.mealType) setMealType(r.mealType);
     setTab('manual');
   };
@@ -126,6 +131,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
           proteinGrams: Number(protein),
           carbsGrams: Number(carbs) || undefined,
           fatsGrams: Number(fats) || undefined,
+          caloriesKcal: Number(calories) || undefined,
           mealType,
         });
         toast.success('SAVED TO FAVORITES');
@@ -142,6 +148,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
       proteinGrams: Number(protein),
       carbsGrams: Number(carbs) || undefined,
       fatsGrams: Number(fats) || undefined,
+      caloriesKcal: Number(calories) || undefined,
       mealType,
     };
     Promise.resolve(onSubmit(payload)).catch((e) => {
@@ -396,6 +403,17 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
                     onChange={e => setFats(e.target.value)}
                   />
                 </div>
+              </div>
+              <div>
+                <label className="label-spaced opacity-70">CALORIES (KCAL)</label>
+                <input
+                  className="input-underline"
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={calories}
+                  onChange={e => setCalories(e.target.value)}
+                />
               </div>
             </div>
 

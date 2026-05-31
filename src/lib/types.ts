@@ -38,6 +38,7 @@ export interface FoodLog {
   proteinGrams: number;
   carbsGrams?: number;
   fatsGrams?: number;
+  caloriesKcal?: number;
   mealType?: MealType;
   source?: LogSource;
   // AI scan metadata (only present when source === 'ai-scan')
@@ -45,6 +46,7 @@ export interface FoodLog {
   aiEstimatedGrams?: number;
   aiEstimatedCarbs?: number;
   aiEstimatedFats?: number;
+  aiEstimatedCalories?: number;
   aiConfidence?: number;
   aiPortion?: string;
   aiEdited?: boolean;
@@ -64,6 +66,13 @@ export interface DailySummary {
   targetCarbs?: number;
   consumedFats?: number;
   targetFats?: number;
+  consumedCalories?: number;
+  targetCalories?: number;
+}
+
+// Derive calories from macros: protein/carbs = 4 kcal/g, fat = 9 kcal/g.
+export function kcalFromMacros(p?: number, c?: number, f?: number): number {
+  return Math.round((p || 0) * 4 + (c || 0) * 4 + (f || 0) * 9);
 }
 
 export function calculateMacros(weight: number, activityLevel: ActivityLevel, goal: Goal) {
