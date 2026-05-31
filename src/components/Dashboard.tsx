@@ -386,7 +386,11 @@ export default function Dashboard({ onNavigate }: Props) {
         </p>
       </motion.div>
 
-      
+      <motion.div variants={fadeUp} className="flex justify-end mb-1.5">
+        <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55">
+          STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'} <BlinkingCursor className="text-foreground/40" />
+        </p>
+      </motion.div>
 
       {/* Boxed progress card — primary tool panel */}
       <motion.div variants={fadeUp} className="border border-foreground/70 p-4 mb-3">
