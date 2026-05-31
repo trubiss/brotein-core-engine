@@ -3,7 +3,7 @@ import {
   onSnapshot, query, orderBy, where, limit,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { FoodLog, UserProfile, DailySummary, MealType, todayKey, calculateMacros } from './types';
+import { FoodLog, UserProfile, DailySummary, MealType, todayKey, calculateMacros, kcalFromMacros } from './types';
 
 export interface FavoriteFood {
   id: string;
@@ -11,6 +11,7 @@ export interface FavoriteFood {
   proteinGrams: number;
   carbsGrams?: number;
   fatsGrams?: number;
+  caloriesKcal?: number;
   mealType?: MealType;
   createdAt: number;
 }
