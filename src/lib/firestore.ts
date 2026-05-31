@@ -9,6 +9,8 @@ export interface FavoriteFood {
   id: string;
   foodName: string;
   proteinGrams: number;
+  carbsGrams?: number;
+  fatsGrams?: number;
   mealType?: MealType;
   createdAt: number;
 }
@@ -24,16 +26,20 @@ export function watchFavorites(uid: string, cb: (items: FavoriteFood[]) => void)
   });
 }
 
-export async function addFavorite(uid: string, input: { foodName: string; proteinGrams: number; mealType?: MealType }) {
+export async function addFavorite(uid: string, input: { foodName: string; proteinGrams: number; carbsGrams?: number; fatsGrams?: number; mealType?: MealType }) {
   const ref = doc(favoritesCol(uid));
   const fav: FavoriteFood = {
     id: ref.id,
     foodName: input.foodName,
     proteinGrams: input.proteinGrams,
+    carbsGrams: input.carbsGrams,
+    fatsGrams: input.fatsGrams,
     mealType: input.mealType,
     createdAt: Date.now(),
   };
-  await setDoc(ref, fav);
+  // Strip undefined for Firestore
+  const clean = Object.fromEntries(Object.entries(fav).filter(([, v]) => v !== undefined)) as FavoriteFood;
+  await setDoc(ref, clean);
   return fav;
 }
 
