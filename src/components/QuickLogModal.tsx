@@ -11,11 +11,13 @@ interface Props {
   initial?: {
     foodName: string;
     proteinGrams: number;
+    carbsGrams?: number;
+    fatsGrams?: number;
     mealType?: MealType;
   };
   title?: string;
   submitLabel?: string;
-  onSubmit: (data: { foodName: string; proteinGrams: number; mealType?: MealType }) => void | Promise<void>;
+  onSubmit: (data: { foodName: string; proteinGrams: number; carbsGrams?: number; fatsGrams?: number; mealType?: MealType }) => void | Promise<void>;
   onClose: () => void;
   onScan?: () => void;
 }
@@ -35,6 +37,8 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   const [tab, setTab] = useState<Tab>(initial ? 'manual' : 'recent');
   const [name, setName] = useState(initial?.foodName ?? '');
   const [protein, setProtein] = useState(initial ? String(initial.proteinGrams) : '');
+  const [carbs, setCarbs] = useState(initial?.carbsGrams ? String(initial.carbsGrams) : '');
+  const [fats, setFats] = useState(initial?.fatsGrams ? String(initial.fatsGrams) : '');
   const [mealType, setMealType] = useState<MealType | undefined>(initial?.mealType);
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState('');
