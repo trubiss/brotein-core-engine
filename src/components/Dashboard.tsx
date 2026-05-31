@@ -323,12 +323,9 @@ export default function Dashboard({ onNavigate }: Props) {
     <motion.div className="screen-container pb-32 relative isolate" variants={stagger} initial="initial" animate="animate">
       <AmbientGrid opacity={0.04} />
 
-      <motion.div variants={fadeUp} className="flex items-center justify-between mb-12 min-w-0 gap-3">
+      <motion.div variants={fadeUp} className="flex items-center justify-between mb-12 min-w-0">
         <h1 className="font-black tracking-[0.15em] font-sans text-3xl truncate">BROTEIN</h1>
-        <div className="flex items-center gap-2 shrink-0">
-          <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 mr-1 whitespace-nowrap">
-            STREAK · {streak}D <BlinkingCursor className="text-foreground/40" />
-          </p>
+        <div className="flex gap-2 shrink-0">
           <button onClick={() => onNavigate('insights')} className="p-2 border-2 border-foreground active:scale-95 transition-transform" aria-label="Insights">
             <BarChart3 size={20} />
           </button>
@@ -389,7 +386,11 @@ export default function Dashboard({ onNavigate }: Props) {
         </p>
       </motion.div>
 
-      
+      <motion.div variants={fadeUp} className="flex justify-end mb-1.5">
+        <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55">
+          STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'} <BlinkingCursor className="text-foreground/40" />
+        </p>
+      </motion.div>
 
       {/* Boxed progress card — primary tool panel */}
       <motion.div variants={fadeUp} className="border border-foreground/70 p-4 mb-3">
