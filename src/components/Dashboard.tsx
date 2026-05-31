@@ -573,8 +573,8 @@ export default function Dashboard({ onNavigate }: Props) {
         <Suspense fallback={null}>
           {showModal && (
             <QuickLogModal
-              onSubmit={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, mealType }) => {
-                await log(foodName, proteinGrams, mealType, carbsGrams, fatsGrams);
+              onSubmit={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, caloriesKcal, mealType }) => {
+                await log(foodName, proteinGrams, mealType, carbsGrams, fatsGrams, caloriesKcal);
               }}
               onScan={() => { setShowModal(false); setShowScan(true); }}
               onClose={() => setShowModal(false)}
@@ -584,13 +584,14 @@ export default function Dashboard({ onNavigate }: Props) {
           {showScan && (
             <FoodScanModal
               onClose={() => setShowScan(false)}
-              onConfirm={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, mealType, ai, edited }) => {
+              onConfirm={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, caloriesKcal, mealType, ai, edited }) => {
                 try {
                   await addLog(user.uid, {
                     foodName,
                     proteinGrams,
                     carbsGrams,
                     fatsGrams,
+                    caloriesKcal,
                     mealType,
                     date: viewDate,
                     source: 'ai-scan',
@@ -598,6 +599,7 @@ export default function Dashboard({ onNavigate }: Props) {
                     aiEstimatedGrams: ai.proteinGrams,
                     aiEstimatedCarbs: ai.carbsGrams,
                     aiEstimatedFats: ai.fatsGrams,
+                    aiEstimatedCalories: ai.caloriesKcal,
                     aiConfidence: ai.confidence,
                     aiPortion: ai.portion,
                     aiEdited: edited,
