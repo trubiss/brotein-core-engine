@@ -27,7 +27,7 @@ export function watchFavorites(uid: string, cb: (items: FavoriteFood[]) => void)
   });
 }
 
-export async function addFavorite(uid: string, input: { foodName: string; proteinGrams: number; carbsGrams?: number; fatsGrams?: number; mealType?: MealType }) {
+export async function addFavorite(uid: string, input: { foodName: string; proteinGrams: number; carbsGrams?: number; fatsGrams?: number; caloriesKcal?: number; mealType?: MealType }) {
   const ref = doc(favoritesCol(uid));
   const fav: FavoriteFood = {
     id: ref.id,
@@ -35,6 +35,7 @@ export async function addFavorite(uid: string, input: { foodName: string; protei
     proteinGrams: input.proteinGrams,
     carbsGrams: input.carbsGrams,
     fatsGrams: input.fatsGrams,
+    caloriesKcal: input.caloriesKcal,
     mealType: input.mealType,
     createdAt: Date.now(),
   };
