@@ -7,7 +7,7 @@ import { Goal } from '@/lib/types';
 import {
   UnitSystem, getDefaultUnits,
   displayWeight, parseWeightInput,
-  cmToFtIn, ftInToCm,
+  cmToFtIn,
 } from '@/lib/units';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
