@@ -5,12 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are a precise nutrition vision analyst. Identify the food shown in the image and estimate its protein content.
+const SYSTEM_PROMPT = `You are a precise nutrition vision analyst. Identify the food shown in the image and estimate its macros.
 
 Rules:
 - Identify the most prominent food item (or main dish) in the photo.
 - Estimate portion size from visual cues (plate size, utensil, hand, packaging).
-- Return PROTEIN GRAMS as an integer (round to nearest whole gram).
+- Return PROTEIN GRAMS, CARB GRAMS, and FAT GRAMS as integers (round to nearest whole gram). Protein is the most important — be most precise there. Carbs/fats can be 0 if clearly negligible.
 - Confidence is 0.0-1.0. If the image is unclear / not food, set confidence < 0.3 and explain in notes.
 - Suggest a meal type only if obvious (otherwise null).
 - Be concise. No prose, only call the tool.`;
@@ -47,7 +47,7 @@ serve(async (req) => {
           {
             role: "user",
             content: [
-              { type: "text", text: "Analyze this food photo. Estimate protein grams." },
+              { type: "text", text: "Analyze this food photo. Estimate protein, carbs, and fat in grams." },
               { type: "image_url", image_url: { url: imageDataUrl } },
             ],
           },
@@ -57,18 +57,20 @@ serve(async (req) => {
             type: "function",
             function: {
               name: "report_food",
-              description: "Return the detected food and estimated protein.",
+              description: "Return the detected food and estimated macros.",
               parameters: {
                 type: "object",
                 properties: {
                   foodName: { type: "string", description: "Concise name e.g. 'Grilled Chicken Breast'." },
                   proteinGrams: { type: "integer", description: "Estimated protein grams (whole number)." },
+                  carbsGrams: { type: "integer", description: "Estimated carbohydrate grams (whole number, 0 if negligible)." },
+                  fatsGrams: { type: "integer", description: "Estimated fat grams (whole number, 0 if negligible)." },
                   portion: { type: "string", description: "Estimated portion e.g. '1 breast (~150g)'." },
                   confidence: { type: "number", description: "0.0 to 1.0" },
                   mealType: { type: ["string", "null"], enum: ["breakfast", "lunch", "dinner", "snack", null] },
                   notes: { type: "string" },
                 },
-                required: ["foodName", "proteinGrams", "confidence", "portion"],
+                required: ["foodName", "proteinGrams", "carbsGrams", "fatsGrams", "confidence", "portion"],
                 additionalProperties: false,
               },
             },
@@ -109,6 +111,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       foodName: String(parsed.foodName ?? "Unknown food"),
       proteinGrams: Math.max(0, Math.round(Number(parsed.proteinGrams) || 0)),
+      carbsGrams: Math.max(0, Math.round(Number(parsed.carbsGrams) || 0)),
+      fatsGrams: Math.max(0, Math.round(Number(parsed.fatsGrams) || 0)),
       portion: String(parsed.portion ?? ""),
       confidence: Math.max(0, Math.min(1, Number(parsed.confidence) || 0)),
       mealType: parsed.mealType ?? null,
