@@ -84,6 +84,8 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   const pickFood = (f: FoodItem) => {
     setName(f.name);
     setProtein(String(f.proteinGrams));
+    setCarbs(f.carbsGrams ? String(f.carbsGrams) : '');
+    setFats(f.fatsGrams ? String(f.fatsGrams) : '');
     if (f.suggestedMeal && !mealType) setMealType(f.suggestedMeal);
     setTab('manual');
   };
@@ -91,6 +93,8 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   const pickFavorite = (f: FavoriteFood) => {
     setName(f.foodName);
     setProtein(String(f.proteinGrams));
+    setCarbs(f.carbsGrams ? String(f.carbsGrams) : '');
+    setFats(f.fatsGrams ? String(f.fatsGrams) : '');
     if (f.mealType) setMealType(f.mealType);
     setTab('manual');
   };
@@ -98,6 +102,8 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   const pickRecent = (r: FoodLog) => {
     setName(r.foodName);
     setProtein(String(r.proteinGrams));
+    setCarbs(r.carbsGrams ? String(r.carbsGrams) : '');
+    setFats(r.fatsGrams ? String(r.fatsGrams) : '');
     if (r.mealType) setMealType(r.mealType);
     setTab('manual');
   };
@@ -115,7 +121,13 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
         await removeFavorite(user.uid, existing.id);
         toast.success('REMOVED FROM FAVORITES');
       } else {
-        await addFavorite(user.uid, { foodName: name.trim(), proteinGrams: Number(protein), mealType });
+        await addFavorite(user.uid, {
+          foodName: name.trim(),
+          proteinGrams: Number(protein),
+          carbsGrams: Number(carbs) || undefined,
+          fatsGrams: Number(fats) || undefined,
+          mealType,
+        });
         toast.success('SAVED TO FAVORITES');
       }
     } catch (e: unknown) {
@@ -125,8 +137,13 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
 
   const handleSubmit = () => {
     if (!canLog || busy) return;
-    // Fire-and-forget for instant UI. Errors surface via toast inside onSubmit.
-    const payload = { foodName: name.trim(), proteinGrams: Number(protein), mealType };
+    const payload = {
+      foodName: name.trim(),
+      proteinGrams: Number(protein),
+      carbsGrams: Number(carbs) || undefined,
+      fatsGrams: Number(fats) || undefined,
+      mealType,
+    };
     Promise.resolve(onSubmit(payload)).catch((e) => {
       toast.error(e instanceof Error ? e.message : 'Log failed');
     });
