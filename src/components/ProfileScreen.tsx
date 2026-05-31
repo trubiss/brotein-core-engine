@@ -4,6 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { updateProfileFields } from '@/lib/firestore';
 import { Goal } from '@/lib/types';
+import {
+  UnitSystem, getDefaultUnits,
+  displayWeight, parseWeightInput,
+  cmToFtIn, ftInToCm,
+} from '@/lib/units';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import ReminderSettingsPanel from './ReminderSettingsPanel';
@@ -29,18 +34,37 @@ export default function ProfileScreen({ onBack }: Props) {
   const { user, profile, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
-  const [weight, setWeight] = useState(profile?.weight ?? 0);
+  const initialUnits: UnitSystem = (profile?.units as UnitSystem) ?? getDefaultUnits();
+  const [units, setUnits] = useState<UnitSystem>(initialUnits);
+  const [weight, setWeight] = useState(profile?.weight ?? 0); // stored as kg
   const [goal, setGoal] = useState<Goal>(profile?.goal ?? 'hypertrophy');
   const [busy, setBusy] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  // Display strings for inputs
+  const [weightStr, setWeightStr] = useState<string>(
+    profile?.weight ? String(displayWeight(profile.weight, initialUnits)) : ''
+  );
+
   if (!user || !profile) return null;
+
+  const onWeightChange = (v: string) => {
+    setWeightStr(v);
+    const n = Number(v);
+    setWeight(n ? parseWeightInput(n, units) : 0);
+  };
+
+  const onToggleUnits = (next: UnitSystem) => {
+    setUnits(next);
+    // Re-render the displayed weight from stored kg
+    setWeightStr(weight ? String(displayWeight(weight, next)) : '');
+  };
 
   const save = async () => {
     if (busy) return;
     setBusy(true);
     try {
-      await updateProfileFields(user.uid, { weight: Number(weight), goal });
+      await updateProfileFields(user.uid, { weight: Number(weight), goal, units });
       await refreshProfile();
       toast.success('Profile updated · target recalculated');
       setEditing(false);
@@ -50,6 +74,12 @@ export default function ProfileScreen({ onBack }: Props) {
       setBusy(false);
     }
   };
+
+  const displayUnits: UnitSystem = (profile.units as UnitSystem) ?? getDefaultUnits();
+  const heightDisplay = displayUnits === 'imperial'
+    ? (() => { const { ft, in: i } = cmToFtIn(profile.height); return `${ft}'${i}"`; })()
+    : `${profile.height} CM`;
+  const weightDisplay = `${displayWeight(profile.weight, displayUnits)} ${displayUnits === 'imperial' ? 'LBS' : 'KG'}`;
 
   return (
     <motion.div className="screen-container relative isolate" variants={stagger} initial="initial" animate="animate">
