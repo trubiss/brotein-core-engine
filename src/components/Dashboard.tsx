@@ -304,12 +304,12 @@ export default function Dashboard({ onNavigate }: Props) {
     return { headline: 'ON TRACK', sub: 'STAY CONSISTENT.' };
   })();
 
-  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number) => {
+  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number, caloriesKcal?: number) => {
     haptic();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
     track('food_logged', { grams: proteinGrams, meal: mealType ?? 'unspecified', source: 'manual', is_today: isToday });
-    return addLog(user.uid, { foodName, proteinGrams, carbsGrams, fatsGrams, mealType, date: viewDate }, macroTargets)
+    return addLog(user.uid, { foodName, proteinGrams, carbsGrams, fatsGrams, caloriesKcal, mealType, date: viewDate }, macroTargets)
       .catch((e: unknown) => {
         toast.error(e instanceof Error ? e.message : 'Failed to log');
       });
