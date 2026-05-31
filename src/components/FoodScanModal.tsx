@@ -4,7 +4,7 @@ import { Camera, Upload, X, RefreshCw, Check, Loader2, AlertTriangle } from 'luc
 import { MealType } from '@/lib/types';
 import { scanFoodImage, fileToCompressedDataUrl, ScanResult } from '@/lib/scan';
 import { track } from '@/lib/track';
-import { isNative, takeFoodPhoto, tapHaptic } from '@/lib/native';
+import { isNative, takeFoodPhoto, pickFoodPhoto, tapHaptic } from '@/lib/native';
 import { toast } from 'sonner';
 
 interface Props {
