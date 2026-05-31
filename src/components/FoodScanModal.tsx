@@ -80,7 +80,12 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
     }
     const f = e.target.files?.[0]; if (f) void handleFile(f);
   };
-  const onUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isNative()) {
+      const dataUrl = await pickFoodPhoto();
+      if (dataUrl) void handleDataUrl(dataUrl);
+      return;
+    }
     const f = e.target.files?.[0]; if (f) void handleFile(f);
   };
 
