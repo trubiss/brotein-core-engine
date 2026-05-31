@@ -40,6 +40,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   const [protein, setProtein] = useState(initial ? String(initial.proteinGrams) : '');
   const [carbs, setCarbs] = useState(initial?.carbsGrams ? String(initial.carbsGrams) : '');
   const [fats, setFats] = useState(initial?.fatsGrams ? String(initial.fatsGrams) : '');
+  const [calories, setCalories] = useState(initial?.caloriesKcal ? String(initial.caloriesKcal) : '');
   const [mealType, setMealType] = useState<MealType | undefined>(initial?.mealType);
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState('');
