@@ -487,8 +487,9 @@ export default function Dashboard({ onNavigate }: Props) {
           MACROS
         </p>
         {[
-          { label: 'CARBS', value: consumedCarbs, goal: targetCarbs },
-          { label: 'FAT', value: consumedFats, goal: targetFats },
+          { label: 'CALORIES', value: consumedCalories, goal: targetCalories, unit: 'KCAL' },
+          { label: 'CARBS', value: consumedCarbs, goal: targetCarbs, unit: 'G' },
+          { label: 'FAT', value: consumedFats, goal: targetFats, unit: 'G' },
         ].map(m => {
           const pct = m.goal > 0 ? Math.min(100, (m.value / m.goal) * 100) : 0;
           return (
@@ -498,7 +499,7 @@ export default function Dashboard({ onNavigate }: Props) {
                   {m.label}
                 </span>
                 <span className="text-[10px] font-bold tracking-[0.04em] text-muted-foreground/70 shrink-0">
-                  {Math.round(m.value)} / {m.goal}G
+                  {Math.round(m.value)} / {m.goal}{m.unit === 'KCAL' ? ' KCAL' : 'G'}
                 </span>
               </div>
               <div className="h-[3px] w-full bg-foreground/10 overflow-hidden">
