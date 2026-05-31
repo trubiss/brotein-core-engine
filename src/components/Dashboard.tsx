@@ -578,20 +578,24 @@ export default function Dashboard({ onNavigate }: Props) {
           {showScan && (
             <FoodScanModal
               onClose={() => setShowScan(false)}
-              onConfirm={async ({ foodName, proteinGrams, mealType, ai, edited }) => {
+              onConfirm={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, mealType, ai, edited }) => {
                 try {
                   await addLog(user.uid, {
                     foodName,
                     proteinGrams,
+                    carbsGrams,
+                    fatsGrams,
                     mealType,
                     date: viewDate,
                     source: 'ai-scan',
                     aiDetectedName: ai.foodName,
                     aiEstimatedGrams: ai.proteinGrams,
+                    aiEstimatedCarbs: ai.carbsGrams,
+                    aiEstimatedFats: ai.fatsGrams,
                     aiConfidence: ai.confidence,
                     aiPortion: ai.portion,
                     aiEdited: edited,
-                  }, profile.dailyProtein);
+                  }, macroTargets);
                   setStreakBump(b => b + 1);
                   track('ai_scan_logged', {
                     grams: proteinGrams,
