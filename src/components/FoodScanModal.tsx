@@ -234,6 +234,10 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
                     <input className="input-underline" type="number" inputMode="numeric" value={fats} onChange={e => setFats(e.target.value)} />
                   </div>
                 </div>
+                <div>
+                  <label className="label-spaced opacity-70">CALORIES (KCAL)</label>
+                  <input className="input-underline" type="number" inputMode="numeric" value={calories} onChange={e => setCalories(e.target.value)} />
+                </div>
               </div>
 
               <div className="mb-5">
