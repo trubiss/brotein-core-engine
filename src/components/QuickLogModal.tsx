@@ -303,8 +303,9 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
                 className="flex items-stretch gap-2 border-b border-border min-w-0"
               >
                 <button
+                  type="button"
                   onClick={() => pickRecent(r)}
-                  className="flex-1 flex items-center justify-between gap-3 py-3 pr-2 min-w-0 active:bg-foreground/5 text-left"
+                  className="flex-1 flex items-center justify-between gap-3 py-3 pr-2 min-w-0 active:bg-foreground/5 text-left touch-manipulation"
                 >
                   <div className="min-w-0">
                     <p className="text-sm uppercase tracking-[0.12em] truncate">{r.foodName}</p>
@@ -314,9 +315,10 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
                   </div>
                 </button>
                 <motion.button
-                  whileTap={{ scale: 1.08 }}
+                  type="button"
+                  whileTap={{ scale: 0.92 }}
                   onClick={(e) => { e.stopPropagation(); quickAdd(r.foodName, r.proteinGrams, r.mealType); }}
-                  className="my-2 w-11 h-11 border-2 border-foreground flex items-center justify-center shrink-0 bg-background active:bg-foreground active:text-background"
+                  className="my-2 w-11 h-11 border-2 border-foreground flex items-center justify-center shrink-0 bg-background active:bg-foreground active:text-background touch-manipulation"
                   aria-label={`Add ${r.proteinGrams}g ${r.foodName}`}
                 >
                   <Plus size={16} strokeWidth={3} />
