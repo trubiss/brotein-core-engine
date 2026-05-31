@@ -140,9 +140,10 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
 
   const TabBtn = ({ id, label }: { id: Tab; label: string }) => (
     <button
+      type="button"
       onClick={() => setTab(id)}
-      className={`flex-1 py-2 text-[10px] font-bold tracking-widest border-2 ${
-        tab === id ? 'border-foreground bg-foreground text-background' : 'border-foreground'
+      className={`flex-1 py-2 text-[10px] font-bold tracking-widest border-2 border-foreground touch-manipulation ${
+        tab === id ? 'bg-foreground text-background relative z-10' : ''
       }`}
     >
       {label}
@@ -151,12 +152,13 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
 
   const y = useMotionValue(0);
   const overlayOpacity = useTransform(y, [0, 300], [1, 0]);
+  const dragControls = useDragControls();
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     if (info.offset.y > 120 || info.velocity.y > 500) {
       onClose();
     } else {
-      y.set(0);
+      animate(y, 0, { type: 'spring', damping: 30, stiffness: 300 });
     }
   };
 
@@ -177,21 +179,32 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         style={{ y }}
+        drag="y"
+        dragListener={false}
+        dragControls={dragControls}
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.4 }}
+        onDragEnd={handleDragEnd}
       >
-        {/* Drag handle area — drag from here to dismiss */}
-        <motion.div
-          drag="y"
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={{ top: 0, bottom: 0.6 }}
-          onDragEnd={handleDragEnd}
-          className="px-6 pt-6 pb-2 cursor-grab active:cursor-grabbing touch-none"
+        {/* Drag handle area — start drag from here to dismiss */}
+        <div
+          onPointerDown={(e) => dragControls.start(e)}
+          className="px-6 pt-6 pb-2 cursor-grab active:cursor-grabbing touch-none select-none"
         >
           <div className="w-12 h-1 bg-foreground/30 mx-auto mb-5 rounded-full" />
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-black tracking-[0.1em]">{title}</h2>
-            <button onClick={onClose} className="p-1.5 border-2 border-foreground active:scale-95"><X size={14} /></button>
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={onClose}
+              className="p-1.5 border-2 border-foreground active:scale-95 touch-manipulation"
+            >
+              <X size={14} />
+            </button>
           </div>
-        </motion.div>
+        </div>
+
 
         <div className="px-6 pb-[max(1rem,env(safe-area-inset-bottom))] overflow-y-auto flex-1 pt-3">
         {!initial && onScan && (
