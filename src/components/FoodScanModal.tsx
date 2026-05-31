@@ -39,6 +39,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fats, setFats] = useState('');
+  const [calories, setCalories] = useState('');
   const [mealType, setMealType] = useState<MealType | undefined>(undefined);
   const [errorMsg, setErrorMsg] = useState('');
   const [busy, setBusy] = useState(false);
