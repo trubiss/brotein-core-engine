@@ -112,9 +112,32 @@ export default function ProfileScreen({ onBack }: Props) {
 
         {editing ? (
           <>
+            <motion.div variants={fadeUp} className="flex items-center justify-between">
+              <span className="label-spaced">UNITS</span>
+              <div className="inline-flex border-2 border-foreground">
+                {(['metric', 'imperial'] as UnitSystem[]).map(u => (
+                  <button
+                    key={u}
+                    type="button"
+                    onClick={() => onToggleUnits(u)}
+                    className={`px-3 py-1 font-mono text-[10px] font-bold tracking-[0.2em] uppercase transition-colors ${
+                      units === u ? 'bg-foreground text-background' : 'bg-background text-foreground/60'
+                    }`}
+                  >
+                    {u === 'metric' ? 'KG / CM' : 'LBS / FT'}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
             <motion.div variants={fadeUp}>
-              <label className="label-spaced">BODY MASS (KG)</label>
-              <input className="input-underline" type="number" inputMode="numeric" value={weight || ''} onChange={e => setWeight(Number(e.target.value))} />
+              <label className="label-spaced">BODY MASS ({units === 'imperial' ? 'LBS' : 'KG'})</label>
+              <input
+                className="input-underline"
+                type="number"
+                inputMode="decimal"
+                value={weightStr}
+                onChange={e => onWeightChange(e.target.value)}
+              />
             </motion.div>
             <motion.div variants={fadeUp}>
               <label className="label-spaced">GOAL</label>
@@ -133,7 +156,19 @@ export default function ProfileScreen({ onBack }: Props) {
               </div>
             </motion.div>
             <motion.div variants={fadeUp} className="flex gap-3">
-              <button className="btn-outline flex-1" onClick={() => { setEditing(false); setWeight(profile.weight); setGoal(profile.goal); }} disabled={busy}>CANCEL</button>
+              <button
+                className="btn-outline flex-1"
+                onClick={() => {
+                  setEditing(false);
+                  setWeight(profile.weight);
+                  setGoal(profile.goal);
+                  setUnits(initialUnits);
+                  setWeightStr(profile.weight ? String(displayWeight(profile.weight, initialUnits)) : '');
+                }}
+                disabled={busy}
+              >
+                CANCEL
+              </button>
               <button className="btn-primary flex-1" onClick={save} disabled={busy}>{busy ? '…' : 'SAVE'}</button>
             </motion.div>
           </>
@@ -141,11 +176,11 @@ export default function ProfileScreen({ onBack }: Props) {
           <>
             <motion.div variants={fadeUp}>
               <p className="label-spaced">BODY MASS</p>
-              <p className="text-lg font-bold">{profile.weight} KG</p>
+              <p className="text-lg font-bold">{weightDisplay}</p>
             </motion.div>
             <motion.div variants={fadeUp}>
               <p className="label-spaced">HEIGHT</p>
-              <p className="text-lg font-bold">{profile.height} CM</p>
+              <p className="text-lg font-bold">{heightDisplay}</p>
             </motion.div>
             <motion.div variants={fadeUp}>
               <p className="label-spaced">GOAL</p>
