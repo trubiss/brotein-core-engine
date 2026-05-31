@@ -3,7 +3,7 @@ import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import { addLog, deleteLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak } from '@/lib/firestore';
 import SwipeableLogRow from './SwipeableLogRow';
-import { todayKey, FoodLog, DailySummary } from '@/lib/types';
+import { todayKey, FoodLog, DailySummary, kcalFromMacros } from '@/lib/types';
 
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 
