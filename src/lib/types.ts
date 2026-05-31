@@ -17,6 +17,7 @@ export interface UserProfile {
   dailyFats: number;
   mealFrequency: number;
   notifications: boolean;
+  units?: 'metric' | 'imperial';
   reminders?: {
     enabled: boolean;
     morning: { enabled: boolean; time: string };

@@ -7,6 +7,7 @@ import GoalsScreen from './GoalsScreen';
 import ResultsScreen from './ResultsScreen';
 import ManualTargetScreen from './ManualTargetScreen';
 import { ActivityLevel, Goal } from '@/lib/types';
+import { UnitSystem, getDefaultUnits } from '@/lib/units';
 
 interface OnboardingData {
   weight: number;
@@ -14,11 +15,13 @@ interface OnboardingData {
   age: number;
   activityLevel: ActivityLevel;
   goal: Goal;
+  units: UnitSystem;
 }
 
 const initialData: OnboardingData = {
   weight: 0, height: 0, age: 0,
   activityLevel: 'active', goal: 'hypertrophy',
+  units: getDefaultUnits(),
 };
 
 const slideVariants = {

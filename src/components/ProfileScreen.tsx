@@ -4,6 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { updateProfileFields } from '@/lib/firestore';
 import { Goal } from '@/lib/types';
+import {
+  UnitSystem, getDefaultUnits,
+  displayWeight, parseWeightInput,
+  cmToFtIn,
+} from '@/lib/units';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import ReminderSettingsPanel from './ReminderSettingsPanel';
@@ -29,18 +34,37 @@ export default function ProfileScreen({ onBack }: Props) {
   const { user, profile, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
-  const [weight, setWeight] = useState(profile?.weight ?? 0);
+  const initialUnits: UnitSystem = (profile?.units as UnitSystem) ?? getDefaultUnits();
+  const [units, setUnits] = useState<UnitSystem>(initialUnits);
+  const [weight, setWeight] = useState(profile?.weight ?? 0); // stored as kg
   const [goal, setGoal] = useState<Goal>(profile?.goal ?? 'hypertrophy');
   const [busy, setBusy] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  // Display strings for inputs
+  const [weightStr, setWeightStr] = useState<string>(
+    profile?.weight ? String(displayWeight(profile.weight, initialUnits)) : ''
+  );
+
   if (!user || !profile) return null;
+
+  const onWeightChange = (v: string) => {
+    setWeightStr(v);
+    const n = Number(v);
+    setWeight(n ? parseWeightInput(n, units) : 0);
+  };
+
+  const onToggleUnits = (next: UnitSystem) => {
+    setUnits(next);
+    // Re-render the displayed weight from stored kg
+    setWeightStr(weight ? String(displayWeight(weight, next)) : '');
+  };
 
   const save = async () => {
     if (busy) return;
     setBusy(true);
     try {
-      await updateProfileFields(user.uid, { weight: Number(weight), goal });
+      await updateProfileFields(user.uid, { weight: Number(weight), goal, units });
       await refreshProfile();
       toast.success('Profile updated · target recalculated');
       setEditing(false);
@@ -50,6 +74,12 @@ export default function ProfileScreen({ onBack }: Props) {
       setBusy(false);
     }
   };
+
+  const displayUnits: UnitSystem = (profile.units as UnitSystem) ?? getDefaultUnits();
+  const heightDisplay = displayUnits === 'imperial'
+    ? (() => { const { ft, in: i } = cmToFtIn(profile.height); return `${ft}'${i}"`; })()
+    : `${profile.height} CM`;
+  const weightDisplay = `${displayWeight(profile.weight, displayUnits)} ${displayUnits === 'imperial' ? 'LBS' : 'KG'}`;
 
   return (
     <motion.div className="screen-container relative isolate" variants={stagger} initial="initial" animate="animate">
@@ -82,9 +112,32 @@ export default function ProfileScreen({ onBack }: Props) {
 
         {editing ? (
           <>
+            <motion.div variants={fadeUp} className="flex items-center justify-between">
+              <span className="label-spaced">UNITS</span>
+              <div className="inline-flex border-2 border-foreground">
+                {(['metric', 'imperial'] as UnitSystem[]).map(u => (
+                  <button
+                    key={u}
+                    type="button"
+                    onClick={() => onToggleUnits(u)}
+                    className={`px-3 py-1 font-mono text-[10px] font-bold tracking-[0.2em] uppercase transition-colors ${
+                      units === u ? 'bg-foreground text-background' : 'bg-background text-foreground/60'
+                    }`}
+                  >
+                    {u === 'metric' ? 'KG / CM' : 'LBS / FT'}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
             <motion.div variants={fadeUp}>
-              <label className="label-spaced">BODY MASS (KG)</label>
-              <input className="input-underline" type="number" inputMode="numeric" value={weight || ''} onChange={e => setWeight(Number(e.target.value))} />
+              <label className="label-spaced">BODY MASS ({units === 'imperial' ? 'LBS' : 'KG'})</label>
+              <input
+                className="input-underline"
+                type="number"
+                inputMode="decimal"
+                value={weightStr}
+                onChange={e => onWeightChange(e.target.value)}
+              />
             </motion.div>
             <motion.div variants={fadeUp}>
               <label className="label-spaced">GOAL</label>
@@ -103,7 +156,19 @@ export default function ProfileScreen({ onBack }: Props) {
               </div>
             </motion.div>
             <motion.div variants={fadeUp} className="flex gap-3">
-              <button className="btn-outline flex-1" onClick={() => { setEditing(false); setWeight(profile.weight); setGoal(profile.goal); }} disabled={busy}>CANCEL</button>
+              <button
+                className="btn-outline flex-1"
+                onClick={() => {
+                  setEditing(false);
+                  setWeight(profile.weight);
+                  setGoal(profile.goal);
+                  setUnits(initialUnits);
+                  setWeightStr(profile.weight ? String(displayWeight(profile.weight, initialUnits)) : '');
+                }}
+                disabled={busy}
+              >
+                CANCEL
+              </button>
               <button className="btn-primary flex-1" onClick={save} disabled={busy}>{busy ? '…' : 'SAVE'}</button>
             </motion.div>
           </>
@@ -111,11 +176,11 @@ export default function ProfileScreen({ onBack }: Props) {
           <>
             <motion.div variants={fadeUp}>
               <p className="label-spaced">BODY MASS</p>
-              <p className="text-lg font-bold">{profile.weight} KG</p>
+              <p className="text-lg font-bold">{weightDisplay}</p>
             </motion.div>
             <motion.div variants={fadeUp}>
               <p className="label-spaced">HEIGHT</p>
-              <p className="text-lg font-bold">{profile.height} CM</p>
+              <p className="text-lg font-bold">{heightDisplay}</p>
             </motion.div>
             <motion.div variants={fadeUp}>
               <p className="label-spaced">GOAL</p>
