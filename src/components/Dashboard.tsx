@@ -535,7 +535,7 @@ export default function Dashboard({ onNavigate }: Props) {
                 onDelete={async () => {
                   haptic();
                   try {
-                    await deleteLog(user.uid, l.id, profile.dailyProtein);
+                    await deleteLog(user.uid, l.id, macroTargets);
                     setStreakBump(b => b + 1);
                     toast.success('ENTRY DELETED', { duration: 900 });
                   } catch (e: unknown) {
