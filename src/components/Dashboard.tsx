@@ -247,10 +247,15 @@ export default function Dashboard({ onNavigate }: Props) {
     () => logs.reduce((s, l) => s + (l.fatsGrams || 0), 0),
     [logs]
   );
+  const consumedCalories = useMemo(
+    () => logs.reduce((s, l) => s + (l.caloriesKcal ?? kcalFromMacros(l.proteinGrams, l.carbsGrams, l.fatsGrams)), 0),
+    [logs]
+  );
   const target = profile?.dailyProtein ?? 0;
   const targetCarbs = profile?.dailyCarbs ?? 0;
   const targetFats = profile?.dailyFats ?? 0;
-  const macroTargets = { protein: target, carbs: targetCarbs, fats: targetFats };
+  const targetCalories = profile?.dailyCalories ?? 0;
+  const macroTargets = { protein: target, carbs: targetCarbs, fats: targetFats, calories: targetCalories };
   const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
 
   // Paywall tracking (must be declared before any conditional return)
