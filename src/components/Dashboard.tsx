@@ -1,7 +1,8 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
-import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak, watchRecentLogs } from '@/lib/firestore';
+import { addLog, deleteLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak } from '@/lib/firestore';
+import SwipeableLogRow from './SwipeableLogRow';
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
@@ -84,7 +85,6 @@ export default function Dashboard({ onNavigate }: Props) {
   const [hasEntitlement, setHasEntitlement] = useState(false);
   const [trialActive, setTrialActive] = useState(() => isTrialActive(uid));
   const [totalLogs, setTotalLogs] = useState(0);
-  const [lastEntry, setLastEntry] = useState<FoodLog | null>(null);
   const [nowTick, setNowTick] = useState(Date.now());
 
   // Keep trialActive in sync when uid changes (login/logout) — preserves expiry semantics.
@@ -198,13 +198,7 @@ export default function Dashboard({ onNavigate }: Props) {
     };
   }, [user, streakBump]);
 
-  // Most recent log across all days, for the "LAST" line at the bottom.
-  useEffect(() => {
-    if (!user) return;
-    return watchRecentLogs(user.uid, logs => setLastEntry(logs[0] ?? null), 1);
-  }, [user]);
-
-  // Tick every 30s so the relative time stays fresh.
+  // Tick every 30s so per-entry relative times stay fresh.
   useEffect(() => {
     const id = setInterval(() => setNowTick(Date.now()), 30_000);
     return () => clearInterval(id);
@@ -329,9 +323,12 @@ export default function Dashboard({ onNavigate }: Props) {
     <motion.div className="screen-container pb-32 relative isolate" variants={stagger} initial="initial" animate="animate">
       <AmbientGrid opacity={0.04} />
 
-      <motion.div variants={fadeUp} className="flex items-center justify-between mb-12 min-w-0">
+      <motion.div variants={fadeUp} className="flex items-center justify-between mb-12 min-w-0 gap-3">
         <h1 className="font-black tracking-[0.15em] font-sans text-3xl truncate">BROTEIN</h1>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
+          <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 mr-1 whitespace-nowrap">
+            STREAK · {streak}D <BlinkingCursor className="text-foreground/40" />
+          </p>
           <button onClick={() => onNavigate('insights')} className="p-2 border-2 border-foreground active:scale-95 transition-transform" aria-label="Insights">
             <BarChart3 size={20} />
           </button>
@@ -467,20 +464,58 @@ export default function Dashboard({ onNavigate }: Props) {
         ))}
       </motion.div>
 
-      {/* Minimal streak — low visual weight, breathes above */}
+      {/* Today's Entries — swipe a row left to delete a mis-tap */}
       <motion.div variants={fadeUp} className="mb-2">
-        <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55">
-          STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'} <BlinkingCursor className="text-foreground/40" />
-        </p>
+        <div className="flex items-baseline justify-between mb-2">
+          <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55">
+            {isToday ? "TODAY'S ENTRIES" : `ENTRIES · ${dateLabel}`}
+          </p>
+          {logs.length > 0 && (
+            <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/40">
+              SWIPE TO DELETE
+            </p>
+          )}
+        </div>
+        {logs.length === 0 ? (
+          <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/40 py-3 border-t border-border">
+            NO ENTRIES YET
+          </p>
+        ) : (
+          <div className="border-t border-border">
+            {logs.map(l => (
+              <SwipeableLogRow
+                key={l.id}
+                onTap={() => {}}
+                onDelete={async () => {
+                  haptic();
+                  try {
+                    await deleteLog(user.uid, l.id, profile.dailyProtein);
+                    setStreakBump(b => b + 1);
+                    toast.success('ENTRY DELETED', { duration: 900 });
+                  } catch (e: unknown) {
+                    toast.error(e instanceof Error ? e.message : 'Failed to delete');
+                  }
+                }}
+              >
+                <div className="flex items-center justify-between px-1 py-3 min-w-0 gap-3">
+                  <p className="font-display text-xs font-bold tracking-[0.08em] uppercase truncate">
+                    {l.foodName}
+                  </p>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="font-display text-xs font-black tracking-[0.04em]">
+                      +{l.proteinGrams}G
+                    </span>
+                    <span className="text-[9px] tracking-[0.18em] uppercase text-muted-foreground/55 min-w-[44px] text-right">
+                      {relTime(l.timestamp, nowTick)}
+                    </span>
+                  </div>
+                </div>
+              </SwipeableLogRow>
+            ))}
+          </div>
+        )}
       </motion.div>
 
-      {lastEntry && (
-        <motion.div variants={fadeUp} className="mb-2">
-          <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 truncate">
-            LAST · {lastEntry.foodName.toUpperCase()} · {lastEntry.proteinGrams}G · {relTime(lastEntry.timestamp, nowTick)}
-          </p>
-        </motion.div>
-      )}
 
       {(showModal || showScan) && (
         <Suspense fallback={null}>

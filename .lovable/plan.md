@@ -1,55 +1,27 @@
-# Anatomical Identity Figure (rebuild)
+# Dashboard: Today's Entries + Streak relocation
 
-The current silhouette reads as a cartoon. Rebuild it as a real anatomical front-view male figure inspired by the reference — clearly defined muscle groups (pecs, delts, biceps, forearms, abs, obliques, quads, calves), but in pure brutalist black and white. Progression is shown by which muscle groups have been "earned": at low tiers only the outline exists, and as the user climbs, muscle groups light up one anatomical region at a time.
+## Changes (frontend only, `src/components/Dashboard.tsx`)
 
-## New component — `AnatomyFigure`
+### 1. Replace the "LAST · …" line with a "TODAY'S ENTRIES" list
+Where the `lastEntry` block currently renders (bottom of Dashboard), render a list of `logs` for the currently viewed date instead.
 
-Replace `src/components/identity/SilhouetteFigure.tsx` with a new `AnatomyFigure.tsx`. Same prop API (`identity`, `size`, `className`) so the home card, screen hero, ladder, and share card don't need to change.
+- Section header: small label "TODAY'S ENTRIES" (or "ENTRIES · {dateLabel}" when not viewing today) matching existing micro-label styling (`text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55`).
+- For each log in `logs` (already sorted, already subscribed via `watchLogsForDate`), render a `SwipeableLogRow` (reuse existing component used in HistoryScreen):
+  - Row content: food name (uppercase, truncated) on the left, `+{proteinGrams}G` + relative time on the right, brutalist style consistent with the rest of the dashboard (mono/display font, thin border-b already in SwipeableLogRow).
+  - `onTap`: no-op (or open QuickLogModal prefilled — keep as no-op for minimal scope).
+  - `onDelete`: call `deleteLog(user.uid, log.id, profile.dailyProtein)`, show a toast `ENTRY DELETED`, bump `streakBump` so streak recomputes.
+- Empty state: if `logs.length === 0`, show muted "NO ENTRIES YET" line in the same micro-label style.
+- Remove the `lastEntry` state, the `watchRecentLogs` effect that powers it, and the `nowTick`/`relTime` usage if no longer needed (relTime is still useful for per-row timestamps — keep it).
 
-### SVG construction
+### 2. Move the STREAK line
+Relocate the `STREAK · N DAYS` block from just above the entries list to the **top-right header area**, next to the BROTEIN title:
+- Render it as a compact pill/line to the left of the Insights/Profile buttons inside the existing header `flex` row.
+- Style: same micro-label (`text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55`), no border, just text. Keep the BlinkingCursor.
+- On narrow viewports (391px), ensure the header doesn't overflow — title can stay `text-3xl` but allow streak to shrink/truncate; `BROTEIN` already has `truncate`.
 
-- `<svg viewBox="0 0 240 520">` — taller, anatomical proportions instead of the current squat figure.
-- Built from named muscle-group `<g>` layers, drawn back-to-front:
-  1. `#outline` — outer body silhouette (head, neck, shoulders, arms slightly out, narrow waist, hips, legs apart, feet). Hand-crafted Bezier paths, not the boxy current shape.
-  2. `#delts` — two rounded deltoid caps over the shoulder joints.
-  3. `#pecs` — left/right pec, rounded triangle meeting at sternum with a center cleft.
-  4. `#biceps` — upper-arm muscle bellies.
-  5. `#forearms` — tapered forearm bellies.
-  6. `#abs` — rectus abdominis as 3 stacked pairs (6-pack) with a vertical linea alba.
-  7. `#obliques` — angled flank panels framing the abs into a V.
-  8. `#quads` — rectus femoris + vastus lateralis/medialis per leg (3 paths per leg).
-  9. `#calves` — peanut-shape calf bellies on lower leg backs (visible on front via inner contour).
-- All paths use `currentColor` for stroke and fill so the figure inverts cleanly inside the active ladder row.
+### 3. Cleanup
+- Remove now-unused imports (`watchRecentLogs` if unused elsewhere in the file).
+- Keep `deleteLog` import added from `@/lib/firestore`.
 
-### Progression — what lights up at each tier
-
-| Tier | Outline | Visible muscle groups | Stroke | Muscle fill opacity |
-|------|---------|----------------------|--------|---------------------|
-| 0 UNRELIABLE | dashed, thin | none | 1.25 | 0 |
-| 1 CONSISTENT | solid | delts | 1.5 | 0.18 |
-| 2 DISCIPLINED | solid | + pecs | 1.5 | 0.22 |
-| 3 COMMITTED | solid | + biceps + abs | 1.75 | 0.32 |
-| 4 ELITE | solid | + forearms + obliques + quads | 2.0 | 0.55 |
-| 5 LOCKED IN | solid | + calves, every group filled solid | 2.25 | 1.0 |
-
-Implementation: each muscle group is mounted unconditionally but its `opacity` is driven by tier index, so the same SVG renders six visual states. Locked groups stay at `opacity: 0` (not greyed-out — they don't exist yet). At LOCKED IN, all groups go to `fillOpacity: 1` with thin background-color separator lines drawn between them so the anatomy stays legible in solid silhouette.
-
-Optional one-shot mount animation: groups fade in with `framer-motion` staggerChildren so the first render feels like the body assembles.
-
-## Why this looks right
-
-- Identical anatomical pose at every tier — only definition changes. That's exactly how the reference reads: "same body, more development."
-- Muscle groups are real anatomical units, not decorative dashes. Even at low tiers the outline reads as a real figure, not a stick man.
-- Pure black/white, currentColor throughout — preserves the brutalist aesthetic, no color highlights, no labels.
-- The transformation ("START → NOW") becomes legible because the differences are large and structural — entire muscle groups appearing, not stroke widths nudging up by a quarter pixel.
-
-## Files
-
-- Rewrite: `src/components/identity/SilhouetteFigure.tsx` → rename to `AnatomyFigure.tsx`, update three imports (`IdentityCard.tsx`, `IdentityScreen.tsx`, `IdentityShareCard.tsx`).
-- No data, model, or page-flow changes. Identity scoring, START snapshot, screen layout, and share card structure all stay as-is.
-
-## Sizing & layout adjustments
-
-- Bump the screen hero figure to `w-64` (~256 px wide, ~520 px tall) so the anatomy reads at distance.
-- Home card silhouette stays at `md` (~80 px); raise card minimum height slightly so the taller figure fits without cropping.
-- Ladder thumbnails stay at `sm` (~40 px) — at that size only the outline + dominant filled regions matter, which still differentiates tiers.
+## Out of scope
+No backend, schema, or business-logic changes. Pure UI rearrangement reusing existing `SwipeableLogRow` + `deleteLog`.
