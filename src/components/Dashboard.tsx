@@ -461,7 +461,7 @@ export default function Dashboard({ onNavigate }: Props) {
       </motion.div>
 
       {/* Secondary one-tap shortcuts — feel like extensions of the card */}
-      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-1.5 mb-8">
+      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-1.5 mb-3">
         {[20, 30, 40].map(g => (
           <motion.button
             key={g}
@@ -475,6 +475,40 @@ export default function Dashboard({ onNavigate }: Props) {
           </motion.button>
         ))}
       </motion.div>
+
+      {/* Secondary macros — protein remains the hero above */}
+      <motion.div variants={fadeUp} className="mb-8">
+        <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 mb-2">
+          MACROS
+        </p>
+        {[
+          { label: 'CARBS', value: consumedCarbs, goal: targetCarbs },
+          { label: 'FAT', value: consumedFats, goal: targetFats },
+        ].map(m => {
+          const pct = m.goal > 0 ? Math.min(100, (m.value / m.goal) * 100) : 0;
+          return (
+            <div key={m.label} className="mb-2 last:mb-0">
+              <div className="flex items-baseline justify-between mb-1 min-w-0">
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted-foreground/70">
+                  {m.label}
+                </span>
+                <span className="text-[10px] font-bold tracking-[0.04em] text-muted-foreground/70 shrink-0">
+                  {Math.round(m.value)} / {m.goal}G
+                </span>
+              </div>
+              <div className="h-[3px] w-full bg-foreground/10 overflow-hidden">
+                <motion.div
+                  className="h-full bg-foreground/50"
+                  initial={false}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </motion.div>
+
 
       {/* Today's Entries — swipe a row left to delete a mis-tap */}
       <motion.div variants={fadeUp} className="mb-2">
