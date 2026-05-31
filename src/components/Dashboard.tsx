@@ -1,7 +1,8 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
-import { addLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak, watchRecentLogs } from '@/lib/firestore';
+import { addLog, deleteLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak } from '@/lib/firestore';
+import SwipeableLogRow from './SwipeableLogRow';
 import { todayKey, FoodLog, DailySummary } from '@/lib/types';
 
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
