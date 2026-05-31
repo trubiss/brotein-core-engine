@@ -13,11 +13,12 @@ interface Props {
     proteinGrams: number;
     carbsGrams?: number;
     fatsGrams?: number;
+    caloriesKcal?: number;
     mealType?: MealType;
   };
   title?: string;
   submitLabel?: string;
-  onSubmit: (data: { foodName: string; proteinGrams: number; carbsGrams?: number; fatsGrams?: number; mealType?: MealType }) => void | Promise<void>;
+  onSubmit: (data: { foodName: string; proteinGrams: number; carbsGrams?: number; fatsGrams?: number; caloriesKcal?: number; mealType?: MealType }) => void | Promise<void>;
   onClose: () => void;
   onScan?: () => void;
 }
