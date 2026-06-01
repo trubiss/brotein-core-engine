@@ -7,6 +7,7 @@ export interface ScanResult {
   fatsGrams?: number;
   caloriesKcal?: number;
   portion: string;
+  portionGrams?: number;
   confidence: number; // 0..1
   mealType: MealType | null;
   notes?: string;
