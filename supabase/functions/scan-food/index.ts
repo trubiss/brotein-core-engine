@@ -49,7 +49,7 @@ serve(async (req) => {
           {
             role: "user",
             content: [
-              { type: "text", text: "Analyze this food photo. Estimate protein, carbs, fat in grams, and calories in kcal." },
+              { type: "text", text: "Analyze this food photo. Estimate the portion weight in grams, plus protein, carbs, fat in grams, and calories in kcal." },
               { type: "image_url", image_url: { url: imageDataUrl } },
             ],
           },
