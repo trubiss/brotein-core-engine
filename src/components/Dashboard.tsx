@@ -16,6 +16,7 @@ import { track } from '@/lib/track';
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
 const Paywall = lazy(() => import('./Paywall'));
+const GoalHitCelebration = lazy(() => import('./GoalHitCelebration'));
 
 import { AmbientGrid, BlinkingCursor } from './ui/AmbientGrid';
 
@@ -86,6 +87,7 @@ export default function Dashboard({ onNavigate }: Props) {
   const [trialActive, setTrialActive] = useState(() => isTrialActive(uid));
   const [totalLogs, setTotalLogs] = useState(0);
   const [nowTick, setNowTick] = useState(Date.now());
+  const [celebrate, setCelebrate] = useState(false);
 
   // Keep trialActive in sync when uid changes (login/logout) — preserves expiry semantics.
   useEffect(() => { setTrialActive(isTrialActive(uid)); }, [uid]);
@@ -166,14 +168,21 @@ export default function Dashboard({ onNavigate }: Props) {
   useEffect(() => {
     if (!summary?.hitTarget || !uid) return;
     const key = `brotein_target_hit:${uid}:${summary.date}`;
-    if (localStorage.getItem(key)) return;
-    localStorage.setItem(key, '1');
-    track('target_hit', {
-      date: summary.date,
-      consumed: summary.consumedProtein,
-      target: summary.targetProtein,
-    });
-  }, [summary?.hitTarget, summary?.date, summary?.consumedProtein, summary?.targetProtein, uid]);
+    if (!localStorage.getItem(key)) {
+      localStorage.setItem(key, '1');
+      track('target_hit', {
+        date: summary.date,
+        consumed: summary.consumedProtein,
+        target: summary.targetProtein,
+      });
+    }
+    // Show celebration once per day, only when viewing today.
+    const celebKey = `brotein_target_celebrated:${uid}:${summary.date}`;
+    if (summary.date === today && !localStorage.getItem(celebKey)) {
+      localStorage.setItem(celebKey, '1');
+      setCelebrate(true);
+    }
+  }, [summary?.hitTarget, summary?.date, summary?.consumedProtein, summary?.targetProtein, uid, today]);
 
   // Streak: one-shot, deferred to idle, refetched after mutations.
   useEffect(() => {
@@ -619,6 +628,17 @@ export default function Dashboard({ onNavigate }: Props) {
               }}
             />
           )}
+        </Suspense>
+      )}
+
+      {celebrate && (
+        <Suspense fallback={null}>
+          <GoalHitCelebration
+            consumed={consumed}
+            target={target}
+            streak={streak}
+            onClose={() => setCelebrate(false)}
+          />
         </Suspense>
       )}
     </motion.div>
