@@ -118,7 +118,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
         fatsGrams: Number(fats) || undefined,
         caloriesKcal: Number(calories) || undefined,
         mealType,
-        ai,
+        ai: { ...ai, portionGrams: Number(portionGrams) || ai.portionGrams },
         imageDataUrl,
         edited,
       });
