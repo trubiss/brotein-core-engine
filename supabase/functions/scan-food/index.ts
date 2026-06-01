@@ -10,8 +10,6 @@ const SYSTEM_PROMPT = `You are a precise nutrition vision analyst. Identify the 
 Rules:
 - Identify the most prominent food item (or main dish) in the photo.
 - Estimate portion size from visual cues (plate size, utensil, hand, packaging).
-- ALWAYS estimate the total portion WEIGHT in grams (portionGrams) — your best guess of how much the food on the plate weighs. Be realistic (e.g. chicken breast ~150g, bowl of rice ~200g, slice of pizza ~120g).
-- Also return a human-readable portion string (e.g. "1 breast (~150g)", "medium bowl (~250g)").
 - Return PROTEIN GRAMS, CARB GRAMS, FAT GRAMS, and CALORIES (kcal) as integers (round to nearest whole number). Protein is the most important — be most precise there. Carbs/fats can be 0 if clearly negligible. Calories should reflect the realistic kcal of the portion (roughly 4·protein + 4·carbs + 9·fat, but use your judgement for cooking oils/sauces).
 - Confidence is 0.0-1.0. If the image is unclear / not food, set confidence < 0.3 and explain in notes.
 - Suggest a meal type only if obvious (otherwise null).
@@ -49,7 +47,7 @@ serve(async (req) => {
           {
             role: "user",
             content: [
-              { type: "text", text: "Analyze this food photo. Estimate the portion weight in grams, plus protein, carbs, fat in grams, and calories in kcal." },
+              { type: "text", text: "Analyze this food photo. Estimate protein, carbs, fat in grams, and calories in kcal." },
               { type: "image_url", image_url: { url: imageDataUrl } },
             ],
           },
@@ -68,13 +66,12 @@ serve(async (req) => {
                   carbsGrams: { type: "integer", description: "Estimated carbohydrate grams (whole number, 0 if negligible)." },
                   fatsGrams: { type: "integer", description: "Estimated fat grams (whole number, 0 if negligible)." },
                   caloriesKcal: { type: "integer", description: "Estimated calories in kcal (whole number)." },
-                  portion: { type: "string", description: "Human-readable portion e.g. '1 breast (~150g)'." },
-                  portionGrams: { type: "integer", description: "Estimated total portion weight in grams (whole number, > 0)." },
+                  portion: { type: "string", description: "Estimated portion e.g. '1 breast (~150g)'." },
                   confidence: { type: "number", description: "0.0 to 1.0" },
                   mealType: { type: ["string", "null"], enum: ["breakfast", "lunch", "dinner", "snack", null] },
                   notes: { type: "string" },
                 },
-                required: ["foodName", "proteinGrams", "carbsGrams", "fatsGrams", "caloriesKcal", "confidence", "portion", "portionGrams"],
+                required: ["foodName", "proteinGrams", "carbsGrams", "fatsGrams", "caloriesKcal", "confidence", "portion"],
                 additionalProperties: false,
               },
             },
@@ -119,7 +116,6 @@ serve(async (req) => {
       fatsGrams: Math.max(0, Math.round(Number(parsed.fatsGrams) || 0)),
       caloriesKcal: Math.max(0, Math.round(Number(parsed.caloriesKcal) || 0)),
       portion: String(parsed.portion ?? ""),
-      portionGrams: Math.max(0, Math.round(Number(parsed.portionGrams) || 0)),
       confidence: Math.max(0, Math.min(1, Number(parsed.confidence) || 0)),
       mealType: parsed.mealType ?? null,
       notes: parsed.notes ?? "",

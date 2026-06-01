@@ -40,7 +40,6 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   const [carbs, setCarbs] = useState('');
   const [fats, setFats] = useState('');
   const [calories, setCalories] = useState('');
-  const [portionGrams, setPortionGrams] = useState('');
   const [mealType, setMealType] = useState<MealType | undefined>(undefined);
   const [errorMsg, setErrorMsg] = useState('');
   const [busy, setBusy] = useState(false);
@@ -70,7 +69,6 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
       setCarbs(result.carbsGrams != null ? String(result.carbsGrams) : '');
       setFats(result.fatsGrams != null ? String(result.fatsGrams) : '');
       setCalories(result.caloriesKcal != null ? String(result.caloriesKcal) : '');
-      setPortionGrams(result.portionGrams != null ? String(result.portionGrams) : '');
       if (result.mealType) setMealType(result.mealType);
       track('ai_scan_completed', { ai_grams: result.proteinGrams, confidence: result.confidence });
       setStage('review');
@@ -101,7 +99,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   };
 
   const reset = () => {
-    setImageDataUrl(null); setAi(null); setFoodName(''); setProtein(''); setCarbs(''); setFats(''); setCalories(''); setPortionGrams(''); setMealType(undefined); setErrorMsg(''); setStage('pick');
+    setImageDataUrl(null); setAi(null); setFoodName(''); setProtein(''); setCarbs(''); setFats(''); setCalories(''); setMealType(undefined); setErrorMsg(''); setStage('pick');
   };
 
   const canConfirm = foodName.trim().length > 0 && Number(protein) > 0;
@@ -118,7 +116,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
         fatsGrams: Number(fats) || undefined,
         caloriesKcal: Number(calories) || undefined,
         mealType,
-        ai: { ...ai, portionGrams: Number(portionGrams) || ai.portionGrams },
+        ai,
         imageDataUrl,
         edited,
       });
@@ -236,15 +234,9 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
                     <input className="input-underline" type="number" inputMode="numeric" value={fats} onChange={e => setFats(e.target.value)} />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="label-spaced opacity-70">CALORIES (KCAL)</label>
-                    <input className="input-underline" type="number" inputMode="numeric" value={calories} onChange={e => setCalories(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="label-spaced opacity-70">PORTION (G)</label>
-                    <input className="input-underline" type="number" inputMode="numeric" value={portionGrams} onChange={e => setPortionGrams(e.target.value)} />
-                  </div>
+                <div>
+                  <label className="label-spaced opacity-70">CALORIES (KCAL)</label>
+                  <input className="input-underline" type="number" inputMode="numeric" value={calories} onChange={e => setCalories(e.target.value)} />
                 </div>
               </div>
 
