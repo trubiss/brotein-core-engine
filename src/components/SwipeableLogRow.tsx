@@ -85,8 +85,8 @@ const SwipeableLogRow = forwardRef<HTMLDivElement, Props>(function SwipeableLogR
       <motion.div
         drag="x"
         dragConstraints={{ left: -window.innerWidth, right: 0 }}
-        dragElastic={{ left: 0.15, right: 0 }}
-        dragMomentum={false}
+        dragElastic={{ left: 1, right: 0 }}
+        dragTransition={{ power: 0.25, timeConstant: 180, bounceStiffness: 0, bounceDamping: 0 }}
         dragDirectionLock
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
