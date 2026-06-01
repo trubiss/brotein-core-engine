@@ -87,6 +87,7 @@ export default function Dashboard({ onNavigate }: Props) {
   const [trialActive, setTrialActive] = useState(() => isTrialActive(uid));
   const [totalLogs, setTotalLogs] = useState(0);
   const [nowTick, setNowTick] = useState(Date.now());
+  const [celebrate, setCelebrate] = useState(false);
 
   // Keep trialActive in sync when uid changes (login/logout) — preserves expiry semantics.
   useEffect(() => { setTrialActive(isTrialActive(uid)); }, [uid]);
