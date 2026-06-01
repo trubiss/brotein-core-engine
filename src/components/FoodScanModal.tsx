@@ -236,9 +236,15 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
                     <input className="input-underline" type="number" inputMode="numeric" value={fats} onChange={e => setFats(e.target.value)} />
                   </div>
                 </div>
-                <div>
-                  <label className="label-spaced opacity-70">CALORIES (KCAL)</label>
-                  <input className="input-underline" type="number" inputMode="numeric" value={calories} onChange={e => setCalories(e.target.value)} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label-spaced opacity-70">CALORIES (KCAL)</label>
+                    <input className="input-underline" type="number" inputMode="numeric" value={calories} onChange={e => setCalories(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="label-spaced opacity-70">PORTION (G)</label>
+                    <input className="input-underline" type="number" inputMode="numeric" value={portionGrams} onChange={e => setPortionGrams(e.target.value)} />
+                  </div>
                 </div>
               </div>
 
