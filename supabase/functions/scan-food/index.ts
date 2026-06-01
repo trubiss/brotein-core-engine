@@ -119,6 +119,7 @@ serve(async (req) => {
       fatsGrams: Math.max(0, Math.round(Number(parsed.fatsGrams) || 0)),
       caloriesKcal: Math.max(0, Math.round(Number(parsed.caloriesKcal) || 0)),
       portion: String(parsed.portion ?? ""),
+      portionGrams: Math.max(0, Math.round(Number(parsed.portionGrams) || 0)),
       confidence: Math.max(0, Math.min(1, Number(parsed.confidence) || 0)),
       mealType: parsed.mealType ?? null,
       notes: parsed.notes ?? "",
