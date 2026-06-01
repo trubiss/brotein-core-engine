@@ -101,7 +101,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   };
 
   const reset = () => {
-    setImageDataUrl(null); setAi(null); setFoodName(''); setProtein(''); setCarbs(''); setFats(''); setCalories(''); setMealType(undefined); setErrorMsg(''); setStage('pick');
+    setImageDataUrl(null); setAi(null); setFoodName(''); setProtein(''); setCarbs(''); setFats(''); setCalories(''); setPortionGrams(''); setMealType(undefined); setErrorMsg(''); setStage('pick');
   };
 
   const canConfirm = foodName.trim().length > 0 && Number(protein) > 0;
