@@ -70,6 +70,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
       setCarbs(result.carbsGrams != null ? String(result.carbsGrams) : '');
       setFats(result.fatsGrams != null ? String(result.fatsGrams) : '');
       setCalories(result.caloriesKcal != null ? String(result.caloriesKcal) : '');
+      setPortionGrams(result.portionGrams != null ? String(result.portionGrams) : '');
       if (result.mealType) setMealType(result.mealType);
       track('ai_scan_completed', { ai_grams: result.proteinGrams, confidence: result.confidence });
       setStage('review');
