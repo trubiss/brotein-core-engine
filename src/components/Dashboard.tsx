@@ -168,14 +168,21 @@ export default function Dashboard({ onNavigate }: Props) {
   useEffect(() => {
     if (!summary?.hitTarget || !uid) return;
     const key = `brotein_target_hit:${uid}:${summary.date}`;
-    if (localStorage.getItem(key)) return;
-    localStorage.setItem(key, '1');
-    track('target_hit', {
-      date: summary.date,
-      consumed: summary.consumedProtein,
-      target: summary.targetProtein,
-    });
-  }, [summary?.hitTarget, summary?.date, summary?.consumedProtein, summary?.targetProtein, uid]);
+    if (!localStorage.getItem(key)) {
+      localStorage.setItem(key, '1');
+      track('target_hit', {
+        date: summary.date,
+        consumed: summary.consumedProtein,
+        target: summary.targetProtein,
+      });
+    }
+    // Show celebration once per day, only when viewing today.
+    const celebKey = `brotein_target_celebrated:${uid}:${summary.date}`;
+    if (summary.date === today && !localStorage.getItem(celebKey)) {
+      localStorage.setItem(celebKey, '1');
+      setCelebrate(true);
+    }
+  }, [summary?.hitTarget, summary?.date, summary?.consumedProtein, summary?.targetProtein, uid, today]);
 
   // Streak: one-shot, deferred to idle, refetched after mutations.
   useEffect(() => {
