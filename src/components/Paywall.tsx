@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { ArrowLeft } from 'lucide-react';
 import { isIOS, isNative, tapHaptic } from '@/lib/native';
 import { getOffers, purchasePlan, restorePurchases, type Offers, type PlanId } from '@/lib/iap';
 import { track } from '@/lib/track';
+import PrivacyPolicy from './legal/PrivacyPolicy';
+import TermsOfService from './legal/TermsOfService';
+import { MemoryRouter } from 'react-router-dom';
 
 interface Props {
   streak?: number;
@@ -21,6 +25,7 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
   );
   const [plan, setPlan] = useState<PlanId>('annual');
   const [busy, setBusy] = useState(false);
+  const [legal, setLegal] = useState<null | 'privacy' | 'terms'>(null);
 
   const loadOffers = () => {
     if (!native) return undefined;
@@ -294,23 +299,21 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
 
         {/* Legal links — required by App Store for subscription paywalls */}
         <div className="mt-2 flex justify-center gap-4 text-[10px] tracking-[0.25em] uppercase font-bold opacity-50">
-          <a
-            href="/terms"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => { void tapHaptic(); setLegal('terms'); }}
             className="active:opacity-60 hover:opacity-80 transition-opacity"
           >
             TERMS
-          </a>
+          </button>
           <span aria-hidden="true">·</span>
-          <a
-            href="/privacy"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => { void tapHaptic(); setLegal('privacy'); }}
             className="active:opacity-60 hover:opacity-80 transition-opacity"
           >
             PRIVACY
-          </a>
+          </button>
         </div>
 
         {onClose && (
@@ -323,6 +326,31 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
           </button>
         )}
       </div>
+
+      <AnimatePresence>
+        {legal && (
+          <motion.div
+            key={legal}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[60] bg-background text-foreground overflow-y-auto"
+          >
+            <button
+              type="button"
+              onClick={() => { void tapHaptic(); setLegal(null); }}
+              className="fixed top-4 left-4 z-[61] p-2 border-2 border-foreground bg-background active:scale-95 transition-transform"
+              aria-label="Back to paywall"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <MemoryRouter initialEntries={[legal === 'terms' ? '/terms' : '/privacy']}>
+              {legal === 'terms' ? <TermsOfService /> : <PrivacyPolicy />}
+            </MemoryRouter>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
