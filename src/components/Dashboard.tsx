@@ -213,11 +213,15 @@ export default function Dashboard({ onNavigate }: Props) {
     return () => clearInterval(id);
   }, []);
 
-  // In-app reminder evaluator (toast fallback) + native push scheduling
+  // In-app reminder evaluator (toast fallback) + native push scheduling.
+  // Gated so reminders do NOT pop while the paywall/onboarding overlay is
+  // visible — the toast appearing on top of the first-run paywall felt buggy.
   useEffect(() => {
     if (!profile || !uid) return;
+    if (paywallVisibleRef.current) return;
     const settings = getReminderSettings(profile);
     const tick = () => {
+      if (paywallVisibleRef.current) return;
       const events = evaluateReminders(uid, settings, {
         consumed: summary?.consumedProtein ?? 0,
         target: profile.dailyProtein,
@@ -239,7 +243,7 @@ export default function Dashboard({ onNavigate }: Props) {
     })();
 
     return () => clearInterval(id);
-  }, [profile, summary, uid]);
+  }, [profile, summary, uid, paywallTick]);
 
   // Pace — safe to compute even when profile not yet loaded (target=0 → on-pace)
   // Derive consumed from local logs (instant from Firestore cache) instead of
