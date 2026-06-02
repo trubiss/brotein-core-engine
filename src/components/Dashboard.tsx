@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import { motion, useMotionValue, useTransform, animate, useReducedMotion } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import { addLog, deleteLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak } from '@/lib/firestore';
 import SwipeableLogRow from './SwipeableLogRow';
@@ -71,6 +71,7 @@ function relTime(ts: number, now: number): string {
 
 export default function Dashboard({ onNavigate }: Props) {
   const { user, profile } = useAuth();
+  const reduceMotion = useReducedMotion();
   const uid = user?.uid ?? '';
   const [today, setToday] = useState(todayKey());
   const [viewDate, setViewDate] = useState(todayKey());
@@ -440,14 +441,17 @@ export default function Dashboard({ onNavigate }: Props) {
             transition={{ duration: 0.18, ease: 'easeOut' }}
           >
             {consumed < target && target > 0 && (
-              <span
+              <motion.span
                 aria-hidden
-                className="absolute inset-y-0 w-1/3 animate-shimmer-sweep motion-reduce:hidden"
+                className="absolute inset-y-0 w-1/3 motion-reduce:hidden"
+                initial={false}
+                animate={reduceMotion ? { left: '-40%' } : { left: ['-40%', '105%', '-40%'] }}
+                transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
                 style={{
                   background:
                     'linear-gradient(90deg, transparent 0%, hsl(var(--background) / 0.55) 50%, transparent 100%)',
-                  willChange: 'transform',
-                  transform: 'translate3d(-120%, 0, 0)',
+                  left: '-40%',
+                  willChange: 'left',
                   backfaceVisibility: 'hidden',
                 }}
               />
