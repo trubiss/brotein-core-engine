@@ -91,7 +91,7 @@ export default function BiometricsScreen({
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
-      <OnboardingHeader step={step} total={total} onBack={onBack} />
+      <OnboardingHeader step={step} total={total} onBack={step > 1 ? onBack : undefined} />
 
       <motion.div
         initial={{ opacity: 0, y: 8 }}
