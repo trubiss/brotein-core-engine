@@ -39,7 +39,11 @@ const config: CapacitorConfig = {
       }
     : {}),
   ios: {
-    contentInset: 'always',
+    // 'never' so the webview sits under the status bar and we rely on
+    // env(safe-area-inset-top) in CSS as the single source of truth.
+    // 'always' double-pads on notched devices (system inset + safe-area)
+    // pushing all top content noticeably down.
+    contentInset: 'never',
     backgroundColor: '#ffffff',
     // Explicit scheme — never leave empty. Foundation on iOS 18+ traps when
     // URL.appendingPathComponent receives an empty string, which is what
