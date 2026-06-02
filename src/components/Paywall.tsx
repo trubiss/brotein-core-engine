@@ -344,9 +344,7 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
             >
               <ArrowLeft size={20} />
             </button>
-            <MemoryRouter initialEntries={[legal === 'terms' ? '/terms' : '/privacy']}>
-              {legal === 'terms' ? <TermsOfService /> : <PrivacyPolicy />}
-            </MemoryRouter>
+            {legal === 'terms' ? <TermsOfService /> : <PrivacyPolicy />}
           </motion.div>
         )}
       </AnimatePresence>
