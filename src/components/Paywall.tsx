@@ -25,6 +25,7 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
   );
   const [plan, setPlan] = useState<PlanId>('annual');
   const [busy, setBusy] = useState(false);
+  const [legal, setLegal] = useState<null | 'privacy' | 'terms'>(null);
 
   const loadOffers = () => {
     if (!native) return undefined;
