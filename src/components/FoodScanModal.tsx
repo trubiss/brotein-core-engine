@@ -286,6 +286,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
