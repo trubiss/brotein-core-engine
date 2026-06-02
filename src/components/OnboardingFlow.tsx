@@ -68,7 +68,7 @@ export default function OnboardingFlow() {
         data={data}
         onUpdate={update}
         onNext={() => go('goals', 1)}
-        onBack={() => go('bio', -1)}
+        onBack={() => { /* first step: no back */ }}
         onManualOverride={() => go('manual', 1)}
       />
     ),
