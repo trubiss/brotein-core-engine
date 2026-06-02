@@ -13,8 +13,9 @@ const HistoryScreen = lazy(() => import('@/components/HistoryScreen'));
 const ProfileScreen = lazy(() => import('@/components/ProfileScreen'));
 const InsightsScreen = lazy(() => import('@/components/InsightsScreen'));
 const Paywall = lazy(() => import('@/components/Paywall'));
+const DiagnosticsScreen = lazy(() => import('@/components/DiagnosticsScreen'));
 
-type Page = 'dashboard' | 'history' | 'profile' | 'insights';
+type Page = 'dashboard' | 'history' | 'profile' | 'insights' | 'diagnostics';
 
 const getResetCode = (): string | null => {
   if (typeof window === 'undefined') return null;
@@ -128,6 +129,7 @@ const Index = () => {
           {page === 'history' && <HistoryScreen onBack={() => setPage('dashboard')} />}
           {page === 'profile' && <ProfileScreen onBack={() => setPage('dashboard')} />}
           {page === 'insights' && <InsightsScreen onBack={() => setPage('dashboard')} />}
+          {page === 'diagnostics' && <DiagnosticsScreen onBack={() => setPage('dashboard')} />}
           
           {page === 'dashboard' && <Dashboard onNavigate={setPage} />}
         </Suspense>
