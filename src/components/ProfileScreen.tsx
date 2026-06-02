@@ -9,14 +9,14 @@ import {
   displayWeight, parseWeightInput,
   cmToFtIn,
 } from '@/lib/units';
-import { ArrowLeft, LogOut, Wrench } from 'lucide-react';
+import { ArrowLeft, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import ReminderSettingsPanel from './ReminderSettingsPanel';
 import SubscriptionPanel from './SubscriptionPanel';
 import DeleteAccountModal from './DeleteAccountModal';
 import { AmbientGrid } from './ui/AmbientGrid';
 
-interface Props { onBack: () => void; onNavigate?: (page: 'diagnostics') => void; }
+interface Props { onBack: () => void; }
 
 const fadeUp = {
   initial: { opacity: 0, y: 14 },
@@ -195,18 +195,6 @@ export default function ProfileScreen({ onBack, onNavigate }: Props) {
 
       <SubscriptionPanel />
 
-      <motion.div variants={fadeUp} className="mt-10 pt-8 border-t-2 border-foreground space-y-3">
-        <p className="label-spaced">TOOLS</p>
-        <button
-          className="w-full p-4 border-2 border-foreground font-mono font-bold text-xs uppercase tracking-widest active:scale-[0.98] transition-transform text-left flex items-center gap-3"
-          onClick={() => onNavigate?.('diagnostics')}
-        >
-          <Wrench size={16} />
-          DIAGNOSTICS
-        </button>
-      </motion.div>
-
-      <motion.div variants={fadeUp} className="mt-10 pt-8 border-t-2 border-foreground space-y-3">
         <p className="label-spaced">LEGAL</p>
         <button
           className="w-full p-4 border-2 border-foreground font-mono font-bold text-xs uppercase tracking-widest active:scale-[0.98] transition-transform text-left"
