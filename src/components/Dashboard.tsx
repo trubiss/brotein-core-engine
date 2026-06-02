@@ -250,6 +250,36 @@ export default function Dashboard({ onNavigate }: Props) {
     if (showPaywall) track('paywall_viewed', { logs_count: totalLogs, streak, default_plan: 'annual' });
   }, [showPaywall, totalLogs, streak]);
 
+  // In-app reminder evaluator (toast fallback) + native push scheduling.
+  // Gated on `!showPaywall` so reminders never pop on top of the first-run
+  // paywall / onboarding overlay.
+  useEffect(() => {
+    if (!profile || !uid) return;
+    if (showPaywall) return;
+    const settings = getReminderSettings(profile);
+    const tick = () => {
+      const events = evaluateReminders(uid, settings, {
+        consumed: summary?.consumedProtein ?? 0,
+        target: profile.dailyProtein,
+      });
+      events.forEach(e => toast(e.title, { description: e.body }));
+    };
+    tick();
+    const id = setInterval(tick, 60_000);
+
+    (async () => {
+      const { isNative, ensureNotificationPermission, scheduleFromSettings, cancelAllReminders } =
+        await import('@/lib/native');
+      if (!isNative()) return;
+      if (!settings.enabled) { await cancelAllReminders(); return; }
+      const ok = await ensureNotificationPermission();
+      if (!ok) return;
+      await scheduleFromSettings(settings);
+    })();
+
+    return () => clearInterval(id);
+  }, [profile, summary, uid, showPaywall]);
+
   // ───────── early returns AFTER all hooks ─────────
   if (!profile || !user) return null;
 
