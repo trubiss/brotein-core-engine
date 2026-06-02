@@ -299,23 +299,21 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
 
         {/* Legal links — required by App Store for subscription paywalls */}
         <div className="mt-2 flex justify-center gap-4 text-[10px] tracking-[0.25em] uppercase font-bold opacity-50">
-          <a
-            href="/terms"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => { void tapHaptic(); setLegal('terms'); }}
             className="active:opacity-60 hover:opacity-80 transition-opacity"
           >
             TERMS
-          </a>
+          </button>
           <span aria-hidden="true">·</span>
-          <a
-            href="/privacy"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => { void tapHaptic(); setLegal('privacy'); }}
             className="active:opacity-60 hover:opacity-80 transition-opacity"
           >
             PRIVACY
-          </a>
+          </button>
         </div>
 
         {onClose && (
