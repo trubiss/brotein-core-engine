@@ -433,7 +433,7 @@ export default function Dashboard({ onNavigate }: Props) {
 
         {/* Progress bar */}
         <div className="h-[10px] w-full bg-foreground/10 mb-1.5 overflow-hidden relative">
-          {target > 0 && <span aria-hidden className="progress-bar-sweep progress-bar-sweep--track" />}
+          
           <motion.div
             className="h-full bg-foreground relative overflow-hidden z-10"
             initial={false}
