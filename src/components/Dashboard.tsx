@@ -16,7 +16,7 @@ import { track } from '@/lib/track';
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
 const Paywall = lazy(() => import('./Paywall'));
-const GoalHitCelebration = lazy(() => import('./GoalHitCelebration'));
+
 
 import { AmbientGrid, BlinkingCursor } from './ui/AmbientGrid';
 
