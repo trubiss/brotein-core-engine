@@ -124,7 +124,7 @@
     @apply min-h-screen flex flex-col px-6 max-w-md mx-auto;
     /* Single source of truth for top inset on iOS: env(safe-area-inset-top).
        Small additive padding for visual breathing room on web/desktop. */
-    padding-top: calc(env(safe-area-inset-top) + 0.75rem);
+    padding-top: calc(env(safe-area-inset-top) + 2rem);
     padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
   }
 
