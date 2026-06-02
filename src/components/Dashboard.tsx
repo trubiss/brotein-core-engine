@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { motion, useMotionValue, useTransform, animate, useReducedMotion } from 'framer-motion';
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import { addLog, deleteLog, watchLogsForDate, watchSummary, getRecentSummaries, computeStreak } from '@/lib/firestore';
 import SwipeableLogRow from './SwipeableLogRow';
@@ -71,7 +71,6 @@ function relTime(ts: number, now: number): string {
 
 export default function Dashboard({ onNavigate }: Props) {
   const { user, profile } = useAuth();
-  const reduceMotion = useReducedMotion();
   const uid = user?.uid ?? '';
   const [today, setToday] = useState(todayKey());
   const [viewDate, setViewDate] = useState(todayKey());
@@ -433,29 +432,15 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
 
         {/* Progress bar */}
-        <div className="h-[10px] w-full bg-foreground/10 mb-1.5 overflow-hidden">
+        <div className="h-[10px] w-full bg-foreground/10 mb-1.5 overflow-hidden relative">
+          {target > 0 && <span aria-hidden className="progress-bar-sweep progress-bar-sweep--track" />}
           <motion.div
-            className="h-full bg-foreground relative overflow-hidden"
+            className="h-full bg-foreground relative overflow-hidden z-10"
             initial={false}
             animate={{ width: `${Math.min(100, target > 0 ? (consumed / target) * 100 : 0)}%` }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
           >
-            {consumed < target && target > 0 && (
-              <motion.span
-                aria-hidden
-                className="absolute inset-y-0 w-1/3 motion-reduce:hidden"
-                initial={false}
-                animate={reduceMotion ? { left: '-40%' } : { left: ['-40%', '105%', '-40%'] }}
-                transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
-                style={{
-                  background:
-                    'linear-gradient(90deg, transparent 0%, hsl(var(--background) / 0.55) 50%, transparent 100%)',
-                  left: '-40%',
-                  willChange: 'left',
-                  backfaceVisibility: 'hidden',
-                }}
-              />
-            )}
+            {target > 0 && <span aria-hidden className="progress-bar-sweep progress-bar-sweep--fill" />}
           </motion.div>
         </div>
 

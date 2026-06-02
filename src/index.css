@@ -145,6 +145,32 @@
     @apply h-1 bg-foreground transition-all duration-500;
   }
 
+  .progress-bar-sweep {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 34%;
+    pointer-events: none;
+    animation: progress-sweep-x 1.9s ease-in-out infinite alternate;
+  }
+
+  .progress-bar-sweep--track {
+    background: linear-gradient(90deg, transparent 0%, hsl(var(--foreground) / 0.18) 50%, transparent 100%);
+  }
+
+  .progress-bar-sweep--fill {
+    background: linear-gradient(90deg, transparent 0%, hsl(var(--background) / 0.58) 50%, transparent 100%);
+  }
+
+  @keyframes progress-sweep-x {
+    from { left: -34%; }
+    to { left: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progress-bar-sweep { animation: none; left: 100%; }
+  }
+
   .card-brutal {
     @apply border-2 border-foreground p-8;
     border-radius: 0 !important;
