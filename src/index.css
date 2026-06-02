@@ -122,7 +122,7 @@
 
   .screen-container {
     @apply min-h-screen flex flex-col px-6 max-w-md mx-auto;
-    padding-top: max(2.5rem, env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
     padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
   }
 
