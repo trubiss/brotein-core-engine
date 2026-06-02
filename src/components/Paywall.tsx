@@ -326,6 +326,31 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
           </button>
         )}
       </div>
+
+      <AnimatePresence>
+        {legal && (
+          <motion.div
+            key={legal}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[60] bg-background text-foreground overflow-y-auto"
+          >
+            <button
+              type="button"
+              onClick={() => { void tapHaptic(); setLegal(null); }}
+              className="fixed top-4 left-4 z-[61] p-2 border-2 border-foreground bg-background active:scale-95 transition-transform"
+              aria-label="Back to paywall"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <MemoryRouter initialEntries={[legal === 'terms' ? '/terms' : '/privacy']}>
+              {legal === 'terms' ? <TermsOfService /> : <PrivacyPolicy />}
+            </MemoryRouter>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
