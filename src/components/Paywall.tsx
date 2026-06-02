@@ -7,7 +7,6 @@ import { getOffers, purchasePlan, restorePurchases, type Offers, type PlanId } f
 import { track } from '@/lib/track';
 import PrivacyPolicy from './legal/PrivacyPolicy';
 import TermsOfService from './legal/TermsOfService';
-import { MemoryRouter } from 'react-router-dom';
 
 interface Props {
   streak?: number;
