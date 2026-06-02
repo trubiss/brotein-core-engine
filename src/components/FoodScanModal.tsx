@@ -132,7 +132,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   const confidencePct = ai ? Math.round(ai.confidence * 100) : 0;
   const lowConfidence = ai && ai.confidence < 0.4;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-foreground/50 animate-in fade-in duration-200" onClick={busy ? undefined : onClose} />
       <div className="relative bg-background w-full max-w-md p-6 border-t-2 border-foreground animate-in slide-in-from-bottom duration-300 max-h-[92vh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">
