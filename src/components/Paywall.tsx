@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { ArrowLeft } from 'lucide-react';
 import { isIOS, isNative, tapHaptic } from '@/lib/native';
 import { getOffers, purchasePlan, restorePurchases, type Offers, type PlanId } from '@/lib/iap';
 import { track } from '@/lib/track';
+import PrivacyPolicy from './legal/PrivacyPolicy';
+import TermsOfService from './legal/TermsOfService';
+import { MemoryRouter } from 'react-router-dom';
 
 interface Props {
   streak?: number;
