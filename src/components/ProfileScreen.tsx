@@ -195,6 +195,7 @@ export default function ProfileScreen({ onBack, onNavigate }: Props) {
 
       <SubscriptionPanel />
 
+      <motion.div variants={fadeUp} className="mt-10 pt-8 border-t-2 border-foreground space-y-3">
         <p className="label-spaced">LEGAL</p>
         <button
           className="w-full p-4 border-2 border-foreground font-mono font-bold text-xs uppercase tracking-widest active:scale-[0.98] transition-transform text-left"
