@@ -53,6 +53,11 @@
     @apply border-border;
   }
 
+  html, body {
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: auto;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
