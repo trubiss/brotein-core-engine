@@ -446,6 +446,9 @@ export default function Dashboard({ onNavigate }: Props) {
                 style={{
                   background:
                     'linear-gradient(90deg, transparent 0%, hsl(var(--background) / 0.55) 50%, transparent 100%)',
+                  willChange: 'transform',
+                  transform: 'translate3d(-120%, 0, 0)',
+                  backfaceVisibility: 'hidden',
                 }}
               />
             )}

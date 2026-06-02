@@ -85,8 +85,8 @@ export default {
           "51%, 100%": { opacity: "0" },
         },
         "shimmer-sweep": {
-          "0%, 100%": { transform: "translateX(-120%)" },
-          "50%": { transform: "translateX(220%)" },
+          "0%, 100%": { transform: "translate3d(-120%, 0, 0)" },
+          "50%": { transform: "translate3d(220%, 0, 0)" },
         },
         "soft-pulse": {
           "0%, 100%": { opacity: "1" },
