@@ -68,7 +68,7 @@ export default function OnboardingFlow() {
         data={data}
         onUpdate={update}
         onNext={() => go('goals', 1)}
-        onBack={() => go('bio', -1)}
+        onBack={() => { /* first step: no back */ }}
         onManualOverride={() => go('manual', 1)}
       />
     ),
@@ -100,15 +100,8 @@ export default function OnboardingFlow() {
     ),
   };
 
-  const currentBack: (() => void) | null =
-    step === 'bio' ? null :
-    step === 'goals' ? () => go('bio', -1) :
-    step === 'results' ? () => go('goals', -1) :
-    step === 'manual' ? () => go('bio', -1) :
-    null;
-
   return (
-    <div className="screen-container overflow-hidden relative" style={{ touchAction: 'pan-y' }}>
+    <div className="screen-container overflow-hidden relative">
       <AnimatePresence mode="wait" custom={direction}>
         <motion.div
           key={step}
@@ -118,13 +111,6 @@ export default function OnboardingFlow() {
           animate="center"
           exit="exit"
           transition={{ duration: 0.16, ease: [0.2, 0.8, 0.2, 1] }}
-          drag="x"
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.2}
-          onDragEnd={(_, info) => {
-            const { offset, velocity } = info;
-            if ((offset.x > 80 || velocity.x > 500) && currentBack) currentBack();
-          }}
           className="flex-1 flex flex-col"
         >
           {screens[step]}
