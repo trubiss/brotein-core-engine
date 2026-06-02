@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Upload, X, RefreshCw, Check, Loader2, AlertTriangle } from 'lucide-react';
@@ -46,6 +46,37 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   const [busy, setBusy] = useState(false);
   const cameraRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const scrollY = window.scrollY;
+    const { style: bodyStyle } = document.body;
+    const { style: rootStyle } = document.documentElement;
+    const previousBody = {
+      position: bodyStyle.position,
+      top: bodyStyle.top,
+      width: bodyStyle.width,
+      overflow: bodyStyle.overflow,
+      overscrollBehavior: bodyStyle.overscrollBehavior,
+    };
+    const previousRootOverscroll = rootStyle.overscrollBehavior;
+
+    bodyStyle.position = 'fixed';
+    bodyStyle.top = `-${scrollY}px`;
+    bodyStyle.width = '100%';
+    bodyStyle.overflow = 'hidden';
+    bodyStyle.overscrollBehavior = 'none';
+    rootStyle.overscrollBehavior = 'none';
+
+    return () => {
+      bodyStyle.position = previousBody.position;
+      bodyStyle.top = previousBody.top;
+      bodyStyle.width = previousBody.width;
+      bodyStyle.overflow = previousBody.overflow;
+      bodyStyle.overscrollBehavior = previousBody.overscrollBehavior;
+      rootStyle.overscrollBehavior = previousRootOverscroll;
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
 
   const handleFile = async (file: File) => {
     try {
@@ -133,9 +164,9 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   const lowConfidence = ai && ai.confidence < 0.4;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed inset-x-0 top-0 z-50 flex h-[100dvh] items-end justify-center overflow-hidden bg-foreground/50 overscroll-none">
       <div className="absolute inset-0 bg-foreground/50 animate-in fade-in duration-200" onClick={busy ? undefined : onClose} />
-      <div className="relative bg-background w-full max-w-md p-6 border-t-2 border-foreground animate-in slide-in-from-bottom duration-300 max-h-[92vh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className="relative bg-background w-full max-w-md p-6 border-t-2 border-foreground animate-in slide-in-from-bottom duration-300 max-h-[92dvh] overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))]">
         
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl font-black tracking-[0.1em]">SCAN FOOD</h2>
