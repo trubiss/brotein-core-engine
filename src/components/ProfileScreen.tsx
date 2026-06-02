@@ -30,7 +30,7 @@ const GOAL_OPTIONS: { value: Goal; label: string }[] = [
   { value: 'recovery', label: 'RECOVER' },
 ];
 
-export default function ProfileScreen({ onBack, onNavigate }: Props) {
+export default function ProfileScreen({ onBack }: Props) {
   const { user, profile, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
