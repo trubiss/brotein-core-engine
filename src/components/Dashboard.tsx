@@ -213,33 +213,8 @@ export default function Dashboard({ onNavigate }: Props) {
     return () => clearInterval(id);
   }, []);
 
-  // In-app reminder evaluator (toast fallback) + native push scheduling
-  useEffect(() => {
-    if (!profile || !uid) return;
-    const settings = getReminderSettings(profile);
-    const tick = () => {
-      const events = evaluateReminders(uid, settings, {
-        consumed: summary?.consumedProtein ?? 0,
-        target: profile.dailyProtein,
-      });
-      events.forEach(e => toast(e.title, { description: e.body }));
-    };
-    tick();
-    const id = setInterval(tick, 60_000);
-
-    // Native: schedule repeating daily local notifications from the same settings
-    (async () => {
-      const { isNative, ensureNotificationPermission, scheduleFromSettings, cancelAllReminders } =
-        await import('@/lib/native');
-      if (!isNative()) return;
-      if (!settings.enabled) { await cancelAllReminders(); return; }
-      const ok = await ensureNotificationPermission();
-      if (!ok) return;
-      await scheduleFromSettings(settings);
-    })();
-
-    return () => clearInterval(id);
-  }, [profile, summary, uid]);
+  // Reminder effect moved below — it depends on `showPaywall` which is
+  // declared after the pace computation.
 
   // Pace — safe to compute even when profile not yet loaded (target=0 → on-pace)
   // Derive consumed from local logs (instant from Firestore cache) instead of
@@ -274,6 +249,36 @@ export default function Dashboard({ onNavigate }: Props) {
   useEffect(() => {
     if (showPaywall) track('paywall_viewed', { logs_count: totalLogs, streak, default_plan: 'annual' });
   }, [showPaywall, totalLogs, streak]);
+
+  // In-app reminder evaluator (toast fallback) + native push scheduling.
+  // Gated on `!showPaywall` so reminders never pop on top of the first-run
+  // paywall / onboarding overlay.
+  useEffect(() => {
+    if (!profile || !uid) return;
+    if (showPaywall) return;
+    const settings = getReminderSettings(profile);
+    const tick = () => {
+      const events = evaluateReminders(uid, settings, {
+        consumed: summary?.consumedProtein ?? 0,
+        target: profile.dailyProtein,
+      });
+      events.forEach(e => toast(e.title, { description: e.body }));
+    };
+    tick();
+    const id = setInterval(tick, 60_000);
+
+    (async () => {
+      const { isNative, ensureNotificationPermission, scheduleFromSettings, cancelAllReminders } =
+        await import('@/lib/native');
+      if (!isNative()) return;
+      if (!settings.enabled) { await cancelAllReminders(); return; }
+      const ok = await ensureNotificationPermission();
+      if (!ok) return;
+      await scheduleFromSettings(settings);
+    })();
+
+    return () => clearInterval(id);
+  }, [profile, summary, uid, showPaywall]);
 
   // ───────── early returns AFTER all hooks ─────────
   if (!profile || !user) return null;
@@ -348,7 +353,7 @@ export default function Dashboard({ onNavigate }: Props) {
     <motion.div className="screen-container pb-32 relative isolate" variants={stagger} initial="initial" animate="animate">
       <AmbientGrid opacity={0.04} />
 
-      <motion.div variants={fadeUp} className="flex items-center justify-between mb-12 min-w-0">
+      <motion.div variants={fadeUp} className="flex items-center justify-between mb-8 min-w-0">
         <h1 className="font-black tracking-[0.15em] font-sans text-3xl truncate">BROTEIN</h1>
         <div className="flex gap-2 shrink-0">
           <button onClick={() => onNavigate('insights')} className="p-2 border-2 border-foreground active:scale-95 transition-transform" aria-label="Insights">
