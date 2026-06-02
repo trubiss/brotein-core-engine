@@ -42,7 +42,7 @@ function AnimatedGrams({ value }: { value: number }) {
 }
 
 interface Props {
-  onNavigate: (page: 'history' | 'profile' | 'insights') => void;
+  onNavigate: (page: 'history' | 'profile' | 'insights' | 'diagnostics') => void;
 }
 
 const stagger = { animate: { transition: { staggerChildren: 0.02 } } };
