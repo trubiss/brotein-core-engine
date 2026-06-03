@@ -2,17 +2,15 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import SignInScreen from '@/components/SignInScreen';
-import OnboardingFlow from '@/components/OnboardingFlow';
 
 import Dashboard from '@/components/Dashboard';
 import ResetPasswordScreen from '@/components/ResetPasswordScreen';
-import { startTrial } from '@/lib/paywall';
 
-const OnboardingStoryFlow = lazy(() => import('@/components/OnboardingStoryFlow'));
+const NewOnboarding = lazy(() => import('@/components/onboarding/NewOnboarding'));
 const HistoryScreen = lazy(() => import('@/components/HistoryScreen'));
 const ProfileScreen = lazy(() => import('@/components/ProfileScreen'));
 const InsightsScreen = lazy(() => import('@/components/InsightsScreen'));
-const Paywall = lazy(() => import('@/components/Paywall'));
+
 
 
 type Page = 'dashboard' | 'history' | 'profile' | 'insights';
