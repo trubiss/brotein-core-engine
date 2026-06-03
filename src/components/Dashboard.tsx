@@ -448,9 +448,17 @@ export default function Dashboard({ onNavigate }: Props) {
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
           onClick={() => { haptic(); setShowScan(true); }}
-          className="w-full border border-foreground/80 py-3.5 font-display font-black text-sm tracking-[0.12em] active:bg-foreground/5"
+          className="w-full border border-foreground/80 py-3.5 font-display font-black text-sm tracking-[0.12em] active:bg-foreground/5 mb-2.5"
         >
           SCAN FOOD WITH AI
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          transition={{ duration: 0.06 }}
+          onClick={() => { haptic(); setShowPhysique(true); }}
+          className="w-full border border-foreground/80 py-3.5 font-display font-black text-sm tracking-[0.12em] active:bg-foreground/5 flex items-center justify-center gap-2"
+        >
+          SEE 12-WEEK POTENTIAL
         </motion.button>
       </motion.div>
 
