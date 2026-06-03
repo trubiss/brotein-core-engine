@@ -322,9 +322,11 @@ export default function Dashboard({ onNavigate }: Props) {
             track('trial_started', { streak, logs_count: totalLogs });
             startTrial(uid);
             setTrialActive(true);
+            setForcePaywall(false);
           }}
           onClose={() => {
             track('paywall_dismissed', { streak, logs_count: totalLogs, source: 'dashboard_free_version' });
+            if (forcePaywall) { setForcePaywall(false); return; }
             startTrial(uid);
             setTrialActive(true);
           }}
