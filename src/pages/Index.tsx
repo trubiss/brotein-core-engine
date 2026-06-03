@@ -66,19 +66,13 @@ const Index = () => {
     return () => { cancelAnimationFrame(raf); clearTimeout(t); };
   }, [page, profile]);
 
-  const completeStory = () => {
-    if (user) localStorage.setItem(storySeenKey(user.uid), '1');
+  const completeOnboarding = () => {
+    if (user) {
+      localStorage.setItem(storySeenKey(user.uid), '1');
+      localStorage.setItem(paywallSeenKey(user.uid), '1');
+    }
     setStorySeen(true);
-  };
-
-  const markPaywallSeen = () => {
-    if (user) localStorage.setItem(paywallSeenKey(user.uid), '1');
     setPaywallSeen(true);
-  };
-
-  const handlePaywallStart = () => {
-    if (user) startTrial(user.uid);
-    markPaywallSeen();
   };
 
   const clearResetCode = () => {
@@ -99,19 +93,16 @@ const Index = () => {
 
   if (resetCode) return <ResetPasswordScreen oobCode={resetCode} onDone={clearResetCode} />;
   if (!user) return <SignInScreen />;
-  if (!storySeen) return (
-    <Suspense fallback={null}>
-      <OnboardingStoryFlow onComplete={completeStory} />
-    </Suspense>
-  );
 
-  if (!profile) return <OnboardingFlow />;
+  if (!storySeen || !profile || !paywallSeen) {
+    return (
+      <Suspense fallback={null}>
+        <NewOnboarding onDone={completeOnboarding} />
+      </Suspense>
+    );
+  }
 
-  if (!paywallSeen) return (
-    <Suspense fallback={null}>
-      <Paywall onStart={handlePaywallStart} onClose={markPaywallSeen} />
-    </Suspense>
-  );
+
 
   return (
     <AnimatePresence mode="wait">
