@@ -55,7 +55,11 @@ export type TrackEvent =
   | 'paywall_dismissed'
   | 'trial_started'
   | 'account_deleted'
-  | 'password_reset_requested';
+  | 'password_reset_requested'
+  | 'physique_sim_started'
+  | 'physique_sim_completed'
+  | 'physique_sim_failed'
+  | 'physique_sim_paywall_viewed';
 
 type Params = Record<string, string | number | boolean | undefined | null>;
 
