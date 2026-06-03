@@ -226,8 +226,9 @@ export default function Dashboard({ onNavigate }: Props) {
   const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
 
   // Paywall tracking (must be declared before any conditional return)
+  const isPremium = trialActive || hasEntitlement;
   const showPaywall =
-    !!profile && !trialActive && !hasEntitlement && shouldShowPaywall({ uid, logsCount: totalLogs, hasEntitlement });
+    !!profile && (forcePaywall || (!trialActive && !hasEntitlement && shouldShowPaywall({ uid, logsCount: totalLogs, hasEntitlement })));
 
   useEffect(() => {
     if (showPaywall) track('paywall_viewed', { logs_count: totalLogs, streak, default_plan: 'annual' });
