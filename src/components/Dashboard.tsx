@@ -15,6 +15,7 @@ import { track } from '@/lib/track';
 
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
+const PhysiqueSimulator = lazy(() => import('./PhysiqueSimulator'));
 const Paywall = lazy(() => import('./Paywall'));
 
 
@@ -81,6 +82,8 @@ export default function Dashboard({ onNavigate }: Props) {
   const [summaries30, setSummaries30] = useState<DailySummary[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [showScan, setShowScan] = useState(false);
+  const [showPhysique, setShowPhysique] = useState(false);
+  const [forcePaywall, setForcePaywall] = useState(false);
 
   const [streakBump, setStreakBump] = useState(0);
   const [hasEntitlement, setHasEntitlement] = useState(false);
@@ -223,8 +226,9 @@ export default function Dashboard({ onNavigate }: Props) {
   const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
 
   // Paywall tracking (must be declared before any conditional return)
+  const isPremium = trialActive || hasEntitlement;
   const showPaywall =
-    !!profile && !trialActive && !hasEntitlement && shouldShowPaywall({ uid, logsCount: totalLogs, hasEntitlement });
+    !!profile && (forcePaywall || (!trialActive && !hasEntitlement && shouldShowPaywall({ uid, logsCount: totalLogs, hasEntitlement })));
 
   useEffect(() => {
     if (showPaywall) track('paywall_viewed', { logs_count: totalLogs, streak, default_plan: 'annual' });
@@ -318,9 +322,11 @@ export default function Dashboard({ onNavigate }: Props) {
             track('trial_started', { streak, logs_count: totalLogs });
             startTrial(uid);
             setTrialActive(true);
+            setForcePaywall(false);
           }}
           onClose={() => {
             track('paywall_dismissed', { streak, logs_count: totalLogs, source: 'dashboard_free_version' });
+            if (forcePaywall) { setForcePaywall(false); return; }
             startTrial(uid);
             setTrialActive(true);
           }}
@@ -445,9 +451,17 @@ export default function Dashboard({ onNavigate }: Props) {
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
           onClick={() => { haptic(); setShowScan(true); }}
-          className="w-full border border-foreground/80 py-3.5 font-display font-black text-sm tracking-[0.12em] active:bg-foreground/5"
+          className="w-full border border-foreground/80 py-3.5 font-display font-black text-sm tracking-[0.12em] active:bg-foreground/5 mb-2.5"
         >
           SCAN FOOD WITH AI
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          transition={{ duration: 0.06 }}
+          onClick={() => { haptic(); setShowPhysique(true); }}
+          className="w-full border border-foreground/80 py-3.5 font-display font-black text-sm tracking-[0.12em] active:bg-foreground/5 flex items-center justify-center gap-2"
+        >
+          SEE 12-WEEK POTENTIAL
         </motion.button>
       </motion.div>
 
@@ -555,7 +569,7 @@ export default function Dashboard({ onNavigate }: Props) {
       </motion.div>
 
 
-      {(showModal || showScan) && (
+      {(showModal || showScan || showPhysique) && (
         <Suspense fallback={null}>
           {showModal && (
             <QuickLogModal
@@ -603,6 +617,14 @@ export default function Dashboard({ onNavigate }: Props) {
                   toast.error(e instanceof Error ? e.message : 'Failed to log');
                 }
               }}
+            />
+          )}
+
+          {showPhysique && (
+            <PhysiqueSimulator
+              isPremium={isPremium}
+              onClose={() => setShowPhysique(false)}
+              onUpgrade={() => { setShowPhysique(false); setForcePaywall(true); }}
             />
           )}
         </Suspense>
