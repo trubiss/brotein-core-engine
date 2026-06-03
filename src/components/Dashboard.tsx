@@ -567,7 +567,7 @@ export default function Dashboard({ onNavigate }: Props) {
       </motion.div>
 
 
-      {(showModal || showScan) && (
+      {(showModal || showScan || showPhysique) && (
         <Suspense fallback={null}>
           {showModal && (
             <QuickLogModal
@@ -615,6 +615,14 @@ export default function Dashboard({ onNavigate }: Props) {
                   toast.error(e instanceof Error ? e.message : 'Failed to log');
                 }
               }}
+            />
+          )}
+
+          {showPhysique && (
+            <PhysiqueSimulator
+              isPremium={isPremium}
+              onClose={() => setShowPhysique(false)}
+              onUpgrade={() => { setShowPhysique(false); setForcePaywall(true); }}
             />
           )}
         </Suspense>
