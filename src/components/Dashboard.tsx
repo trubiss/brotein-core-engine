@@ -15,6 +15,7 @@ import { track } from '@/lib/track';
 
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
+const PhysiqueSimulator = lazy(() => import('./PhysiqueSimulator'));
 const Paywall = lazy(() => import('./Paywall'));
 
 
@@ -81,6 +82,8 @@ export default function Dashboard({ onNavigate }: Props) {
   const [summaries30, setSummaries30] = useState<DailySummary[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [showScan, setShowScan] = useState(false);
+  const [showPhysique, setShowPhysique] = useState(false);
+  const [forcePaywall, setForcePaywall] = useState(false);
 
   const [streakBump, setStreakBump] = useState(0);
   const [hasEntitlement, setHasEntitlement] = useState(false);
