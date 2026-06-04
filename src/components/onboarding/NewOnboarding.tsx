@@ -1418,7 +1418,7 @@ function ScreenPaywall({
         ))}
       </ul>
 
-      <div className="flex-1" />
+      <div className="mt-4" />
 
       <PrimaryCTA label={busy ? 'Starting…' : 'Start 7-Day Free Trial'} onClick={onStart} disabled={busy} />
       <p className="mt-3 text-center text-[12px] text-[#6B6B6B]">
