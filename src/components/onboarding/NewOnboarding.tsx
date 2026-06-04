@@ -497,9 +497,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 8 && <ScreenDarkProof onNext={next} />}
-
-              {step === 9 && <ScreenCredibility onNext={next} />}
+              {step === 8 && <ScreenDarkProof onNext={() => go(10)} />}
 
               {step === 10 && (
                 <ChoiceScreen
@@ -651,7 +649,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === SIGNIN_STEP && <ScreenSignIn onNext={next} protein={proteinGoal} goalDate={goalDateLong} pace={PACE_LABEL[state.pace]} />}
+              {step === SIGNIN_STEP && <ScreenSignIn onNext={next} protein={proteinGoal} calories={caloriesGoal} goalDate={goalDateLong} pace={PACE_LABEL[state.pace]} />}
 
               {step === PAYWALL_STEP && (
                 <ScreenPaywall
@@ -1167,11 +1165,13 @@ function ScreenPlanReveal({
 function ScreenSignIn({
   onNext,
   protein,
+  calories,
   goalDate,
   pace,
 }: {
   onNext: () => void;
   protein: number;
+  calories: number;
   goalDate: string;
   pace: string;
 }) {
@@ -1198,33 +1198,53 @@ function ScreenSignIn({
     }
   };
 
+  // Short date for the card row (e.g. "Mar 4")
+  const goalDateShort = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 90);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  })();
+
   return (
     <div className="flex-1 flex flex-col">
-      <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
-        Save your progress.
-      </h1>
-      <p className="mt-3 text-[15px] text-[#6B6B6B]">Sign in so you never lose your plan.</p>
+      {/* Header */}
+      <div>
+        <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+          Save your progress.
+        </h1>
+        <p className="mt-2 text-[15px] text-[#6B6B6B]">Sign in so you never lose your plan.</p>
+      </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="w-full rounded-2xl bg-black text-white p-5">
-          <div className="text-[10px] tracking-wider font-bold text-white/60" style={{ fontFamily: MONO }}>
-            YOUR PLAN
+      {/* Card */}
+      <div className="mt-5 w-full rounded-2xl bg-black text-white p-5">
+        <div className="text-[10px] tracking-[0.15em] font-bold text-white/60" style={{ fontFamily: MONO }}>
+          YOUR PLAN
+        </div>
+        <div className="mt-3 flex items-baseline justify-center gap-1">
+          <div className="text-[44px] font-black leading-none tracking-tight">{protein}</div>
+          <div className="text-[16px] font-semibold text-white/80">g / day</div>
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+          <div>
+            <div className="text-[15px] font-bold">{calories}</div>
+            <div className="mt-1 text-[9px] tracking-[0.15em] font-bold text-white/55" style={{ fontFamily: MONO }}>KCAL</div>
           </div>
-          <div className="mt-3 flex items-baseline justify-center gap-1">
-            <div className="text-[48px] font-black leading-none tracking-tight">{protein}g</div>
-            <div className="text-[14px] text-white/70">/day</div>
+          <div className="border-l border-r border-white/15">
+            <div className="text-[15px] font-bold">{goalDateShort}</div>
+            <div className="mt-1 text-[9px] tracking-[0.15em] font-bold text-white/55" style={{ fontFamily: MONO }}>GOAL DATE</div>
           </div>
-          <div className="mt-4 space-y-1 text-center">
-            <p className="text-[13px] text-white/70">Goal: {goalDate}</p>
-            <p className="text-[13px] text-white/70">Pace: {pace}</p>
+          <div>
+            <div className="text-[15px] font-bold truncate">{pace}</div>
+            <div className="mt-1 text-[9px] tracking-[0.15em] font-bold text-white/55" style={{ fontFamily: MONO }}>PACE</div>
           </div>
         </div>
-        <p className="mt-4 text-center text-[13px] text-[#6B6B6B]">
+        <p className="mt-4 text-center text-[12px] text-white/70">
           Don&apos;t lose this. It was built for you.
         </p>
       </div>
 
-      <div className="space-y-3">
+      {/* Buttons */}
+      <div className="mt-5 space-y-3">
         <button
           onClick={() => handle('apple')}
           disabled={busy !== null}
@@ -1243,7 +1263,13 @@ function ScreenSignIn({
         </button>
       </div>
 
-      <button onClick={onNext} className="mt-3 w-full text-center text-[11px] text-[#B0B0B0] py-1">
+      {/* Spacer pushes Skip to bottom */}
+      <div className="flex-1" />
+
+      <button
+        onClick={onNext}
+        className="w-full text-center text-[10px] text-[#C8C8C8] py-2"
+      >
         Skip for now
       </button>
     </div>
