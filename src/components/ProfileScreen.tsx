@@ -178,7 +178,7 @@ export default function ProfileScreen({ onBack }: Props) {
             </motion.div>
             <motion.div variants={fadeUp}>
               <p className="label-spaced">GOAL</p>
-              <p className="text-lg font-bold uppercase">{profile.goal}</p>
+              <p className="text-lg font-bold">{goalLabel(profile.goal)}</p>
             </motion.div>
             <motion.div variants={fadeUp}>
               <p className="label-spaced">DAILY PROTEIN TARGET</p>
