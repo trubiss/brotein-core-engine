@@ -1080,8 +1080,18 @@ function ScreenLoading() {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     const id = window.setInterval(() => setIdx((i) => (i + 1) % messages.length), 750);
-    const done = window.setTimeout(() => { void heavyHaptic(); }, 3000);
-    return () => { window.clearInterval(id); window.clearTimeout(done); };
+    const t25 = window.setTimeout(() => { void tapHaptic(); }, 750);
+    const t50 = window.setTimeout(() => { void tapHaptic(); }, 1500);
+    const t75 = window.setTimeout(() => { void mediumHaptic(); }, 2250);
+    const done = window.setTimeout(() => {
+      void heavyHaptic();
+      window.setTimeout(() => { void successHaptic(); }, 80);
+    }, 3000);
+    return () => {
+      window.clearInterval(id);
+      window.clearTimeout(t25); window.clearTimeout(t50); window.clearTimeout(t75);
+      window.clearTimeout(done);
+    };
   }, []);
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center">
