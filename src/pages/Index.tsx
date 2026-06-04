@@ -92,9 +92,8 @@ const Index = () => {
   }
 
   if (resetCode) return <ResetPasswordScreen oobCode={resetCode} onDone={clearResetCode} />;
-  if (!user) return <SignInScreen />;
 
-  if (!storySeen || !profile || !paywallSeen) {
+  if (!user || !storySeen || !profile || !paywallSeen) {
     return (
       <Suspense fallback={null}>
         <NewOnboarding onDone={completeOnboarding} />
