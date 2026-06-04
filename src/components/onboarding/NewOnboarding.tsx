@@ -1370,8 +1370,8 @@ function ScreenPaywall({
         Start building.
       </h1>
 
-      <p className="mt-3 text-[15px] text-[#6B6B6B]">
-        Unlock your plan to start building.
+      <p className="mt-3 text-[13px] text-[#6B6B6B]">
+        Your plan: {protein}g protein/day · Goal: {goalDate}
       </p>
 
       <div className="mt-5 space-y-3">
