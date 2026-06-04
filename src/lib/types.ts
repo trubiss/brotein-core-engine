@@ -2,6 +2,16 @@ export type ActivityLevel = 'active' | 'moderate' | 'recovery';
 export type Goal = 'hypertrophy' | 'equilibrium' | 'recovery';
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
+// User-facing label for an onboarding goal. Defaults to "Build Muscle" when missing/unknown.
+export function goalLabel(goal?: Goal | null): string {
+  switch (goal) {
+    case 'equilibrium': return 'Body Recomposition';
+    case 'recovery': return 'Get Lean';
+    case 'hypertrophy': return 'Build Muscle';
+    default: return 'Build Muscle';
+  }
+}
+
 export interface UserProfile {
   uid: string;
   name: string;
