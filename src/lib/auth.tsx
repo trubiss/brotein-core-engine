@@ -3,7 +3,7 @@ import {
   onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
   signOut as fbSignOut, updateProfile, sendPasswordResetEmail,
   verifyPasswordResetCode, confirmPasswordReset, User,
-  OAuthProvider, signInWithPopup, signInWithCredential,
+  OAuthProvider, GoogleAuthProvider, signInWithPopup, signInWithCredential,
   reauthenticateWithCredential, reauthenticateWithPopup,
 } from 'firebase/auth';
 import { auth } from './firebase';
@@ -19,6 +19,7 @@ interface AuthCtx {
   signUp: (email: string, password: string, name: string) => Promise<User>;
   signIn: (email: string, password: string) => Promise<User>;
   signInWithApple: () => Promise<User>;
+  signInWithGoogle: () => Promise<User>;
   reauthenticateWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -125,6 +126,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return cred.user;
   };
 
+  const signInWithGoogle = async (): Promise<User> => {
+    if (isNative()) {
+      const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+      const result = await FirebaseAuthentication.signInWithGoogle({ skipNativeAuth: true });
+      const idToken = result.credential?.idToken;
+      if (!idToken) throw new Error('Google did not return an identity token.');
+      const credential = GoogleAuthProvider.credential(idToken);
+      const cred = await signInWithCredential(auth, credential);
+      track('sign_in', { method: 'google' });
+      return cred.user;
+    }
+    const provider = new GoogleAuthProvider();
+    provider.addScope('email');
+    provider.addScope('profile');
+    const cred = await signInWithPopup(auth, provider);
+    track('sign_in', { method: 'google' });
+    return cred.user;
+  };
+
   const reauthenticateWithApple = async (): Promise<void> => {
     if (!auth.currentUser) throw new Error('Not signed in');
     if (isNative()) {
@@ -165,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider
       value={{
-        user, profile, loading, signUp, signIn, signInWithApple, reauthenticateWithApple, signOut, refreshProfile,
+        user, profile, loading, signUp, signIn, signInWithApple, signInWithGoogle, reauthenticateWithApple, signOut, refreshProfile,
         sendPasswordReset, verifyResetCode, confirmReset,
       }}
     >
