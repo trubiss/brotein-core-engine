@@ -33,7 +33,7 @@ export async function initNativeShell() {
 }
 
 
-/** Light tap — log actions, button presses. */
+/** Light tap — log actions, button presses, option selects. */
 export async function tapHaptic() {
   if (!isNative()) return;
   try {
@@ -42,7 +42,25 @@ export async function tapHaptic() {
   } catch { /* ignore */ }
 }
 
-/** Success notification — streak milestone, target hit. */
+/** Medium impact — primary CTA presses, Continue buttons. */
+export async function mediumHaptic() {
+  if (!isNative()) return;
+  try {
+    const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+    await Haptics.impact({ style: ImpactStyle.Medium });
+  } catch { /* ignore */ }
+}
+
+/** Heavy impact — major reveals, milestone moments. */
+export async function heavyHaptic() {
+  if (!isNative()) return;
+  try {
+    const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+    await Haptics.impact({ style: ImpactStyle.Heavy });
+  } catch { /* ignore */ }
+}
+
+/** Success notification — streak milestone, target hit, completion. */
 export async function successHaptic() {
   if (!isNative()) return;
   try {

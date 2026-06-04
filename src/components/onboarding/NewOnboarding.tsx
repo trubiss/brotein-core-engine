@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { createOrUpdateProfile } from '@/lib/firestore';
 import { calculateMacros, ActivityLevel, Goal } from '@/lib/types';
 import { startTrial } from '@/lib/paywall';
+import { tapHaptic, mediumHaptic, heavyHaptic, successHaptic } from '@/lib/native';
 import { toast } from 'sonner';
 
 /* ============================================================
@@ -108,7 +109,7 @@ function PillOption({
 }) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => { void tapHaptic(); onClick(); }}
       className={`w-full text-left px-5 py-4 rounded-full text-[15px] font-medium transition-colors ${
         selected ? 'bg-black text-white' : 'bg-[#F5F5F5] text-black'
       }`}
@@ -140,7 +141,7 @@ function PrimaryCTA({
       : 'bg-[#E5E5E5] text-[#9A9A9A]';
   return (
     <button
-      onClick={onClick}
+      onClick={() => { if (!disabled) { void mediumHaptic(); onClick(); } }}
       disabled={disabled}
       className={`w-full rounded-full py-4 text-[16px] font-semibold transition-colors ${
         enabled ? enabledCls : disabledCls
@@ -1066,7 +1067,8 @@ function ScreenLoading() {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     const id = window.setInterval(() => setIdx((i) => (i + 1) % messages.length), 750);
-    return () => window.clearInterval(id);
+    const done = window.setTimeout(() => { void successHaptic(); }, 3000);
+    return () => { window.clearInterval(id); window.clearTimeout(done); };
   }, []);
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center">
@@ -1103,6 +1105,7 @@ function ScreenPlanReveal({
   pace: string;
   onNext: () => void;
 }) {
+  useEffect(() => { void heavyHaptic(); }, []);
   return (
     <div className="flex-1 flex flex-col">
       <div className="flex flex-col items-center">
