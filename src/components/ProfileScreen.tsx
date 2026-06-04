@@ -25,9 +25,9 @@ const fadeUp = {
 const stagger = { animate: { transition: { staggerChildren: 0.06 } } };
 
 const GOAL_OPTIONS: { value: Goal; label: string }[] = [
-  { value: 'hypertrophy', label: 'BUILD' },
-  { value: 'equilibrium', label: 'MAINTAIN' },
-  { value: 'recovery', label: 'RECOVER' },
+  { value: 'hypertrophy', label: 'BUILD MUSCLE' },
+  { value: 'recovery', label: 'GET LEAN' },
+  { value: 'equilibrium', label: 'BODY RECOMPOSITION' },
 ];
 
 export default function ProfileScreen({ onBack }: Props) {
@@ -140,7 +140,7 @@ export default function ProfileScreen({ onBack }: Props) {
                   <button
                     key={g.value}
                     onClick={() => setGoal(g.value)}
-                    className={`h-14 flex items-center justify-center border-2 border-foreground font-display text-[13px] font-black tracking-[0.18em] uppercase transition-colors active:scale-[0.97] ${
+                    className={`min-h-14 px-2 py-2 flex items-center justify-center text-center border-2 border-foreground font-display text-[10px] leading-tight font-black tracking-[0.12em] uppercase transition-colors active:scale-[0.97] ${
                       goal === g.value ? 'bg-foreground text-background' : 'bg-background text-foreground'
                     }`}
                   >
