@@ -738,46 +738,6 @@ function ScreenAge({
   );
 }
 
-function ScreenPhoto({
-  photo,
-  onPick,
-  onSkip,
-}: {
-  photo: string | null;
-  onPick: () => void;
-  onSkip: () => void;
-}) {
-  return (
-    <div className="flex-1 flex flex-col">
-      <h1 className="text-[28px] font-bold leading-tight tracking-tight">
-        See your transformation before it happens.
-      </h1>
-      <p className="mt-3 text-[15px] text-[#6B6B6B]">
-        Take a starting photo. Our AI will show your projected physique after 90 days of hitting your protein goal.
-      </p>
-      <div className="flex-1 flex items-center justify-center">
-        <div className="w-full aspect-[3/4] max-h-[420px] rounded-3xl border-2 border-dashed border-[#D6D6D6] flex items-center justify-center overflow-hidden">
-          {photo ? (
-            <img src={photo} alt="Starting" className="w-full h-full object-cover" />
-          ) : (
-            <Camera className="w-12 h-12 text-[#B5B5B5]" strokeWidth={1.8} />
-          )}
-        </div>
-      </div>
-      <div className="space-y-3">
-        <PrimaryCTA label={photo ? 'Continue' : 'Take Photo'} onClick={photo ? onSkip : onPick} />
-        {!photo && (
-          <button
-            onClick={onSkip}
-            className="w-full text-center text-[14px] text-[#6B6B6B] py-2"
-          >
-            Skip for now
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function ScreenLoading() {
   const messages = [
