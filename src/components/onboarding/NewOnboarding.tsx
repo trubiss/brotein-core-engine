@@ -497,9 +497,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 8 && <ScreenDarkProof onNext={next} />}
-
-              {step === 9 && <ScreenCredibility onNext={next} />}
+              {step === 8 && <ScreenDarkProof onNext={() => go(10)} />}
 
               {step === 10 && (
                 <ChoiceScreen
