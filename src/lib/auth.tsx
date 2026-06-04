@@ -126,6 +126,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return cred.user;
   };
 
+  const signInWithGoogle = async (): Promise<User> => {
+    if (isNative()) {
+      const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+      const result = await FirebaseAuthentication.signInWithGoogle({ skipNativeAuth: true });
+      const idToken = result.credential?.idToken;
+      if (!idToken) throw new Error('Google did not return an identity token.');
+      const credential = GoogleAuthProvider.credential(idToken);
+      const cred = await signInWithCredential(auth, credential);
+      track('sign_in', { method: 'google' });
+      return cred.user;
+    }
+    const provider = new GoogleAuthProvider();
+    provider.addScope('email');
+    provider.addScope('profile');
+    const cred = await signInWithPopup(auth, provider);
+    track('sign_in', { method: 'google' });
+    return cred.user;
+  };
+
   const reauthenticateWithApple = async (): Promise<void> => {
     if (!auth.currentUser) throw new Error('Not signed in');
     if (isNative()) {
