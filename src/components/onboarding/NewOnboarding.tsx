@@ -634,10 +634,9 @@ function ScreenSplash({ onStart }: { onStart: () => void }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center">
       <div className="flex-1 flex flex-col items-center justify-center">
-        <Apple className="w-10 h-10 mb-6" strokeWidth={1.8} />
         <h1 className="text-[56px] font-black tracking-tight leading-none" style={{ fontFamily: MONO }}>BROTEIN</h1>
         <p className="mt-5 text-[15px] text-[#6B6B6B] max-w-[260px]">
-          Built for guys who are serious about muscle.
+          Built for serious muscle growth.
         </p>
       </div>
       <PrimaryCTA label="Start Building" onClick={onStart} />
