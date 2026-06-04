@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { updateProfileFields } from '@/lib/firestore';
-import { Goal } from '@/lib/types';
+import { Goal, goalLabel } from '@/lib/types';
 import {
   UnitSystem, getDefaultUnits,
   displayWeight, parseWeightInput,
