@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { createOrUpdateProfile } from '@/lib/firestore';
 import { calculateMacros, ActivityLevel, Goal } from '@/lib/types';
 import { startTrial } from '@/lib/paywall';
-import { tapHaptic, mediumHaptic, heavyHaptic, successHaptic } from '@/lib/native';
+import { tapHaptic, mediumHaptic, heavyHaptic, successHaptic, selectionHaptic } from '@/lib/native';
 import { toast } from 'sonner';
 
 /* ============================================================
