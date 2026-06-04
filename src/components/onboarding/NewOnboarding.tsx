@@ -1224,17 +1224,17 @@ function ScreenSignIn({
           <div className="text-[44px] font-black leading-none tracking-tight">{protein}</div>
           <div className="text-[16px] font-semibold text-white/80">g / day</div>
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+        <div className="mt-4 grid grid-cols-3 gap-1 text-center">
           <div>
-            <div className="text-[15px] font-bold">{calories}</div>
+            <div className="text-[14px] font-bold">{calories}</div>
             <div className="mt-1 text-[9px] tracking-[0.15em] font-bold text-white/55" style={{ fontFamily: MONO }}>KCAL</div>
           </div>
           <div className="border-l border-r border-white/15">
-            <div className="text-[15px] font-bold">{goalDateShort}</div>
+            <div className="text-[14px] font-bold">{goalDateShort}</div>
             <div className="mt-1 text-[9px] tracking-[0.15em] font-bold text-white/55" style={{ fontFamily: MONO }}>GOAL DATE</div>
           </div>
           <div>
-            <div className="text-[15px] font-bold truncate">{pace}</div>
+            <div className="text-[14px] font-bold">{paceShort}</div>
             <div className="mt-1 text-[9px] tracking-[0.15em] font-bold text-white/55" style={{ fontFamily: MONO }}>PACE</div>
           </div>
         </div>
@@ -1261,6 +1261,20 @@ function ScreenSignIn({
           <GoogleG className="w-5 h-5" />
           {busy === 'google' ? 'Signing in…' : 'Sign in with Google'}
         </button>
+      </div>
+
+      {/* Benefit rows */}
+      <div className="mt-5 space-y-3">
+        {[
+          'Your protein plan saved forever',
+          'Track progress across all your devices',
+          'Never start over if you switch phones',
+        ].map((text) => (
+          <div key={text} className="flex items-center gap-3">
+            <Check className="w-4 h-4 text-black shrink-0" strokeWidth={3} />
+            <span className="text-[13px] text-[#6B6B6B]">{text}</span>
+          </div>
+        ))}
       </div>
 
       {/* Spacer pushes Skip to bottom */}
