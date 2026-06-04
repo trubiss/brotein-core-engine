@@ -660,7 +660,53 @@ function ScreenSplash({ onStart, onSkipToSignIn }: { onStart: () => void; onSkip
   );
 }
 
-function ChoiceScreen({
+function PhoneMockup() {
+  return (
+    <div
+      className="relative w-[240px] h-[480px] rounded-[40px] border-2 border-black bg-white shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)] overflow-hidden"
+      style={{ transform: 'scale(0.38)', transformOrigin: 'center center' }}
+    >
+      {/* Inner screen content */}
+      <div className="w-full h-full flex flex-col px-6 pt-10 pb-8">
+        {/* App header */}
+        <div className="text-left">
+          <span className="text-[14px] font-bold tracking-tight" style={{ fontFamily: MONO }}>BROTEIN</span>
+        </div>
+
+        {/* Fuel Status */}
+        <div className="mt-10 text-left">
+          <p className="text-[12px] text-[#6B6B6B] tracking-wide" style={{ fontFamily: MONO }}>FUEL STATUS</p>
+          <p className="text-[64px] font-black leading-none mt-1">165g</p>
+          <p className="text-[13px] text-[#6B6B6B] mt-1">REMAINING TODAY</p>
+        </div>
+
+        {/* Status */}
+        <div className="mt-6 text-left">
+          <p className="text-[18px] font-bold">AHEAD OF PACE</p>
+          <p className="text-[13px] text-[#6B6B6B] mt-1">YOU&apos;RE CRUSHING IT. KEEP GOING.</p>
+        </div>
+
+        {/* Progress bar */}
+        <div className="mt-8">
+          <p className="text-[11px] text-[#6B6B6B] tracking-wide text-left" style={{ fontFamily: MONO }}>PROGRESS 80 / 200G</p>
+          <div className="w-full h-[6px] bg-[#EFEFEF] rounded-full mt-2">
+            <div className="h-full bg-black rounded-full" style={{ width: '60%' }} />
+          </div>
+        </div>
+
+        {/* Quick-add buttons */}
+        <div className="mt-8 flex gap-3">
+          <div className="flex-1 bg-[#F5F5F5] rounded-full py-3 text-center">
+            <span className="text-[14px] font-bold">+20G</span>
+          </div>
+          <div className="flex-1 bg-[#F5F5F5] rounded-full py-3 text-center">
+            <span className="text-[14px] font-bold">+30G</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
   title,
   subtitle,
   options,
