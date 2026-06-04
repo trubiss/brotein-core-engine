@@ -1436,7 +1436,7 @@ function ScreenPaywall({
 
       <div className="mt-4" />
 
-      <PrimaryCTA label={busy ? 'Starting…' : 'Start 7-Day Free Trial'} onClick={onStart} disabled={busy} />
+      <PrimaryCTA label={busy ? 'Starting…' : 'Start 7-Day Free Trial'} onClick={onStart} disabled={busy} haptic="success" />
       <p className="mt-3 text-center text-[12px] text-[#6B6B6B]">
         No payment due today. After 7 days, $39.99/year. Cancel anytime.
       </p>
