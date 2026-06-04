@@ -1153,7 +1153,17 @@ function ScreenPlanReveal({
 }
 
 /* ---------- Screen I: Sign in ---------- */
-function ScreenSignIn({ onNext }: { onNext: () => void }) {
+function ScreenSignIn({
+  onNext,
+  protein,
+  goalDate,
+  pace,
+}: {
+  onNext: () => void;
+  protein: number;
+  goalDate: string;
+  pace: string;
+}) {
   return (
     <div className="flex-1 flex flex-col">
       <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
@@ -1161,7 +1171,26 @@ function ScreenSignIn({ onNext }: { onNext: () => void }) {
       </h1>
       <p className="mt-3 text-[15px] text-[#6B6B6B]">Sign in so you never lose your plan.</p>
 
-      <div className="flex-1 flex flex-col justify-center space-y-3">
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="w-full rounded-2xl bg-black text-white p-5">
+          <div className="text-[10px] tracking-wider font-bold text-white/60" style={{ fontFamily: MONO }}>
+            YOUR PLAN
+          </div>
+          <div className="mt-3 flex items-baseline justify-center gap-1">
+            <div className="text-[48px] font-black leading-none tracking-tight">{protein}g</div>
+            <div className="text-[14px] text-white/70">/day</div>
+          </div>
+          <div className="mt-4 space-y-1 text-center">
+            <p className="text-[13px] text-white/70">Goal: {goalDate}</p>
+            <p className="text-[13px] text-white/70">Pace: {pace}</p>
+          </div>
+        </div>
+        <p className="mt-4 text-center text-[13px] text-[#6B6B6B]">
+          Don&apos;t lose this. It was built for you.
+        </p>
+      </div>
+
+      <div className="space-y-3">
         <button
           onClick={onNext}
           className="w-full rounded-full bg-black text-white py-4 text-[15px] font-semibold flex items-center justify-center gap-2 active:scale-[0.99]"
@@ -1178,7 +1207,7 @@ function ScreenSignIn({ onNext }: { onNext: () => void }) {
         </button>
       </div>
 
-      <button onClick={onNext} className="mt-2 mb-2 w-full text-center text-[13px] text-[#6B6B6B] underline py-2">
+      <button onClick={onNext} className="mt-3 w-full text-center text-[11px] text-[#B0B0B0] py-1">
         Skip for now
       </button>
     </div>
