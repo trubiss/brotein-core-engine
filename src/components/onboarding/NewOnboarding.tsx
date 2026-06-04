@@ -64,7 +64,7 @@ const SIGNIN_STEP = 24;
 const PAYWALL_STEP = 25;
 const DARK_STEPS = new Set([8, LOADING_STEP]); // Dark proof + loading
 const HIDE_PROGRESS = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP]);
-const HIDE_BACK = new Set([1, LOADING_STEP, SIGNIN_STEP]);
+const HIDE_BACK = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP]);
 
 const MONO = '"SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
@@ -1370,8 +1370,8 @@ function ScreenPaywall({
         Start building.
       </h1>
 
-      <p className="mt-3 text-[15px] text-[#6B6B6B]">
-        Unlock your plan to start building.
+      <p className="mt-3 text-[13px] text-[#6B6B6B]">
+        Your plan: {protein}g protein/day · Goal: {goalDate}
       </p>
 
       <div className="mt-5 space-y-3">
@@ -1418,7 +1418,7 @@ function ScreenPaywall({
         ))}
       </ul>
 
-      <div className="flex-1" />
+      <div className="mt-4" />
 
       <PrimaryCTA label={busy ? 'Starting…' : 'Start 7-Day Free Trial'} onClick={onStart} disabled={busy} />
       <p className="mt-3 text-center text-[12px] text-[#6B6B6B]">
