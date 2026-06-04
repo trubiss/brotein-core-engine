@@ -672,12 +672,28 @@ export default function NewOnboarding({ onDone }: Props) {
    ============================================================ */
 
 function ScreenSplash({ onStart }: { onStart: () => void }) {
+  const pills = ['195g tracked today', '🔥 14 day streak', '+3.2kg gained'];
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center">
-      <div className="flex-1 flex flex-col items-center justify-center">
+      <div className="flex-1 flex flex-col items-center justify-center w-full">
         <h1 className="text-[56px] font-black tracking-tight leading-none" style={{ fontFamily: MONO }}>BROTEIN</h1>
         <p className="mt-5 text-[15px] text-[#6B6B6B] max-w-[260px]">
           Built for serious muscle growth.
+        </p>
+        <div className="mt-6 w-[80%] h-px bg-[#EFEFEF]" />
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          {pills.map((p) => (
+            <div
+              key={p}
+              className="bg-[#F5F5F5] text-black text-[12px] font-medium"
+              style={{ padding: '6px 12px', borderRadius: 20 }}
+            >
+              {p}
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 text-[12px] italic text-[#6B6B6B]">
+          Join 2,300+ guys already building.
         </p>
       </div>
       <PrimaryCTA label="Start Building" onClick={onStart} />
