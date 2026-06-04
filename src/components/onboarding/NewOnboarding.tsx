@@ -486,17 +486,9 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 12 && (
-                <ScreenPhoto
-                  photo={state.photoDataUrl}
-                  onPick={() => fileInputRef.current?.click()}
-                  onSkip={next}
-                />
-              )}
+              {step === 12 && <ScreenLoading />}
 
-              {step === 13 && <ScreenLoading />}
-
-              {step === 14 && (
+              {step === 13 && (
                 <ScreenPlanReveal
                   weight={state.weight}
                   physique={state.physique ?? 'Athletic'}
@@ -506,9 +498,9 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 15 && <ScreenSocialProof onNext={next} />}
+              {step === 14 && <ScreenCredibility onNext={next} />}
 
-              {step === 16 && (
+              {step === 15 && (
                 <ScreenPaywall
                   plan={state.plan}
                   onPlanChange={(p) => set('plan', p)}
@@ -521,22 +513,6 @@ export default function NewOnboarding({ onDone }: Props) {
             </motion.div>
           </AnimatePresence>
         </div>
-
-        {/* Hidden file input for screen 12 */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (!f) return;
-            const reader = new FileReader();
-            reader.onload = () => set('photoDataUrl', String(reader.result));
-            reader.readAsDataURL(f);
-          }}
-        />
       </div>
 
       <style>{`
