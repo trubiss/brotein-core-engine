@@ -44,15 +44,15 @@ const initialState: State = {
   plan: 'yearly',
 };
 
-const TOTAL_PROGRESS_STEPS = 14; // screens 2..15 contribute to bar
+const TOTAL_PROGRESS_STEPS = 13; // screens 2..14 contribute to bar
 
 /* ============================================================
    Primitives
    ============================================================ */
 
 function ProgressBar({ step }: { step: number }) {
-  // step is 1..16; show progress for screens 2..15
-  if (step <= 1 || step === 13 || step >= 16) return null;
+  // step is 1..15; hide on splash (1), loading (12), paywall (15)
+  if (step <= 1 || step === 12 || step >= 15) return null;
   const filled = Math.min(Math.max(step - 1, 0), TOTAL_PROGRESS_STEPS);
   const pct = (filled / TOTAL_PROGRESS_STEPS) * 100;
   return (
