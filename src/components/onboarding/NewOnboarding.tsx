@@ -109,7 +109,7 @@ function PillOption({
 }) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => { void tapHaptic(); onClick(); }}
       className={`w-full text-left px-5 py-4 rounded-full text-[15px] font-medium transition-colors ${
         selected ? 'bg-black text-white' : 'bg-[#F5F5F5] text-black'
       }`}
