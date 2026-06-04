@@ -64,7 +64,7 @@ const SIGNIN_STEP = 24;
 const PAYWALL_STEP = 25;
 const DARK_STEPS = new Set([8, LOADING_STEP]); // Dark proof + loading
 const HIDE_PROGRESS = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP]);
-const HIDE_BACK = new Set([1, LOADING_STEP, SIGNIN_STEP]);
+const HIDE_BACK = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP]);
 
 const MONO = '"SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
