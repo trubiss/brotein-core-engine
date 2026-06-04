@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Camera, Check, Apple } from 'lucide-react';
+import { ArrowLeft, Check, Apple } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { createOrUpdateProfile } from '@/lib/firestore';
 import { calculateMacros, ActivityLevel, Goal } from '@/lib/types';
@@ -44,15 +44,15 @@ const initialState: State = {
   plan: 'yearly',
 };
 
-const TOTAL_PROGRESS_STEPS = 14; // screens 2..15 contribute to bar
+const TOTAL_PROGRESS_STEPS = 13; // screens 2..14 contribute to bar
 
 /* ============================================================
    Primitives
    ============================================================ */
 
 function ProgressBar({ step }: { step: number }) {
-  // step is 1..16; show progress for screens 2..15
-  if (step <= 1 || step === 13 || step >= 16) return null;
+  // step is 1..15; hide on splash (1), loading (12), paywall (15)
+  if (step <= 1 || step === 12 || step >= 15) return null;
   const filled = Math.min(Math.max(step - 1, 0), TOTAL_PROGRESS_STEPS);
   const pct = (filled / TOTAL_PROGRESS_STEPS) * 100;
   return (
@@ -222,7 +222,7 @@ export default function NewOnboarding({ onDone }: Props) {
   const [dir, setDir] = useState(1);
   const [state, setState] = useState<State>(initialState);
   const [busy, setBusy] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  
 
   const go = (next: number) => {
     setDir(next > step ? 1 : -1);
@@ -233,10 +233,10 @@ export default function NewOnboarding({ onDone }: Props) {
   const set = <K extends keyof State>(k: K, v: State[K]) =>
     setState((s) => ({ ...s, [k]: v }));
 
-  // Screen 13 auto-advance
+  // Screen 12 (loading) auto-advance
   useEffect(() => {
-    if (step !== 13) return;
-    const t = window.setTimeout(() => go(14), 3000);
+    if (step !== 12) return;
+    const t = window.setTimeout(() => go(13), 3000);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
@@ -328,7 +328,7 @@ export default function NewOnboarding({ onDone }: Props) {
 
   // Console-log on paywall screen
   useEffect(() => {
-    if (step === 16) {
+    if (step === 15) {
       // eslint-disable-next-line no-console
       console.log('[onboarding] state:', state);
     }
@@ -338,8 +338,8 @@ export default function NewOnboarding({ onDone }: Props) {
      Screen renderers
      ============================================================ */
 
-  const showBack = step !== 1 && step !== 13;
-  const isDarkScreen = step === 13;
+  const showBack = step !== 1 && step !== 12;
+  const isDarkScreen = step === 12;
 
   const slide = {
     enter: (d: number) => ({ x: d > 0 ? 24 : -24, opacity: 0 }),
@@ -486,17 +486,9 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 12 && (
-                <ScreenPhoto
-                  photo={state.photoDataUrl}
-                  onPick={() => fileInputRef.current?.click()}
-                  onSkip={next}
-                />
-              )}
+              {step === 12 && <ScreenLoading />}
 
-              {step === 13 && <ScreenLoading />}
-
-              {step === 14 && (
+              {step === 13 && (
                 <ScreenPlanReveal
                   weight={state.weight}
                   physique={state.physique ?? 'Athletic'}
@@ -506,9 +498,9 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 15 && <ScreenSocialProof onNext={next} />}
+              {step === 14 && <ScreenCredibility onNext={next} />}
 
-              {step === 16 && (
+              {step === 15 && (
                 <ScreenPaywall
                   plan={state.plan}
                   onPlanChange={(p) => set('plan', p)}
@@ -521,22 +513,6 @@ export default function NewOnboarding({ onDone }: Props) {
             </motion.div>
           </AnimatePresence>
         </div>
-
-        {/* Hidden file input for screen 12 */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (!f) return;
-            const reader = new FileReader();
-            reader.onload = () => set('photoDataUrl', String(reader.result));
-            reader.readAsDataURL(f);
-          }}
-        />
       </div>
 
       <style>{`
@@ -762,46 +738,6 @@ function ScreenAge({
   );
 }
 
-function ScreenPhoto({
-  photo,
-  onPick,
-  onSkip,
-}: {
-  photo: string | null;
-  onPick: () => void;
-  onSkip: () => void;
-}) {
-  return (
-    <div className="flex-1 flex flex-col">
-      <h1 className="text-[28px] font-bold leading-tight tracking-tight">
-        See your transformation before it happens.
-      </h1>
-      <p className="mt-3 text-[15px] text-[#6B6B6B]">
-        Take a starting photo. Our AI will show your projected physique after 90 days of hitting your protein goal.
-      </p>
-      <div className="flex-1 flex items-center justify-center">
-        <div className="w-full aspect-[3/4] max-h-[420px] rounded-3xl border-2 border-dashed border-[#D6D6D6] flex items-center justify-center overflow-hidden">
-          {photo ? (
-            <img src={photo} alt="Starting" className="w-full h-full object-cover" />
-          ) : (
-            <Camera className="w-12 h-12 text-[#B5B5B5]" strokeWidth={1.8} />
-          )}
-        </div>
-      </div>
-      <div className="space-y-3">
-        <PrimaryCTA label={photo ? 'Continue' : 'Take Photo'} onClick={photo ? onSkip : onPick} />
-        {!photo && (
-          <button
-            onClick={onSkip}
-            className="w-full text-center text-[14px] text-[#6B6B6B] py-2"
-          >
-            Skip for now
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function ScreenLoading() {
   const messages = [
@@ -882,39 +818,30 @@ function ScreenPlanReveal({
   );
 }
 
-function ScreenSocialProof({ onNext }: { onNext: () => void }) {
-  const cards = [
-    { initials: 'JK', name: 'Jake, 24', goal: 'Wanted to get muscular.', quote: 'Hit 190g protein for 60 days straight. Up 4kg.' },
-    { initials: 'MR', name: 'Marcus, 28', goal: 'Stuck for 2 years.', quote: 'Finally figured out my protein.' },
-    { initials: 'TM', name: 'Tom, 22', goal: 'Didn\'t think tracking would work.', quote: 'Now I can\'t stop.' },
+function ScreenCredibility({ onNext }: { onNext: () => void }) {
+  const stats = [
+    { big: '80%', sub: "of guys who lift don't hit their protein goal consistently" },
+    { big: '2-3X', sub: 'more muscle gained by those who hit their protein daily' },
+    { big: '90 days', sub: 'is all it takes to see a visible difference in your physique' },
   ];
   return (
     <div className="flex-1 flex flex-col">
-      <h1 className="text-[26px] font-bold leading-tight tracking-tight">
-        Guys like you are already building.
+      <h1 className="text-[28px] font-bold leading-tight tracking-tight" style={{ fontFamily: '"SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}>
+        THE PROTEIN GAP IS REAL.
       </h1>
-      <div className="mt-6 space-y-3">
-        {cards.map((c) => (
-          <div key={c.initials} className="rounded-2xl bg-[#F5F5F5] p-4 flex gap-3">
-            <div className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center font-bold text-[13px] shrink-0">
-              {c.initials}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <p className="font-semibold text-[14px]">{c.name}</p>
-                <p className="text-[12px]">⭐⭐⭐⭐⭐</p>
-              </div>
-              <p className="text-[13px] text-[#6B6B6B] mt-0.5">{c.goal}</p>
-              <p className="text-[13px] mt-1">{c.quote}</p>
-            </div>
+      <div className="mt-7 space-y-3">
+        {stats.map((s) => (
+          <div key={s.big} className="rounded-2xl bg-[#F5F5F5] p-5">
+            <div className="text-[40px] font-black leading-none tracking-tight">{s.big}</div>
+            <p className="mt-2 text-[14px] text-[#6B6B6B] leading-snug">{s.sub}</p>
           </div>
         ))}
       </div>
-      <p className="mt-6 text-center text-[13px] text-[#6B6B6B]">
-        2.3M bros tracking with Brotein
+      <p className="mt-6 text-center text-[13px] italic text-[#6B6B6B]">
+        Brotein was built to close this gap.
       </p>
       <div className="flex-1" />
-      <PrimaryCTA label="Join Them" onClick={onNext} />
+      <PrimaryCTA label="I'm ready to fix this" onClick={onNext} />
     </div>
   );
 }
@@ -937,73 +864,60 @@ function ScreenPaywall({
   const features = [
     'AI Food Scanner',
     'Protein & Macro Tracking',
-    'Physique Progress Photos',
-    '90-Day Muscle Plan',
-    'Bros Leaderboard',
     'Daily Accountability',
+    '90-Day Muscle Plan',
+    'Progress Analytics',
   ];
+  const monoFont = '"SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
   return (
     <div className="flex-1 flex flex-col">
-      <h1 className="text-[26px] font-bold leading-tight tracking-tight">
-        Start your 90-day transformation
+      <h1 className="text-[32px] font-bold leading-tight tracking-tight" style={{ fontFamily: monoFont }}>
+        START BUILDING.
       </h1>
-      <p className="mt-3 text-[14px] text-[#6B6B6B]">
-        Your protein target: <span className="text-black font-semibold">{protein}g/day</span> · Your goal:{' '}
-        <span className="text-black font-semibold">+5kg by {date}</span>
+      <p className="mt-3 text-[13px] text-[#6B6B6B]">
+        Your protein target: <span className="text-black font-semibold">{protein}g/day</span> · Goal date:{' '}
+        <span className="text-black font-semibold">{date}</span>
       </p>
 
-      {/* Plan toggle */}
-      <div className="mt-6 bg-[#F5F5F5] rounded-full p-1 flex">
-        {(['monthly', 'yearly'] as Plan[]).map((p) => (
-          <button
-            key={p}
-            onClick={() => onPlanChange(p)}
-            className={`flex-1 py-2.5 rounded-full text-[14px] font-semibold capitalize transition-colors ${
-              plan === p ? 'bg-black text-white' : 'text-black'
-            }`}
-          >
-            {p}
-            {p === 'yearly' && (
-              <span className={`ml-2 text-[10px] px-2 py-0.5 rounded-full ${
-                plan === 'yearly' ? 'bg-white text-black' : 'bg-black text-white'
-              }`}>
-                Save 67%
-              </span>
-            )}
-          </button>
-        ))}
+      {/* Plan cards */}
+      <div className="mt-6 space-y-3">
+        <button
+          onClick={() => onPlanChange('yearly')}
+          className={`w-full text-left rounded-2xl p-5 transition-colors relative ${
+            plan === 'yearly' ? 'border-2 border-black bg-white' : 'border border-[#E5E5E5] bg-white'
+          }`}
+        >
+          <span className="absolute -top-2 left-5 bg-black text-white text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full">
+            BEST VALUE
+          </span>
+          <div className="flex items-baseline justify-between">
+            <div>
+              <div className="text-[18px] font-bold">Yearly</div>
+              <div className="text-[13px] text-[#6B6B6B] mt-0.5">$29.99/year — just $2.49/mo</div>
+            </div>
+            <div className={`w-5 h-5 rounded-full border-2 ${plan === 'yearly' ? 'border-black bg-black' : 'border-[#D5D5D5]'}`} />
+          </div>
+        </button>
+        <button
+          onClick={() => onPlanChange('monthly')}
+          className={`w-full text-left rounded-2xl p-5 transition-colors ${
+            plan === 'monthly' ? 'border-2 border-black bg-white' : 'border border-[#E5E5E5] bg-white'
+          }`}
+        >
+          <div className="flex items-baseline justify-between">
+            <div>
+              <div className="text-[18px] font-bold">Monthly</div>
+              <div className="text-[13px] text-[#6B6B6B] mt-0.5">$7.99/month</div>
+            </div>
+            <div className={`w-5 h-5 rounded-full border-2 ${plan === 'monthly' ? 'border-black bg-black' : 'border-[#D5D5D5]'}`} />
+          </div>
+        </button>
       </div>
 
-      {/* Pricing card */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={plan}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.18 }}
-          className="mt-4 rounded-2xl border border-[#EAEAEA] p-5 text-center"
-        >
-          {plan === 'yearly' ? (
-            <>
-              <div className="text-[22px] font-bold">$29.99/year</div>
-              <div className="text-[13px] text-[#6B6B6B] mt-1">$2.49/mo · billed annually</div>
-            </>
-          ) : (
-            <>
-              <div className="text-[22px] font-bold">$7.99/month</div>
-              <div className="text-[13px] text-[#6B6B6B] mt-1">Billed monthly</div>
-            </>
-          )}
-        </motion.div>
-      </AnimatePresence>
-
-      <ul className="mt-5 space-y-2.5">
+      <ul className="mt-6 space-y-3">
         {features.map((f) => (
           <li key={f} className="flex items-center gap-3 text-[14px]">
-            <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center shrink-0">
-              <Check className="w-3 h-3" strokeWidth={3} />
-            </span>
+            <Check className="w-4 h-4 text-black shrink-0" strokeWidth={3} />
             {f}
           </li>
         ))}
@@ -1012,14 +926,14 @@ function ScreenPaywall({
       <div className="flex-1" />
 
       <PrimaryCTA
-        label={busy ? 'Starting…' : 'Start Free Trial — No payment today'}
+        label={busy ? 'Starting…' : 'Start Free Trial'}
         onClick={onStart}
         disabled={busy}
       />
       <p className="mt-3 text-center text-[12px] text-[#6B6B6B]">
-        Cancel anytime. Billed after 7-day trial.
+        7-day free trial. No payment today. Cancel anytime.
       </p>
-      <button className="mt-2 w-full text-center text-[13px] text-[#6B6B6B] underline py-1">
+      <button className="mt-2 w-full text-center text-[12px] text-[#6B6B6B] underline py-1">
         Restore Purchase
       </button>
     </div>
