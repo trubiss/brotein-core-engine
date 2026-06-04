@@ -1080,7 +1080,7 @@ function ScreenLoading() {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     const id = window.setInterval(() => setIdx((i) => (i + 1) % messages.length), 750);
-    const done = window.setTimeout(() => { void successHaptic(); }, 3000);
+    const done = window.setTimeout(() => { void heavyHaptic(); }, 3000);
     return () => { window.clearInterval(id); window.clearTimeout(done); };
   }, []);
   return (
