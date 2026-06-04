@@ -25,6 +25,8 @@ interface State {
   experience: string | null;
   trainingStyle: string | null;
   motivation: string | null;
+  diet: string | null;
+  deepMotivation: string | null;
   weight: { value: number; unit: WeightUnit };
   height: { value: number; unit: HeightUnit };
   birth: { m: number; d: number; y: number };
@@ -42,6 +44,8 @@ const initialState: State = {
   experience: null,
   trainingStyle: null,
   motivation: null,
+  diet: null,
+  deepMotivation: null,
   weight: { value: 75, unit: 'kg' },
   height: { value: 175, unit: 'cm' },
   birth: { m: 1, d: 1, y: today.getFullYear() - 25 },
@@ -53,13 +57,12 @@ const initialState: State = {
    Flow constants
    ============================================================ */
 
-// 23 total screens. Progress bar spans screens 2..22 evenly,
-// hidden on splash (1), loading (19), sign-in (21), paywall (23).
-const TOTAL_SCREENS = 23;
-const LOADING_STEP = 19;
-const SIGNIN_STEP = 21;
-const PAYWALL_STEP = 23;
-const DARK_STEPS = new Set([8, LOADING_STEP]); // Screen C + loading
+// 25 total screens.
+const TOTAL_SCREENS = 25;
+const LOADING_STEP = 22;
+const SIGNIN_STEP = 24;
+const PAYWALL_STEP = 25;
+const DARK_STEPS = new Set([8, LOADING_STEP]); // Dark proof + loading
 const HIDE_PROGRESS = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP]);
 const HIDE_BACK = new Set([1, LOADING_STEP, SIGNIN_STEP]);
 
