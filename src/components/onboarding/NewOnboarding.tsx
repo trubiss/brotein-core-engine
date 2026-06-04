@@ -124,11 +124,13 @@ function PrimaryCTA({
   onClick,
   disabled,
   variant = 'light',
+  haptic = 'medium',
 }: {
   label: string;
   onClick: () => void;
   disabled?: boolean;
   variant?: 'light' | 'dark';
+  haptic?: 'medium' | 'success';
 }) {
   const enabled = !disabled;
   const enabledCls =
@@ -141,7 +143,12 @@ function PrimaryCTA({
       : 'bg-[#E5E5E5] text-[#9A9A9A]';
   return (
     <button
-      onClick={() => { if (!disabled) { void mediumHaptic(); onClick(); } }}
+      onClick={() => {
+        if (disabled) return;
+        if (haptic === 'success') void successHaptic();
+        else void mediumHaptic();
+        onClick();
+      }}
       disabled={disabled}
       className={`w-full rounded-full py-4 text-[16px] font-semibold transition-colors ${
         enabled ? enabledCls : disabledCls
