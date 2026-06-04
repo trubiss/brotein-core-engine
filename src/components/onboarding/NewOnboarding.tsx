@@ -1287,32 +1287,9 @@ function ScreenPaywall({
         Start building.
       </h1>
 
-      <div className="mt-5 rounded-2xl bg-black text-white p-5">
-        <div className="text-[10px] tracking-wider font-bold text-white/60" style={{ fontFamily: MONO }}>
-          YOUR PLAN
-        </div>
-        <div className="mt-3 flex items-baseline justify-center gap-1">
-          <div className="text-[48px] font-black leading-none tracking-tight">{protein}g</div>
-          <div className="text-[14px] text-white/70">/day</div>
-        </div>
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-          <div>
-            <div className="text-[15px] font-bold">{calories}</div>
-            <div className="mt-0.5 text-[9px] tracking-wider text-white/60" style={{ fontFamily: MONO }}>KCAL</div>
-          </div>
-          <div>
-            <div className="text-[15px] font-bold">{goalDate}</div>
-            <div className="mt-0.5 text-[9px] tracking-wider text-white/60" style={{ fontFamily: MONO }}>GOAL DATE</div>
-          </div>
-          <div>
-            <div className="text-[15px] font-bold leading-tight">{pace.split(' — ')[0]}</div>
-            <div className="mt-0.5 text-[9px] tracking-wider text-white/60" style={{ fontFamily: MONO }}>PACE</div>
-          </div>
-        </div>
-        <p className="mt-4 text-center text-[12px] text-white/80">
-          Unlock your plan to start building
-        </p>
-      </div>
+      <p className="mt-3 text-[15px] text-[#6B6B6B]">
+        Unlock your plan to start building.
+      </p>
 
       <div className="mt-5 space-y-3">
         <button
