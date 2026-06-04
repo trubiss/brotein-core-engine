@@ -640,7 +640,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === SIGNIN_STEP && <ScreenSignIn onNext={next} />}
+              {step === SIGNIN_STEP && <ScreenSignIn onNext={next} protein={proteinGoal} goalDate={goalDateLong} pace={PACE_LABEL[state.pace]} />}
 
               {step === PAYWALL_STEP && (
                 <ScreenPaywall
