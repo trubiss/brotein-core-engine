@@ -334,6 +334,8 @@ export default function NewOnboarding({ onDone }: Props) {
       proteinHistory: state.experience,
       trainingStyle: state.trainingStyle,
       motivation: state.motivation,
+      diet: state.diet,
+      deepMotivation: state.deepMotivation,
       weightKg,
       heightCm,
       birthdate: birthdateISO,
