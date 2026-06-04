@@ -194,11 +194,17 @@ function ScrollPicker({
     const el = ref.current;
     if (!el) return;
     let t: number | undefined;
+    let lastIdx = Math.max(0, values.indexOf(value));
     const onScroll = () => {
+      const liveIdx = Math.round(el.scrollTop / ITEM_H);
+      const clamped = Math.max(0, Math.min(values.length - 1, liveIdx));
+      if (clamped !== lastIdx) {
+        lastIdx = clamped;
+        void selectionHaptic();
+      }
       if (t) window.clearTimeout(t);
       t = window.setTimeout(() => {
-        const idx = Math.round(el.scrollTop / ITEM_H);
-        const v = values[Math.max(0, Math.min(values.length - 1, idx))];
+        const v = values[clamped];
         if (v !== value) onChange(v);
       }, 80);
     };
