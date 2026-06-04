@@ -707,6 +707,8 @@ function PhoneMockup() {
     </div>
   );
 }
+
+function ChoiceScreen({
   title,
   subtitle,
   options,
