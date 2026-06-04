@@ -25,6 +25,8 @@ interface State {
   experience: string | null;
   trainingStyle: string | null;
   motivation: string | null;
+  diet: string | null;
+  deepMotivation: string | null;
   weight: { value: number; unit: WeightUnit };
   height: { value: number; unit: HeightUnit };
   birth: { m: number; d: number; y: number };
@@ -42,6 +44,8 @@ const initialState: State = {
   experience: null,
   trainingStyle: null,
   motivation: null,
+  diet: null,
+  deepMotivation: null,
   weight: { value: 75, unit: 'kg' },
   height: { value: 175, unit: 'cm' },
   birth: { m: 1, d: 1, y: today.getFullYear() - 25 },
@@ -53,13 +57,12 @@ const initialState: State = {
    Flow constants
    ============================================================ */
 
-// 23 total screens. Progress bar spans screens 2..22 evenly,
-// hidden on splash (1), loading (19), sign-in (21), paywall (23).
-const TOTAL_SCREENS = 23;
-const LOADING_STEP = 19;
-const SIGNIN_STEP = 21;
-const PAYWALL_STEP = 23;
-const DARK_STEPS = new Set([8, LOADING_STEP]); // Screen C + loading
+// 25 total screens.
+const TOTAL_SCREENS = 25;
+const LOADING_STEP = 22;
+const SIGNIN_STEP = 24;
+const PAYWALL_STEP = 25;
+const DARK_STEPS = new Set([8, LOADING_STEP]); // Dark proof + loading
 const HIDE_PROGRESS = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP]);
 const HIDE_BACK = new Set([1, LOADING_STEP, SIGNIN_STEP]);
 
@@ -331,6 +334,8 @@ export default function NewOnboarding({ onDone }: Props) {
       proteinHistory: state.experience,
       trainingStyle: state.trainingStyle,
       motivation: state.motivation,
+      diet: state.diet,
+      deepMotivation: state.deepMotivation,
       weightKg,
       heightCm,
       birthdate: birthdateISO,
@@ -483,7 +488,9 @@ export default function NewOnboarding({ onDone }: Props) {
 
               {step === 8 && <ScreenDarkProof onNext={next} />}
 
-              {step === 9 && (
+              {step === 9 && <ScreenCredibility onNext={next} />}
+
+              {step === 10 && (
                 <ChoiceScreen
                   title="How many days do you train per week?"
                   options={[
@@ -498,7 +505,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 10 && (
+              {step === 11 && (
                 <ChoiceScreen
                   title="Have you tracked protein before?"
                   options={[
@@ -513,7 +520,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 11 && (
+              {step === 12 && (
                 <ChoiceScreen
                   title="What's your training style?"
                   subtitle="This helps personalize your macro split."
@@ -529,7 +536,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 12 && (
+              {step === 13 && (
                 <ChoiceScreen
                   title="One more thing — why does this matter to you?"
                   subtitle="Be real. This shapes everything."
@@ -545,7 +552,41 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 13 && (
+              {step === 14 && (
+                <ChoiceScreen
+                  title="Do you follow a specific diet?"
+                  subtitle="We'll make sure your plan works with how you eat."
+                  options={[
+                    'No specific diet — I eat everything',
+                    'High protein / carnivore',
+                    'Vegetarian',
+                    'Vegan',
+                    'Intermittent fasting',
+                  ]}
+                  value={state.diet}
+                  onChange={(v) => set('diet', v)}
+                  onNext={next}
+                />
+              )}
+
+              {step === 15 && (
+                <ChoiceScreen
+                  title="What would you like to accomplish?"
+                  subtitle="Beyond just the physical."
+                  options={[
+                    'Look better and feel more attractive',
+                    'Feel stronger and more capable',
+                    'Build discipline and consistency',
+                    'Prove something to myself',
+                    'Feel better day to day — energy, mood, confidence',
+                  ]}
+                  value={state.deepMotivation}
+                  onChange={(v) => set('deepMotivation', v)}
+                  onNext={next}
+                />
+              )}
+
+              {step === 16 && (
                 <ScreenWeight
                   value={state.weight}
                   onChange={(w) => set('weight', w)}
@@ -553,7 +594,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 14 && (
+              {step === 17 && (
                 <ScreenHeight
                   value={state.height}
                   onChange={(h) => set('height', h)}
@@ -561,7 +602,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 15 && (
+              {step === 18 && (
                 <ScreenAge
                   value={state.birth}
                   onChange={(b) => set('birth', b)}
@@ -569,7 +610,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 16 && (
+              {step === 19 && (
                 <ChoiceScreen
                   title="What's your dream physique?"
                   subtitle="We'll tailor your targets to match."
@@ -580,13 +621,13 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 17 && <ScreenTimeline onNext={next} />}
+              {step === 20 && <ScreenTimeline onNext={next} />}
 
-              {step === 18 && <ScreenThankYou onNext={next} />}
+              {step === 21 && <ScreenThankYou onNext={next} />}
 
               {step === LOADING_STEP && <ScreenLoading />}
 
-              {step === 20 && (
+              {step === 23 && (
                 <ScreenPlanReveal
                   name={user?.displayName ?? null}
                   protein={proteinGoal}
@@ -601,14 +642,14 @@ export default function NewOnboarding({ onDone }: Props) {
 
               {step === SIGNIN_STEP && <ScreenSignIn onNext={next} />}
 
-              {step === 22 && <ScreenCredibility onNext={next} />}
-
               {step === PAYWALL_STEP && (
                 <ScreenPaywall
                   plan={state.plan}
                   onPlanChange={(p) => set('plan', p)}
                   protein={proteinGoal}
-                  date={goalDateShort}
+                  calories={caloriesGoal}
+                  goalDate={goalDateShort}
+                  pace={PACE_LABEL[state.pace]}
                   busy={busy}
                   onStart={finish}
                 />
@@ -631,12 +672,28 @@ export default function NewOnboarding({ onDone }: Props) {
    ============================================================ */
 
 function ScreenSplash({ onStart }: { onStart: () => void }) {
+  const pills = ['195g tracked today', '🔥 14 day streak', '+3.2kg gained'];
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center">
-      <div className="flex-1 flex flex-col items-center justify-center">
+      <div className="flex-1 flex flex-col items-center justify-center w-full">
         <h1 className="text-[56px] font-black tracking-tight leading-none" style={{ fontFamily: MONO }}>BROTEIN</h1>
         <p className="mt-5 text-[15px] text-[#6B6B6B] max-w-[260px]">
           Built for serious muscle growth.
+        </p>
+        <div className="mt-6 w-[80%] h-px bg-[#EFEFEF]" />
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          {pills.map((p) => (
+            <div
+              key={p}
+              className="bg-[#F5F5F5] text-black text-[12px] font-medium"
+              style={{ padding: '6px 12px', borderRadius: 20 }}
+            >
+              {p}
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 text-[12px] italic text-[#6B6B6B]">
+          Join 2,300+ guys already building.
         </p>
       </div>
       <PrimaryCTA label="Start Building" onClick={onStart} />
@@ -1173,14 +1230,18 @@ function ScreenPaywall({
   plan,
   onPlanChange,
   protein,
-  date,
+  calories,
+  goalDate,
+  pace,
   busy,
   onStart,
 }: {
   plan: Plan;
   onPlanChange: (p: Plan) => void;
   protein: number;
-  date: string;
+  calories: number;
+  goalDate: string;
+  pace: string;
   busy: boolean;
   onStart: () => void;
 }) {
@@ -1196,12 +1257,35 @@ function ScreenPaywall({
       <h1 className="text-[30px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
         Start building.
       </h1>
-      <p className="mt-3 text-[13px] text-[#6B6B6B]">
-        Your protein target: <span className="text-black font-semibold">{protein}g/day</span> · Goal date:{' '}
-        <span className="text-black font-semibold">{date}</span>
-      </p>
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-5 rounded-2xl bg-black text-white p-5">
+        <div className="text-[10px] tracking-wider font-bold text-white/60" style={{ fontFamily: MONO }}>
+          YOUR PLAN
+        </div>
+        <div className="mt-3 flex items-baseline justify-center gap-1">
+          <div className="text-[48px] font-black leading-none tracking-tight">{protein}g</div>
+          <div className="text-[14px] text-white/70">/day</div>
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+          <div>
+            <div className="text-[15px] font-bold">{calories}</div>
+            <div className="mt-0.5 text-[9px] tracking-wider text-white/60" style={{ fontFamily: MONO }}>KCAL</div>
+          </div>
+          <div>
+            <div className="text-[15px] font-bold">{goalDate}</div>
+            <div className="mt-0.5 text-[9px] tracking-wider text-white/60" style={{ fontFamily: MONO }}>GOAL DATE</div>
+          </div>
+          <div>
+            <div className="text-[15px] font-bold leading-tight">{pace.split(' — ')[0]}</div>
+            <div className="mt-0.5 text-[9px] tracking-wider text-white/60" style={{ fontFamily: MONO }}>PACE</div>
+          </div>
+        </div>
+        <p className="mt-4 text-center text-[12px] text-white/80">
+          Unlock your plan to start building
+        </p>
+      </div>
+
+      <div className="mt-5 space-y-3">
         <button
           onClick={() => onPlanChange('yearly')}
           className={`w-full text-left rounded-2xl p-5 transition-colors relative ${
@@ -1214,7 +1298,8 @@ function ScreenPaywall({
           <div className="flex items-baseline justify-between">
             <div>
               <div className="text-[18px] font-bold">Yearly</div>
-              <div className="text-[13px] text-[#6B6B6B] mt-0.5">$29.99/year — just $2.49/mo</div>
+              <div className="text-[13px] text-[#6B6B6B] mt-0.5">$39.99/year — just $3.33/mo</div>
+              <div className="text-[12px] text-[#6B6B6B] mt-1">7-day free trial, then $39.99/year</div>
             </div>
             <div className={`w-5 h-5 rounded-full border-2 ${plan === 'yearly' ? 'border-black bg-black' : 'border-[#D5D5D5]'}`} />
           </div>
@@ -1228,14 +1313,14 @@ function ScreenPaywall({
           <div className="flex items-baseline justify-between">
             <div>
               <div className="text-[18px] font-bold">Monthly</div>
-              <div className="text-[13px] text-[#6B6B6B] mt-0.5">$7.99/month</div>
+              <div className="text-[13px] text-[#6B6B6B] mt-0.5">$4.99/month</div>
             </div>
             <div className={`w-5 h-5 rounded-full border-2 ${plan === 'monthly' ? 'border-black bg-black' : 'border-[#D5D5D5]'}`} />
           </div>
         </button>
       </div>
 
-      <ul className="mt-6 space-y-3">
+      <ul className="mt-5 space-y-2.5">
         {features.map((f) => (
           <li key={f} className="flex items-center gap-3 text-[14px]">
             <Check className="w-4 h-4 text-black shrink-0" strokeWidth={3} />
@@ -1246,9 +1331,9 @@ function ScreenPaywall({
 
       <div className="flex-1" />
 
-      <PrimaryCTA label={busy ? 'Starting…' : 'Start Free Trial'} onClick={onStart} disabled={busy} />
+      <PrimaryCTA label={busy ? 'Starting…' : 'Start 7-Day Free Trial'} onClick={onStart} disabled={busy} />
       <p className="mt-3 text-center text-[12px] text-[#6B6B6B]">
-        7-day free trial. No payment today. Cancel anytime.
+        No payment due today. After 7 days, $39.99/year. Cancel anytime.
       </p>
       <button className="mt-2 w-full text-center text-[12px] text-[#6B6B6B] underline py-1">
         Restore Purchase
