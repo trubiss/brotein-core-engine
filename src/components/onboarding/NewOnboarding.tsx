@@ -488,7 +488,9 @@ export default function NewOnboarding({ onDone }: Props) {
 
               {step === 8 && <ScreenDarkProof onNext={next} />}
 
-              {step === 9 && (
+              {step === 9 && <ScreenCredibility onNext={next} />}
+
+              {step === 10 && (
                 <ChoiceScreen
                   title="How many days do you train per week?"
                   options={[
@@ -503,7 +505,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 10 && (
+              {step === 11 && (
                 <ChoiceScreen
                   title="Have you tracked protein before?"
                   options={[
@@ -518,7 +520,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 11 && (
+              {step === 12 && (
                 <ChoiceScreen
                   title="What's your training style?"
                   subtitle="This helps personalize your macro split."
@@ -534,7 +536,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 12 && (
+              {step === 13 && (
                 <ChoiceScreen
                   title="One more thing — why does this matter to you?"
                   subtitle="Be real. This shapes everything."
@@ -550,7 +552,41 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 13 && (
+              {step === 14 && (
+                <ChoiceScreen
+                  title="Do you follow a specific diet?"
+                  subtitle="We'll make sure your plan works with how you eat."
+                  options={[
+                    'No specific diet — I eat everything',
+                    'High protein / carnivore',
+                    'Vegetarian',
+                    'Vegan',
+                    'Intermittent fasting',
+                  ]}
+                  value={state.diet}
+                  onChange={(v) => set('diet', v)}
+                  onNext={next}
+                />
+              )}
+
+              {step === 15 && (
+                <ChoiceScreen
+                  title="What would you like to accomplish?"
+                  subtitle="Beyond just the physical."
+                  options={[
+                    'Look better and feel more attractive',
+                    'Feel stronger and more capable',
+                    'Build discipline and consistency',
+                    'Prove something to myself',
+                    'Feel better day to day — energy, mood, confidence',
+                  ]}
+                  value={state.deepMotivation}
+                  onChange={(v) => set('deepMotivation', v)}
+                  onNext={next}
+                />
+              )}
+
+              {step === 16 && (
                 <ScreenWeight
                   value={state.weight}
                   onChange={(w) => set('weight', w)}
@@ -558,7 +594,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 14 && (
+              {step === 17 && (
                 <ScreenHeight
                   value={state.height}
                   onChange={(h) => set('height', h)}
@@ -566,7 +602,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 15 && (
+              {step === 18 && (
                 <ScreenAge
                   value={state.birth}
                   onChange={(b) => set('birth', b)}
@@ -574,7 +610,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 16 && (
+              {step === 19 && (
                 <ChoiceScreen
                   title="What's your dream physique?"
                   subtitle="We'll tailor your targets to match."
@@ -585,13 +621,13 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 17 && <ScreenTimeline onNext={next} />}
+              {step === 20 && <ScreenTimeline onNext={next} />}
 
-              {step === 18 && <ScreenThankYou onNext={next} />}
+              {step === 21 && <ScreenThankYou onNext={next} />}
 
               {step === LOADING_STEP && <ScreenLoading />}
 
-              {step === 20 && (
+              {step === 23 && (
                 <ScreenPlanReveal
                   name={user?.displayName ?? null}
                   protein={proteinGoal}
@@ -606,14 +642,14 @@ export default function NewOnboarding({ onDone }: Props) {
 
               {step === SIGNIN_STEP && <ScreenSignIn onNext={next} />}
 
-              {step === 22 && <ScreenCredibility onNext={next} />}
-
               {step === PAYWALL_STEP && (
                 <ScreenPaywall
                   plan={state.plan}
                   onPlanChange={(p) => set('plan', p)}
                   protein={proteinGoal}
-                  date={goalDateShort}
+                  calories={caloriesGoal}
+                  goalDate={goalDateShort}
+                  pace={PACE_LABEL[state.pace]}
                   busy={busy}
                   onStart={finish}
                 />
