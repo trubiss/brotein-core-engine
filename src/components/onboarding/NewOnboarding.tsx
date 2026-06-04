@@ -414,17 +414,28 @@ export default function NewOnboarding({ onDone }: Props) {
 
   return (
     <div
-      className={`min-h-screen w-full flex justify-center ${isDark ? 'bg-[#0A0A0A]' : 'bg-white'}`}
-      style={{ fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif' }}
+      className={`w-full flex justify-center ${isDark ? 'bg-[#0A0A0A]' : 'bg-white'}`}
+      style={{
+        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+        minHeight: '100dvh',
+      }}
     >
-      <div className={`w-full max-w-[390px] min-h-screen flex flex-col ${isDark ? 'text-white' : 'text-black'}`}>
+      <div
+        className={`w-full max-w-[390px] flex flex-col ${isDark ? 'text-white' : 'text-black'}`}
+        style={{
+          minHeight: '100dvh',
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+      >
         <ProgressBar step={step} />
 
-        <div className="px-5 pt-3 h-12 flex items-center">
+        <div className="px-5 pt-3 h-12 flex items-center shrink-0">
           {showBack && <BackArrow onClick={back} dark={isDark} />}
         </div>
 
-        <div className="flex-1 flex flex-col px-5 pb-6">
+        <div className="flex-1 flex flex-col px-5 pb-6 min-h-0">
+
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={step}
