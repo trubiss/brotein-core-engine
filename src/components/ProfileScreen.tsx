@@ -25,9 +25,9 @@ const fadeUp = {
 const stagger = { animate: { transition: { staggerChildren: 0.06 } } };
 
 const GOAL_OPTIONS: { value: Goal; label: string }[] = [
-  { value: 'hypertrophy', label: 'BUILD' },
-  { value: 'equilibrium', label: 'MAINTAIN' },
-  { value: 'recovery', label: 'RECOVER' },
+  { value: 'hypertrophy', label: 'BUILD MUSCLE' },
+  { value: 'recovery', label: 'GET LEAN' },
+  { value: 'equilibrium', label: 'BODY RECOMPOSITION' },
 ];
 
 export default function ProfileScreen({ onBack }: Props) {
