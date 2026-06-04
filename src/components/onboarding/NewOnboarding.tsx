@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Camera, Check, Apple } from 'lucide-react';
+import { ArrowLeft, Check, Apple } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { createOrUpdateProfile } from '@/lib/firestore';
 import { calculateMacros, ActivityLevel, Goal } from '@/lib/types';
