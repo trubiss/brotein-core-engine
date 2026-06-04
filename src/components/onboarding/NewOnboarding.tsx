@@ -1175,6 +1175,26 @@ function ScreenSignIn({
   goalDate: string;
   pace: string;
 }) {
+  const { signInWithApple, signInWithGoogle } = useAuth();
+  const [busy, setBusy] = useState<null | 'apple' | 'google'>(null);
+
+  const handle = async (provider: 'apple' | 'google') => {
+    if (busy) return;
+    setBusy(provider);
+    try {
+      if (provider === 'apple') await signInWithApple();
+      else await signInWithGoogle();
+      onNext();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : `${provider} sign-in failed`;
+      if (!/cancel|popup-closed/i.test(msg)) {
+        toast.error(msg.replace('Firebase: ', ''));
+      }
+    } finally {
+      setBusy(null);
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col">
       <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
@@ -1203,18 +1223,20 @@ function ScreenSignIn({
 
       <div className="space-y-3">
         <button
-          onClick={onNext}
-          className="w-full rounded-full bg-black text-white py-4 text-[15px] font-semibold flex items-center justify-center gap-2 active:scale-[0.99]"
+          onClick={() => handle('apple')}
+          disabled={busy !== null}
+          className="w-full rounded-full bg-black text-white py-4 text-[15px] font-semibold flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-60"
         >
           <Apple className="w-5 h-5" strokeWidth={2} />
-          Sign in with Apple
+          {busy === 'apple' ? 'Signing in…' : 'Sign in with Apple'}
         </button>
         <button
-          onClick={onNext}
-          className="w-full rounded-full bg-white text-black border border-black py-4 text-[15px] font-semibold flex items-center justify-center gap-2 active:scale-[0.99]"
+          onClick={() => handle('google')}
+          disabled={busy !== null}
+          className="w-full rounded-full bg-white text-black border border-black py-4 text-[15px] font-semibold flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-60"
         >
           <GoogleG className="w-5 h-5" />
-          Sign in with Google
+          {busy === 'google' ? 'Signing in…' : 'Sign in with Google'}
         </button>
       </div>
 
@@ -1224,6 +1246,7 @@ function ScreenSignIn({
     </div>
   );
 }
+
 
 function GoogleG({ className }: { className?: string }) {
   return (
