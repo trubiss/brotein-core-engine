@@ -163,7 +163,9 @@ function PrimaryCTA({
    Scroll picker
    ============================================================ */
 
-const ITEM_H = 44;
+const ITEM_H = 52;
+const VISIBLE = 5; // odd: center + 2 above + 2 below
+const PAD = Math.floor(VISIBLE / 2);
 
 function ScrollPicker({
   values,
@@ -180,12 +182,21 @@ function ScrollPicker({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const initial = useRef(true);
+  const lastIdxRef = useRef(Math.max(0, values.indexOf(value)));
+  const rafRef = useRef<number | null>(null);
+  const settleRef = useRef<number | undefined>(undefined);
+  const userScrollingRef = useRef(false);
+  const [liveIdx, setLiveIdx] = useState(() => Math.max(0, values.indexOf(value)));
 
+  // Sync scroll position when `value` changes externally (not from user scroll)
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    if (userScrollingRef.current) return;
     const idx = Math.max(0, values.indexOf(value));
     el.scrollTo({ top: idx * ITEM_H, behavior: initial.current ? 'auto' : 'smooth' });
+    lastIdxRef.current = idx;
+    setLiveIdx(idx);
     initial.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, values.length]);
@@ -193,55 +204,78 @@ function ScrollPicker({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    let t: number | undefined;
-    let lastIdx = Math.max(0, values.indexOf(value));
-    const onScroll = () => {
-      const liveIdx = Math.round(el.scrollTop / ITEM_H);
-      const clamped = Math.max(0, Math.min(values.length - 1, liveIdx));
-      if (clamped !== lastIdx) {
-        lastIdx = clamped;
+
+    const tick = () => {
+      rafRef.current = null;
+      const raw = el.scrollTop / ITEM_H;
+      const clamped = Math.max(0, Math.min(values.length - 1, Math.round(raw)));
+      if (clamped !== lastIdxRef.current) {
+        lastIdxRef.current = clamped;
+        setLiveIdx(clamped);
         void selectionHaptic();
       }
-      if (t) window.clearTimeout(t);
-      t = window.setTimeout(() => {
-        const v = values[clamped];
-        if (v !== value) onChange(v);
-      }, 80);
     };
-    el.addEventListener('scroll', onScroll);
+
+    const onScroll = () => {
+      userScrollingRef.current = true;
+      if (rafRef.current == null) rafRef.current = requestAnimationFrame(tick);
+      if (settleRef.current) window.clearTimeout(settleRef.current);
+      settleRef.current = window.setTimeout(() => {
+        userScrollingRef.current = false;
+        const idx = lastIdxRef.current;
+        const v = values[idx];
+        if (v !== undefined && v !== value) onChange(v);
+      }, 120);
+    };
+
+    el.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       el.removeEventListener('scroll', onScroll);
-      if (t) window.clearTimeout(t);
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      if (settleRef.current) window.clearTimeout(settleRef.current);
     };
   }, [values, value, onChange]);
 
   return (
-    <div className="relative" style={{ width, height: ITEM_H * 5 }}>
+    <div className="relative" style={{ width, height: ITEM_H * VISIBLE }}>
       <div
         ref={ref}
-        className="h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar"
-        style={{ scrollPaddingTop: ITEM_H * 2 }}
+        className="h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar overscroll-none"
+        style={{
+          scrollPaddingTop: ITEM_H * PAD,
+          WebkitOverflowScrolling: 'touch',
+          scrollSnapType: 'y mandatory',
+        }}
       >
-        <div style={{ height: ITEM_H * 2 }} />
-        {values.map((v) => {
-          const isActive = v === value;
+        <div style={{ height: ITEM_H * PAD }} />
+        {values.map((v, i) => {
+          const dist = Math.abs(i - liveIdx);
+          const isActive = dist === 0;
+          const opacity = dist === 0 ? 1 : dist === 1 ? 0.5 : dist === 2 ? 0.25 : 0.12;
           return (
             <div
               key={v}
-              className={`snap-center flex items-center justify-center transition-all ${
-                isActive ? 'text-black font-bold text-3xl' : 'text-[#C8C8C8] text-xl'
-              }`}
-              style={{ height: ITEM_H }}
+              className="snap-center flex items-center justify-center"
+              style={{
+                height: ITEM_H,
+                scrollSnapAlign: 'center',
+                scrollSnapStop: 'always',
+                opacity,
+                color: isActive ? '#000' : '#9A9A9A',
+                fontWeight: isActive ? 700 : 500,
+                fontSize: isActive ? 30 : 20,
+                transition: 'opacity 90ms linear, font-size 90ms linear, color 90ms linear',
+              }}
             >
               {format ? format(v) : v}
             </div>
           );
         })}
-        <div style={{ height: ITEM_H * 2 }} />
+        <div style={{ height: ITEM_H * PAD }} />
       </div>
       <div
         className="pointer-events-none absolute left-0 right-0 border-y border-[#EFEFEF]"
-        style={{ top: ITEM_H * 2, height: ITEM_H }}
+        style={{ top: ITEM_H * PAD, height: ITEM_H }}
       />
     </div>
   );
