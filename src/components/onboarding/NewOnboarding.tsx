@@ -222,7 +222,7 @@ export default function NewOnboarding({ onDone }: Props) {
   const [dir, setDir] = useState(1);
   const [state, setState] = useState<State>(initialState);
   const [busy, setBusy] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  
 
   const go = (next: number) => {
     setDir(next > step ? 1 : -1);
