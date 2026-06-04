@@ -3,7 +3,7 @@ import {
   onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
   signOut as fbSignOut, updateProfile, sendPasswordResetEmail,
   verifyPasswordResetCode, confirmPasswordReset, User,
-  OAuthProvider, signInWithPopup, signInWithCredential,
+  OAuthProvider, GoogleAuthProvider, signInWithPopup, signInWithCredential,
   reauthenticateWithCredential, reauthenticateWithPopup,
 } from 'firebase/auth';
 import { auth } from './firebase';
