@@ -630,16 +630,32 @@ export default function NewOnboarding({ onDone }: Props) {
    Individual screens
    ============================================================ */
 
-function ScreenSplash({ onStart }: { onStart: () => void }) {
+function ScreenSplash({ onStart, onSkipToSignIn }: { onStart: () => void; onSkipToSignIn: () => void }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center text-center">
-      <div className="flex-1 flex flex-col items-center justify-center">
+    <div className="flex-1 flex flex-col items-center text-center overflow-hidden">
+      {/* Top section: wordmark + subtext */}
+      <div className="pt-12 pb-4">
         <h1 className="text-[56px] font-black tracking-tight leading-none" style={{ fontFamily: MONO }}>BROTEIN</h1>
         <p className="mt-5 text-[15px] text-[#6B6B6B] max-w-[260px]">
           Built for serious muscle growth.
         </p>
       </div>
-      <PrimaryCTA label="Start Building" onClick={onStart} />
+
+      {/* Center: phone mockup */}
+      <div className="flex-1 flex items-center justify-center w-full px-6">
+        <PhoneMockup />
+      </div>
+
+      {/* Bottom: CTA + sign in link */}
+      <div className="w-full pb-6 pt-4">
+        <PrimaryCTA label="Start Building" onClick={onStart} />
+        <button
+          onClick={onSkipToSignIn}
+          className="mt-4 text-[13px] text-[#6B6B6B] underline underline-offset-2"
+        >
+          Already have an account? Sign in
+        </button>
+      </div>
     </div>
   );
 }
