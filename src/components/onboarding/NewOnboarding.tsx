@@ -328,7 +328,7 @@ export default function NewOnboarding({ onDone }: Props) {
 
   // Console-log on paywall screen
   useEffect(() => {
-    if (step === 16) {
+    if (step === 15) {
       // eslint-disable-next-line no-console
       console.log('[onboarding] state:', state);
     }
@@ -338,8 +338,8 @@ export default function NewOnboarding({ onDone }: Props) {
      Screen renderers
      ============================================================ */
 
-  const showBack = step !== 1 && step !== 13;
-  const isDarkScreen = step === 13;
+  const showBack = step !== 1 && step !== 12;
+  const isDarkScreen = step === 12;
 
   const slide = {
     enter: (d: number) => ({ x: d > 0 ? 24 : -24, opacity: 0 }),
