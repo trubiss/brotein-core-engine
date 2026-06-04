@@ -1067,7 +1067,8 @@ function ScreenLoading() {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     const id = window.setInterval(() => setIdx((i) => (i + 1) % messages.length), 750);
-    return () => window.clearInterval(id);
+    const done = window.setTimeout(() => { void successHaptic(); }, 3000);
+    return () => { window.clearInterval(id); window.clearTimeout(done); };
   }, []);
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center">
