@@ -233,10 +233,10 @@ export default function NewOnboarding({ onDone }: Props) {
   const set = <K extends keyof State>(k: K, v: State[K]) =>
     setState((s) => ({ ...s, [k]: v }));
 
-  // Screen 13 auto-advance
+  // Screen 12 (loading) auto-advance
   useEffect(() => {
-    if (step !== 13) return;
-    const t = window.setTimeout(() => go(14), 3000);
+    if (step !== 12) return;
+    const t = window.setTimeout(() => go(13), 3000);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
