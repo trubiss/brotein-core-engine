@@ -1205,6 +1205,12 @@ function ScreenSignIn({
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   })();
 
+  // Short pace for the card row (e.g. "0.5 kg/wk")
+  const paceShort = (() => {
+    const short = pace.split(' — ')[0];
+    return short.replace('week', 'wk');
+  })();
+
   return (
     <div className="flex-1 flex flex-col">
       {/* Header */}
