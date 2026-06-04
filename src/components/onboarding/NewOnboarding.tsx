@@ -431,7 +431,7 @@ export default function NewOnboarding({ onDone }: Props) {
               transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
               className="flex-1 flex flex-col"
             >
-              {step === 1 && <ScreenSplash onStart={next} />}
+              {step === 1 && <ScreenSplash onStart={next} onSkipToSignIn={() => go(SIGNIN_STEP)} />}
 
               {step === 2 && (
                 <ChoiceScreen
