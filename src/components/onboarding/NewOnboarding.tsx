@@ -141,7 +141,7 @@ function PrimaryCTA({
       : 'bg-[#E5E5E5] text-[#9A9A9A]';
   return (
     <button
-      onClick={onClick}
+      onClick={() => { if (!disabled) { void mediumHaptic(); onClick(); } }}
       disabled={disabled}
       className={`w-full rounded-full py-4 text-[16px] font-semibold transition-colors ${
         enabled ? enabledCls : disabledCls
