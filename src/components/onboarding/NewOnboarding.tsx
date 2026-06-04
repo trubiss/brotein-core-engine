@@ -1180,15 +1180,18 @@ function ScreenSignIn({
 
   const handle = async (provider: 'apple' | 'google') => {
     if (busy) return;
+    console.log(`[signin] ${provider} tapped`);
     setBusy(provider);
     try {
       if (provider === 'apple') await signInWithApple();
       else await signInWithGoogle();
+      console.log(`[signin] ${provider} success`);
       onNext();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : `${provider} sign-in failed`;
+      console.error(`[signin] ${provider} error:`, e);
       if (!/cancel|popup-closed/i.test(msg)) {
-        toast.error(msg.replace('Firebase: ', ''));
+        toast.error(msg.replace('Firebase: ', '') || `${provider} sign-in failed`);
       }
     } finally {
       setBusy(null);
