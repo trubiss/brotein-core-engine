@@ -69,6 +69,15 @@ export async function successHaptic() {
   } catch { /* ignore */ }
 }
 
+/** Selection tick — fires as a value snaps into place in a picker. */
+export async function selectionHaptic() {
+  if (!isNative()) return;
+  try {
+    const { Haptics } = await import('@capacitor/haptics');
+    await Haptics.selectionChanged();
+  } catch { /* ignore */ }
+}
+
 // ---- Local notifications --------------------------------------------------
 
 export interface ScheduledReminder {
