@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { createOrUpdateProfile } from '@/lib/firestore';
 import { calculateMacros, ActivityLevel, Goal } from '@/lib/types';
 import { startTrial } from '@/lib/paywall';
-import { tapHaptic, mediumHaptic, heavyHaptic, successHaptic } from '@/lib/native';
+import { tapHaptic, mediumHaptic, heavyHaptic, successHaptic, selectionHaptic } from '@/lib/native';
 import { toast } from 'sonner';
 
 /* ============================================================
@@ -124,11 +124,13 @@ function PrimaryCTA({
   onClick,
   disabled,
   variant = 'light',
+  haptic = 'medium',
 }: {
   label: string;
   onClick: () => void;
   disabled?: boolean;
   variant?: 'light' | 'dark';
+  haptic?: 'medium' | 'success';
 }) {
   const enabled = !disabled;
   const enabledCls =
@@ -141,7 +143,12 @@ function PrimaryCTA({
       : 'bg-[#E5E5E5] text-[#9A9A9A]';
   return (
     <button
-      onClick={() => { if (!disabled) { void mediumHaptic(); onClick(); } }}
+      onClick={() => {
+        if (disabled) return;
+        if (haptic === 'success') void successHaptic();
+        else void mediumHaptic();
+        onClick();
+      }}
       disabled={disabled}
       className={`w-full rounded-full py-4 text-[16px] font-semibold transition-colors ${
         enabled ? enabledCls : disabledCls
@@ -187,11 +194,17 @@ function ScrollPicker({
     const el = ref.current;
     if (!el) return;
     let t: number | undefined;
+    let lastIdx = Math.max(0, values.indexOf(value));
     const onScroll = () => {
+      const liveIdx = Math.round(el.scrollTop / ITEM_H);
+      const clamped = Math.max(0, Math.min(values.length - 1, liveIdx));
+      if (clamped !== lastIdx) {
+        lastIdx = clamped;
+        void selectionHaptic();
+      }
       if (t) window.clearTimeout(t);
       t = window.setTimeout(() => {
-        const idx = Math.round(el.scrollTop / ITEM_H);
-        const v = values[Math.max(0, Math.min(values.length - 1, idx))];
+        const v = values[clamped];
         if (v !== value) onChange(v);
       }, 80);
     };
@@ -1067,7 +1080,7 @@ function ScreenLoading() {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
     const id = window.setInterval(() => setIdx((i) => (i + 1) % messages.length), 750);
-    const done = window.setTimeout(() => { void successHaptic(); }, 3000);
+    const done = window.setTimeout(() => { void heavyHaptic(); }, 3000);
     return () => { window.clearInterval(id); window.clearTimeout(done); };
   }, []);
   return (
@@ -1255,7 +1268,7 @@ function ScreenSignIn({
       {/* Buttons */}
       <div className="mt-5 space-y-3">
         <button
-          onClick={() => handle('apple')}
+          onClick={() => { void mediumHaptic(); handle('apple'); }}
           disabled={busy !== null}
           className="w-full rounded-full bg-black text-white py-4 text-[15px] font-semibold flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-60"
         >
@@ -1263,7 +1276,7 @@ function ScreenSignIn({
           {busy === 'apple' ? 'Signing in…' : 'Sign in with Apple'}
         </button>
         <button
-          onClick={() => handle('google')}
+          onClick={() => { void mediumHaptic(); handle('google'); }}
           disabled={busy !== null}
           className="w-full rounded-full bg-white text-black border border-black py-4 text-[15px] font-semibold flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-60"
         >
@@ -1423,7 +1436,7 @@ function ScreenPaywall({
 
       <div className="mt-4" />
 
-      <PrimaryCTA label={busy ? 'Starting…' : 'Start 7-Day Free Trial'} onClick={onStart} disabled={busy} />
+      <PrimaryCTA label={busy ? 'Starting…' : 'Start 7-Day Free Trial'} onClick={onStart} disabled={busy} haptic="success" />
       <p className="mt-3 text-center text-[12px] text-[#6B6B6B]">
         No payment due today. After 7 days, $39.99/year. Cancel anytime.
       </p>
