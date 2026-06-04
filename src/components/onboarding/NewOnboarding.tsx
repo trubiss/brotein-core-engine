@@ -1230,14 +1230,18 @@ function ScreenPaywall({
   plan,
   onPlanChange,
   protein,
-  date,
+  calories,
+  goalDate,
+  pace,
   busy,
   onStart,
 }: {
   plan: Plan;
   onPlanChange: (p: Plan) => void;
   protein: number;
-  date: string;
+  calories: number;
+  goalDate: string;
+  pace: string;
   busy: boolean;
   onStart: () => void;
 }) {
@@ -1253,12 +1257,35 @@ function ScreenPaywall({
       <h1 className="text-[30px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
         Start building.
       </h1>
-      <p className="mt-3 text-[13px] text-[#6B6B6B]">
-        Your protein target: <span className="text-black font-semibold">{protein}g/day</span> · Goal date:{' '}
-        <span className="text-black font-semibold">{date}</span>
-      </p>
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-5 rounded-2xl bg-black text-white p-5">
+        <div className="text-[10px] tracking-wider font-bold text-white/60" style={{ fontFamily: MONO }}>
+          YOUR PLAN
+        </div>
+        <div className="mt-3 flex items-baseline justify-center gap-1">
+          <div className="text-[48px] font-black leading-none tracking-tight">{protein}g</div>
+          <div className="text-[14px] text-white/70">/day</div>
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+          <div>
+            <div className="text-[15px] font-bold">{calories}</div>
+            <div className="mt-0.5 text-[9px] tracking-wider text-white/60" style={{ fontFamily: MONO }}>KCAL</div>
+          </div>
+          <div>
+            <div className="text-[15px] font-bold">{goalDate}</div>
+            <div className="mt-0.5 text-[9px] tracking-wider text-white/60" style={{ fontFamily: MONO }}>GOAL DATE</div>
+          </div>
+          <div>
+            <div className="text-[15px] font-bold leading-tight">{pace.split(' — ')[0]}</div>
+            <div className="mt-0.5 text-[9px] tracking-wider text-white/60" style={{ fontFamily: MONO }}>PACE</div>
+          </div>
+        </div>
+        <p className="mt-4 text-center text-[12px] text-white/80">
+          Unlock your plan to start building
+        </p>
+      </div>
+
+      <div className="mt-5 space-y-3">
         <button
           onClick={() => onPlanChange('yearly')}
           className={`w-full text-left rounded-2xl p-5 transition-colors relative ${
@@ -1271,7 +1298,8 @@ function ScreenPaywall({
           <div className="flex items-baseline justify-between">
             <div>
               <div className="text-[18px] font-bold">Yearly</div>
-              <div className="text-[13px] text-[#6B6B6B] mt-0.5">$29.99/year — just $2.49/mo</div>
+              <div className="text-[13px] text-[#6B6B6B] mt-0.5">$39.99/year — just $3.33/mo</div>
+              <div className="text-[12px] text-[#6B6B6B] mt-1">7-day free trial, then $39.99/year</div>
             </div>
             <div className={`w-5 h-5 rounded-full border-2 ${plan === 'yearly' ? 'border-black bg-black' : 'border-[#D5D5D5]'}`} />
           </div>
@@ -1285,14 +1313,14 @@ function ScreenPaywall({
           <div className="flex items-baseline justify-between">
             <div>
               <div className="text-[18px] font-bold">Monthly</div>
-              <div className="text-[13px] text-[#6B6B6B] mt-0.5">$7.99/month</div>
+              <div className="text-[13px] text-[#6B6B6B] mt-0.5">$4.99/month</div>
             </div>
             <div className={`w-5 h-5 rounded-full border-2 ${plan === 'monthly' ? 'border-black bg-black' : 'border-[#D5D5D5]'}`} />
           </div>
         </button>
       </div>
 
-      <ul className="mt-6 space-y-3">
+      <ul className="mt-5 space-y-2.5">
         {features.map((f) => (
           <li key={f} className="flex items-center gap-3 text-[14px]">
             <Check className="w-4 h-4 text-black shrink-0" strokeWidth={3} />
@@ -1303,9 +1331,9 @@ function ScreenPaywall({
 
       <div className="flex-1" />
 
-      <PrimaryCTA label={busy ? 'Starting…' : 'Start Free Trial'} onClick={onStart} disabled={busy} />
+      <PrimaryCTA label={busy ? 'Starting…' : 'Start 7-Day Free Trial'} onClick={onStart} disabled={busy} />
       <p className="mt-3 text-center text-[12px] text-[#6B6B6B]">
-        7-day free trial. No payment today. Cancel anytime.
+        No payment due today. After 7 days, $39.99/year. Cancel anytime.
       </p>
       <button className="mt-2 w-full text-center text-[12px] text-[#6B6B6B] underline py-1">
         Restore Purchase
