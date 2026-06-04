@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check, Apple } from 'lucide-react';
+import { ArrowLeft, Check, Apple, Shield } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { createOrUpdateProfile } from '@/lib/firestore';
 import { calculateMacros, ActivityLevel, Goal } from '@/lib/types';
@@ -14,18 +14,21 @@ import { toast } from 'sonner';
 type WeightUnit = 'kg' | 'lb';
 type HeightUnit = 'cm' | 'ft';
 type Plan = 'monthly' | 'yearly';
+type Pace = 'slow' | 'recommended' | 'aggressive';
 
 interface State {
   pain: string | null;
   commitment: string | null;
   goal: string | null;
+  pace: Pace;
   trainingDays: string | null;
   experience: string | null;
+  trainingStyle: string | null;
+  motivation: string | null;
   weight: { value: number; unit: WeightUnit };
-  height: { value: number; unit: HeightUnit }; // cm always, ft toggle is display-only
+  height: { value: number; unit: HeightUnit };
   birth: { m: number; d: number; y: number };
   physique: string | null;
-  photoDataUrl: string | null;
   plan: Plan;
 }
 
@@ -34,27 +37,41 @@ const initialState: State = {
   pain: null,
   commitment: null,
   goal: null,
+  pace: 'recommended',
   trainingDays: null,
   experience: null,
+  trainingStyle: null,
+  motivation: null,
   weight: { value: 75, unit: 'kg' },
   height: { value: 175, unit: 'cm' },
   birth: { m: 1, d: 1, y: today.getFullYear() - 25 },
   physique: null,
-  photoDataUrl: null,
   plan: 'yearly',
 };
 
-const TOTAL_PROGRESS_STEPS = 13; // screens 2..14 contribute to bar
+/* ============================================================
+   Flow constants
+   ============================================================ */
+
+// 23 total screens. Progress bar spans screens 2..22 evenly,
+// hidden on splash (1), loading (19), sign-in (21), paywall (23).
+const TOTAL_SCREENS = 23;
+const LOADING_STEP = 19;
+const SIGNIN_STEP = 21;
+const PAYWALL_STEP = 23;
+const DARK_STEPS = new Set([8, LOADING_STEP]); // Screen C + loading
+const HIDE_PROGRESS = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP]);
+const HIDE_BACK = new Set([1, LOADING_STEP, SIGNIN_STEP]);
+
+const MONO = '"SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
 /* ============================================================
    Primitives
    ============================================================ */
 
 function ProgressBar({ step }: { step: number }) {
-  // step is 1..15; hide on splash (1), loading (12), paywall (15)
-  if (step <= 1 || step === 12 || step >= 15) return null;
-  const filled = Math.min(Math.max(step - 1, 0), TOTAL_PROGRESS_STEPS);
-  const pct = (filled / TOTAL_PROGRESS_STEPS) * 100;
+  if (HIDE_PROGRESS.has(step)) return null;
+  const pct = Math.min(100, (step / TOTAL_SCREENS) * 100);
   return (
     <div className="w-full h-[2px] bg-[#EFEFEF]">
       <div
@@ -65,11 +82,11 @@ function ProgressBar({ step }: { step: number }) {
   );
 }
 
-function BackArrow({ onClick }: { onClick: () => void }) {
+function BackArrow({ onClick, dark }: { onClick: () => void; dark?: boolean }) {
   return (
     <button
       onClick={onClick}
-      className="p-2 -ml-2 text-black"
+      className={`p-2 -ml-2 ${dark ? 'text-white' : 'text-black'}`}
       aria-label="Back"
     >
       <ArrowLeft className="w-6 h-6" strokeWidth={2.2} />
@@ -102,19 +119,28 @@ function PrimaryCTA({
   label,
   onClick,
   disabled,
+  variant = 'light',
 }: {
   label: string;
   onClick: () => void;
   disabled?: boolean;
+  variant?: 'light' | 'dark';
 }) {
+  const enabled = !disabled;
+  const enabledCls =
+    variant === 'dark'
+      ? 'bg-white text-black active:scale-[0.99]'
+      : 'bg-black text-white active:scale-[0.99]';
+  const disabledCls =
+    variant === 'dark'
+      ? 'bg-white/20 text-white/50'
+      : 'bg-[#E5E5E5] text-[#9A9A9A]';
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       className={`w-full rounded-full py-4 text-[16px] font-semibold transition-colors ${
-        disabled
-          ? 'bg-[#E5E5E5] text-[#9A9A9A]'
-          : 'bg-black text-white active:scale-[0.99]'
+        enabled ? enabledCls : disabledCls
       }`}
     >
       {label}
@@ -173,10 +199,7 @@ function ScrollPicker({
   }, [values, value, onChange]);
 
   return (
-    <div
-      className="relative"
-      style={{ width, height: ITEM_H * 5 }}
-    >
+    <div className="relative" style={{ width, height: ITEM_H * 5 }}>
       <div
         ref={ref}
         className="h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar"
@@ -199,7 +222,6 @@ function ScrollPicker({
         })}
         <div style={{ height: ITEM_H * 2 }} />
       </div>
-      {/* Selection guides */}
       <div
         className="pointer-events-none absolute left-0 right-0 border-y border-[#EFEFEF]"
         style={{ top: ITEM_H * 2, height: ITEM_H }}
@@ -216,27 +238,32 @@ interface Props {
   onDone: () => void | Promise<void>;
 }
 
+const PACE_LABEL: Record<Pace, string> = {
+  slow: '0.25 kg/week — Slow & steady',
+  recommended: '0.5 kg/week — Recommended',
+  aggressive: '1 kg/week — Aggressive',
+};
+
 export default function NewOnboarding({ onDone }: Props) {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
   const [state, setState] = useState<State>(initialState);
   const [busy, setBusy] = useState(false);
-  
 
-  const go = (next: number) => {
-    setDir(next > step ? 1 : -1);
-    setStep(next);
+  const go = (n: number) => {
+    setDir(n > step ? 1 : -1);
+    setStep(n);
   };
   const next = () => go(step + 1);
   const back = () => go(Math.max(1, step - 1));
   const set = <K extends keyof State>(k: K, v: State[K]) =>
     setState((s) => ({ ...s, [k]: v }));
 
-  // Screen 12 (loading) auto-advance
+  // Loading auto-advance
   useEffect(() => {
-    if (step !== 12) return;
-    const t = window.setTimeout(() => go(13), 3000);
+    if (step !== LOADING_STEP) return;
+    const t = window.setTimeout(() => go(LOADING_STEP + 1), 3000);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
@@ -249,11 +276,27 @@ export default function NewOnboarding({ onDone }: Props) {
         : Math.round(state.weight.value * 0.4536),
     [state.weight]
   );
+  const heightCm = useMemo(
+    () =>
+      state.height.unit === 'cm'
+        ? state.height.value
+        : Math.round(state.height.value * 2.54),
+    [state.height]
+  );
   const proteinGoal = useMemo(
     () => Math.round((weightKg * 2.2) / 5) * 5,
     [weightKg]
   );
-  const projectedDate = useMemo(() => {
+  const caloriesGoal = useMemo(() => proteinGoal * 4 + 800, [proteinGoal]);
+  const carbsGoal = useMemo(() => Math.round(weightKg * 3), [weightKg]);
+  const fatsGoal = useMemo(() => Math.round(weightKg * 0.8), [weightKg]);
+
+  const goalDateLong = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 90);
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }, []);
+  const goalDateShort = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() + 90);
     return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
@@ -262,12 +305,43 @@ export default function NewOnboarding({ onDone }: Props) {
   const ageFromBirth = useMemo(() => {
     const now = new Date();
     let a = now.getFullYear() - state.birth.y;
-    const beforeBirthday =
+    const before =
       now.getMonth() + 1 < state.birth.m ||
       (now.getMonth() + 1 === state.birth.m && now.getDate() < state.birth.d);
-    if (beforeBirthday) a -= 1;
+    if (before) a -= 1;
     return Math.max(13, a);
   }, [state.birth]);
+
+  const birthdateISO = useMemo(() => {
+    const m = String(state.birth.m).padStart(2, '0');
+    const d = String(state.birth.d).padStart(2, '0');
+    return `${state.birth.y}-${m}-${d}`;
+  }, [state.birth]);
+
+  // Console-log full user object on paywall
+  useEffect(() => {
+    if (step !== PAYWALL_STEP) return;
+    // eslint-disable-next-line no-console
+    console.log('[onboarding] user object:', {
+      painPoint: state.pain,
+      commitmentLevel: state.commitment,
+      goal: state.goal,
+      pace: state.pace,
+      trainingDays: state.trainingDays,
+      proteinHistory: state.experience,
+      trainingStyle: state.trainingStyle,
+      motivation: state.motivation,
+      weightKg,
+      heightCm,
+      birthdate: birthdateISO,
+      dreamPhysique: state.physique,
+      calculatedProtein: proteinGoal,
+      calculatedCalories: caloriesGoal,
+      calculatedCarbs: carbsGoal,
+      calculatedFats: fatsGoal,
+      goalDate: goalDateLong,
+    });
+  }, [step, state, weightKg, heightCm, birthdateISO, proteinGoal, caloriesGoal, carbsGoal, fatsGoal, goalDateLong]);
 
   // Finish — write profile and exit
   const finish = async () => {
@@ -287,11 +361,6 @@ export default function NewOnboarding({ onDone }: Props) {
           ? 'moderate'
           : 'recovery';
 
-      const heightCm =
-        state.height.unit === 'cm'
-          ? state.height.value
-          : Math.round(state.height.value * 2.54);
-
       const macros = calculateMacros(weightKg, activityLevel, goal);
 
       await createOrUpdateProfile({
@@ -303,16 +372,15 @@ export default function NewOnboarding({ onDone }: Props) {
         age: ageFromBirth,
         activityLevel,
         goal,
-        dailyProtein: proteinGoal, // user-spec formula
-        dailyCalories: macros.calories,
-        dailyCarbs: macros.carbs,
-        dailyFats: macros.fats,
+        dailyProtein: proteinGoal,
+        dailyCalories: caloriesGoal,
+        dailyCarbs: carbsGoal,
+        dailyFats: fatsGoal,
         mealFrequency: macros.mealFrequency,
         notifications: true,
         units: state.weight.unit === 'kg' ? 'metric' : 'imperial',
       });
 
-      // Mark all gating flags so Index drops us at the dashboard.
       try {
         localStorage.setItem(`brotein_story_seen:${user.uid}`, '1');
         localStorage.setItem(`brotein_paywall_seen:${user.uid}`, '1');
@@ -326,20 +394,12 @@ export default function NewOnboarding({ onDone }: Props) {
     }
   };
 
-  // Console-log on paywall screen
-  useEffect(() => {
-    if (step === 15) {
-      // eslint-disable-next-line no-console
-      console.log('[onboarding] state:', state);
-    }
-  }, [step, state]);
-
   /* ============================================================
-     Screen renderers
+     Render
      ============================================================ */
 
-  const showBack = step !== 1 && step !== 12;
-  const isDarkScreen = step === 12;
+  const showBack = !HIDE_BACK.has(step);
+  const isDark = DARK_STEPS.has(step);
 
   const slide = {
     enter: (d: number) => ({ x: d > 0 ? 24 : -24, opacity: 0 }),
@@ -349,16 +409,14 @@ export default function NewOnboarding({ onDone }: Props) {
 
   return (
     <div
-      className={`min-h-screen w-full flex justify-center ${
-        isDarkScreen ? 'bg-[#0A0A0A]' : 'bg-white'
-      }`}
+      className={`min-h-screen w-full flex justify-center ${isDark ? 'bg-[#0A0A0A]' : 'bg-white'}`}
       style={{ fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif' }}
     >
-      <div className={`w-full max-w-[390px] min-h-screen flex flex-col ${isDarkScreen ? 'text-white' : 'text-black'}`}>
+      <div className={`w-full max-w-[390px] min-h-screen flex flex-col ${isDark ? 'text-white' : 'text-black'}`}>
         <ProgressBar step={step} />
 
         <div className="px-5 pt-3 h-12 flex items-center">
-          {showBack && <BackArrow onClick={back} />}
+          {showBack && <BackArrow onClick={back} dark={isDark} />}
         </div>
 
         <div className="flex-1 flex flex-col px-5 pb-6">
@@ -373,9 +431,7 @@ export default function NewOnboarding({ onDone }: Props) {
               transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
               className="flex-1 flex flex-col"
             >
-              {step === 1 && (
-                <ScreenSplash onStart={next} />
-              )}
+              {step === 1 && <ScreenSplash onStart={next} />}
 
               {step === 2 && (
                 <ChoiceScreen
@@ -383,7 +439,7 @@ export default function NewOnboarding({ onDone }: Props) {
                   subtitle="Be honest. This shapes your plan."
                   options={[
                     "I'm not eating enough protein",
-                    'I eat okay but can\'t see results',
+                    "I eat okay but can't see results",
                     "I'm inconsistent",
                     "I don't know where to start",
                   ]}
@@ -393,18 +449,12 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 3 && (
-                <ScreenValidation onNext={next} />
-              )}
+              {step === 3 && <ScreenValidation onNext={next} />}
 
               {step === 4 && (
                 <ChoiceScreen
                   title="How serious are you about changing this?"
-                  options={[
-                    'Somewhat serious',
-                    'Very serious',
-                    'I need to change this now ⚡',
-                  ]}
+                  options={['Somewhat serious', 'Very serious', 'I need to change this now ⚡']}
                   value={state.commitment}
                   onChange={(v) => set('commitment', v)}
                   onNext={next}
@@ -421,7 +471,19 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 6 && (
+              {step === 6 && <ScreenRealisticTarget onNext={next} />}
+
+              {step === 7 && (
+                <ScreenPace
+                  value={state.pace}
+                  onChange={(p) => set('pace', p)}
+                  onNext={next}
+                />
+              )}
+
+              {step === 8 && <ScreenDarkProof onNext={next} />}
+
+              {step === 9 && (
                 <ChoiceScreen
                   title="How many days do you train per week?"
                   options={[
@@ -436,7 +498,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 7 && (
+              {step === 10 && (
                 <ChoiceScreen
                   title="Have you tracked protein before?"
                   options={[
@@ -451,7 +513,39 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 8 && (
+              {step === 11 && (
+                <ChoiceScreen
+                  title="What's your training style?"
+                  subtitle="This helps personalize your macro split."
+                  options={[
+                    'Mostly lifting — I want to get bigger',
+                    'Lifting + cardio — I want to lean out',
+                    'Cardio focused — I want to stay athletic',
+                    "Just starting out — I'm new to training",
+                  ]}
+                  value={state.trainingStyle}
+                  onChange={(v) => set('trainingStyle', v)}
+                  onNext={next}
+                />
+              )}
+
+              {step === 12 && (
+                <ChoiceScreen
+                  title="One more thing — why does this matter to you?"
+                  subtitle="Be real. This shapes everything."
+                  options={[
+                    'I want to look better with my shirt off',
+                    'I want to feel stronger and more confident',
+                    'I want to stay consistent and build a habit',
+                    'I want to prove something to myself',
+                  ]}
+                  value={state.motivation}
+                  onChange={(v) => set('motivation', v)}
+                  onNext={next}
+                />
+              )}
+
+              {step === 13 && (
                 <ScreenWeight
                   value={state.weight}
                   onChange={(w) => set('weight', w)}
@@ -459,7 +553,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 9 && (
+              {step === 14 && (
                 <ScreenHeight
                   value={state.height}
                   onChange={(h) => set('height', h)}
@@ -467,7 +561,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 10 && (
+              {step === 15 && (
                 <ScreenAge
                   value={state.birth}
                   onChange={(b) => set('birth', b)}
@@ -475,7 +569,7 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 11 && (
+              {step === 16 && (
                 <ChoiceScreen
                   title="What's your dream physique?"
                   subtitle="We'll tailor your targets to match."
@@ -486,26 +580,35 @@ export default function NewOnboarding({ onDone }: Props) {
                 />
               )}
 
-              {step === 12 && <ScreenLoading />}
+              {step === 17 && <ScreenTimeline onNext={next} />}
 
-              {step === 13 && (
+              {step === 18 && <ScreenThankYou onNext={next} />}
+
+              {step === LOADING_STEP && <ScreenLoading />}
+
+              {step === 20 && (
                 <ScreenPlanReveal
-                  weight={state.weight}
-                  physique={state.physique ?? 'Athletic'}
+                  name={user?.displayName ?? null}
                   protein={proteinGoal}
-                  date={projectedDate}
+                  calories={caloriesGoal}
+                  carbs={carbsGoal}
+                  fats={fatsGoal}
+                  goalDate={goalDateLong}
+                  pace={PACE_LABEL[state.pace]}
                   onNext={next}
                 />
               )}
 
-              {step === 14 && <ScreenCredibility onNext={next} />}
+              {step === SIGNIN_STEP && <ScreenSignIn onNext={next} />}
 
-              {step === 15 && (
+              {step === 22 && <ScreenCredibility onNext={next} />}
+
+              {step === PAYWALL_STEP && (
                 <ScreenPaywall
                   plan={state.plan}
                   onPlanChange={(p) => set('plan', p)}
                   protein={proteinGoal}
-                  date={projectedDate}
+                  date={goalDateShort}
                   busy={busy}
                   onStart={finish}
                 />
@@ -532,7 +635,7 @@ function ScreenSplash({ onStart }: { onStart: () => void }) {
     <div className="flex-1 flex flex-col items-center justify-center text-center">
       <div className="flex-1 flex flex-col items-center justify-center">
         <Apple className="w-10 h-10 mb-6" strokeWidth={1.8} />
-        <h1 className="text-[56px] font-black tracking-tight leading-none">BROTEIN</h1>
+        <h1 className="text-[56px] font-black tracking-tight leading-none" style={{ fontFamily: MONO }}>BROTEIN</h1>
         <p className="mt-5 text-[15px] text-[#6B6B6B] max-w-[260px]">
           Built for guys who are serious about muscle.
         </p>
@@ -559,10 +662,8 @@ function ChoiceScreen({
 }) {
   return (
     <div className="flex-1 flex flex-col">
-      <h1 className="text-[28px] font-bold leading-tight tracking-tight">{title}</h1>
-      {subtitle && (
-        <p className="mt-3 text-[15px] text-[#6B6B6B]">{subtitle}</p>
-      )}
+      <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>{title}</h1>
+      {subtitle && <p className="mt-3 text-[15px] text-[#6B6B6B]">{subtitle}</p>}
       <div className="mt-8 space-y-3">
         {options.map((opt) => (
           <PillOption
@@ -594,6 +695,181 @@ function ScreenValidation({ onNext }: { onNext: () => void }) {
   );
 }
 
+/* ---------- Screen A ---------- */
+function ScreenRealisticTarget({ onNext }: { onNext: () => void }) {
+  return (
+    <div className="flex-1 flex flex-col">
+      <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+        That's a realistic target.
+      </h1>
+      <p className="mt-3 text-[15px] text-[#6B6B6B]">It's not hard at all.</p>
+      <div className="flex-1 flex flex-col items-center justify-center text-center">
+        <p className="text-[24px] font-bold leading-[1.25] tracking-tight">
+          90% of guys who fix their protein and stay consistent hit their muscle goal within 90 days. You're already ahead just by being here.
+        </p>
+        <p className="mt-6 text-[13px] text-[#6B6B6B]">
+          Brotein users report visible changes in as little as 3 weeks.
+        </p>
+      </div>
+      <PrimaryCTA label="Let's keep going →" onClick={onNext} />
+    </div>
+  );
+}
+
+/* ---------- Screen B ---------- */
+function ScreenPace({
+  value,
+  onChange,
+  onNext,
+}: {
+  value: Pace;
+  onChange: (p: Pace) => void;
+  onNext: () => void;
+}) {
+  const stops: { id: Pace; label: string; info: string }[] = [
+    { id: 'slow', label: '0.25 kg/wk\nSlow & steady', info: 'Easier to maintain. Lower risk of fat gain.' },
+    { id: 'recommended', label: '0.5 kg/wk\nRecommended', info: 'Optimal balance of muscle gain and recovery.' },
+    { id: 'aggressive', label: '1 kg/wk\nAggressive', info: 'Requires very high protein consistency.' },
+  ];
+  const idx = stops.findIndex((s) => s.id === value);
+  const current = stops[idx];
+  return (
+    <div className="flex-1 flex flex-col">
+      <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+        How fast do you want to get there?
+      </h1>
+      <p className="mt-3 text-[15px] text-[#6B6B6B]">You control the pace.</p>
+
+      <div className="mt-12 relative">
+        {/* Recommended badge above middle stop */}
+        <div className="absolute -top-6 left-0 right-0 flex justify-center">
+          <div
+            className="text-[10px] font-bold tracking-wider text-white bg-black px-2 py-1 rounded-full"
+            style={{ marginLeft: 0 }}
+          >
+            RECOMMENDED
+          </div>
+        </div>
+        {/* Track */}
+        <div className="relative h-[2px] bg-[#EFEFEF] mx-3">
+          <div
+            className="absolute top-0 left-0 h-full bg-black transition-all"
+            style={{ width: `${(idx / 2) * 100}%` }}
+          />
+        </div>
+        {/* Stops */}
+        <div className="relative -mt-[7px] flex justify-between mx-0">
+          {stops.map((s, i) => (
+            <button
+              key={s.id}
+              onClick={() => onChange(s.id)}
+              className={`w-4 h-4 rounded-full border-2 transition-colors ${
+                i <= idx ? 'bg-black border-black' : 'bg-white border-[#D5D5D5]'
+              }`}
+              aria-label={s.id}
+            />
+          ))}
+        </div>
+        {/* Labels */}
+        <div className="mt-4 flex justify-between text-[11px] text-[#6B6B6B] text-center whitespace-pre-line">
+          {stops.map((s) => (
+            <div key={s.id} className="w-[30%]">{s.label}</div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-10 rounded-2xl bg-[#F5F5F5] p-5">
+        <p className="text-[14px] text-black">{current.info}</p>
+      </div>
+
+      <div className="flex-1" />
+      <PrimaryCTA label="Continue" onClick={onNext} />
+    </div>
+  );
+}
+
+/* ---------- Screen C (dark proof) ---------- */
+function ScreenDarkProof({ onNext }: { onNext: () => void }) {
+  return (
+    <div className="flex-1 flex flex-col text-white">
+      <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+        Guys who track protein build 2X more muscle.
+      </h1>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-full grid grid-cols-2 gap-3 items-end">
+          <div className="rounded-2xl bg-[#1A1A1A] p-4 text-center">
+            <div className="text-[10px] tracking-wider text-white/60 font-semibold">WITHOUT BROTEIN</div>
+            <div className="mt-3 text-[20px] font-bold leading-tight">1.2kg</div>
+            <div className="text-[11px] text-white/60 mt-1">avg gain · 90 days</div>
+          </div>
+          <div className="rounded-2xl bg-white text-black p-5 text-center shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+            <div className="text-[10px] tracking-wider text-black/60 font-semibold">WITH BROTEIN</div>
+            <div className="mt-3 text-[32px] font-black leading-none tracking-tight">3.1kg</div>
+            <div className="text-[11px] text-black/60 mt-1">avg gain · 90 days</div>
+          </div>
+        </div>
+      </div>
+      <p className="text-center text-[12px] text-white/60 mb-5">
+        Brotein users who hit their protein goal 5+ days per week.
+      </p>
+      <PrimaryCTA label="I want the 3.1kg" onClick={onNext} variant="dark" />
+    </div>
+  );
+}
+
+/* ---------- Screen F (timeline) ---------- */
+function ScreenTimeline({ onNext }: { onNext: () => void }) {
+  const cards = [
+    { title: 'WEEK 1–2', body: 'The scale might not move much. Your body is adapting. This is normal.' },
+    { title: 'WEEK 3–4', body: "Protein synthesis increases. You'll start feeling fuller and stronger." },
+    { title: 'MONTH 2–3', body: 'Visible muscle changes. This is where most guys see the biggest shift.' },
+  ];
+  return (
+    <div className="flex-1 flex flex-col">
+      <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+        Here's what to expect.
+      </h1>
+      <p className="mt-3 text-[15px] text-[#6B6B6B]">Honesty matters more than hype.</p>
+      <div className="mt-7 space-y-3">
+        {cards.map((c) => (
+          <div key={c.title} className="rounded-2xl bg-[#F5F5F5] p-5">
+            <div className="text-[12px] font-bold tracking-wider" style={{ fontFamily: MONO }}>{c.title}</div>
+            <p className="mt-2 text-[14px] text-[#3A3A3A] leading-snug">{c.body}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-6 text-center text-[13px] font-bold">
+        Stick with it past week 2. That's where most guys quit.
+      </p>
+      <div className="flex-1" />
+      <PrimaryCTA label="I'm ready" onClick={onNext} />
+    </div>
+  );
+}
+
+/* ---------- Screen G (thank you / privacy) ---------- */
+function ScreenThankYou({ onNext }: { onNext: () => void }) {
+  return (
+    <div className="flex-1 flex flex-col">
+      <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+        Thank you for trusting us.
+      </h1>
+      <p className="mt-3 text-[15px] text-[#6B6B6B]">Now let's personalize Brotein for you.</p>
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <Shield className="w-16 h-16" strokeWidth={1.5} />
+        <div className="mt-8 w-full rounded-2xl bg-[#F5F5F5] p-5">
+          <p className="text-[14px] text-[#3A3A3A] leading-snug text-center">
+            Your privacy matters. We never sell your data. Everything you share is used only to build your plan.
+          </p>
+        </div>
+      </div>
+      <PrimaryCTA label="Build My Plan" onClick={onNext} />
+    </div>
+  );
+}
+
+/* ---------- Weight / Height / Age ---------- */
+
 function ScreenWeight({
   value,
   onChange,
@@ -604,14 +880,13 @@ function ScreenWeight({
   onNext: () => void;
 }) {
   const range = value.unit === 'kg'
-    ? Array.from({ length: 161 }, (_, i) => i + 40) // 40-200
-    : Array.from({ length: 351 }, (_, i) => i + 80); // 80-430 lb
-
+    ? Array.from({ length: 161 }, (_, i) => i + 40)
+    : Array.from({ length: 351 }, (_, i) => i + 80);
   return (
     <div className="flex-1 flex flex-col">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-[28px] font-bold leading-tight tracking-tight">How much do you weigh?</h1>
+          <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>How much do you weigh?</h1>
           <p className="mt-2 text-[15px] text-[#6B6B6B]">Used to calculate your protein target.</p>
         </div>
         <UnitToggle
@@ -619,7 +894,6 @@ function ScreenWeight({
           right="lb"
           value={value.unit}
           onChange={(u) => {
-            // Convert when switching units
             const v =
               u === 'kg' && value.unit === 'lb'
                 ? Math.round(value.value * 0.4536)
@@ -653,18 +927,14 @@ function ScreenHeight({
   onNext: () => void;
 }) {
   const range = value.unit === 'cm'
-    ? Array.from({ length: 121 }, (_, i) => i + 130) // 130-250
-    : Array.from({ length: 49 }, (_, i) => i + 48); // 48-96 inches
-
+    ? Array.from({ length: 121 }, (_, i) => i + 130)
+    : Array.from({ length: 49 }, (_, i) => i + 48);
   const format = (v: number) =>
-    value.unit === 'cm'
-      ? `${v} cm`
-      : `${Math.floor(v / 12)}'${v % 12}"`;
-
+    value.unit === 'cm' ? `${v} cm` : `${Math.floor(v / 12)}'${v % 12}"`;
   return (
     <div className="flex-1 flex flex-col">
       <div className="flex items-start justify-between">
-        <h1 className="text-[28px] font-bold leading-tight tracking-tight">How tall are you?</h1>
+        <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>How tall are you?</h1>
         <UnitToggle
           left="cm"
           right="ft"
@@ -706,39 +976,21 @@ function ScreenAge({
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
   const thisYear = new Date().getFullYear();
   const years = Array.from({ length: thisYear - 1940 + 1 }, (_, i) => 1940 + i);
-  const monthName = (m: number) =>
-    new Date(2000, m - 1, 1).toLocaleDateString('en-US', { month: 'short' });
-
+  const monthName = (m: number) => new Date(2000, m - 1, 1).toLocaleDateString('en-US', { month: 'short' });
   return (
     <div className="flex-1 flex flex-col">
-      <h1 className="text-[28px] font-bold leading-tight tracking-tight">When were you born?</h1>
+      <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>When were you born?</h1>
       <div className="flex-1 flex items-center justify-center gap-2">
-        <ScrollPicker
-          values={months}
-          value={value.m}
-          onChange={(m) => onChange({ ...value, m })}
-          format={monthName}
-          width={110}
-        />
-        <ScrollPicker
-          values={days}
-          value={value.d}
-          onChange={(d) => onChange({ ...value, d })}
-          width={70}
-        />
-        <ScrollPicker
-          values={years}
-          value={value.y}
-          onChange={(y) => onChange({ ...value, y })}
-          width={110}
-        />
+        <ScrollPicker values={months} value={value.m} onChange={(m) => onChange({ ...value, m })} format={monthName} width={110} />
+        <ScrollPicker values={days} value={value.d} onChange={(d) => onChange({ ...value, d })} width={70} />
+        <ScrollPicker values={years} value={value.y} onChange={(y) => onChange({ ...value, y })} width={110} />
       </div>
       <PrimaryCTA label="Continue" onClick={onNext} />
     </div>
   );
 }
 
-
+/* ---------- Loading ---------- */
 function ScreenLoading() {
   const messages = [
     'Analyzing your body type...',
@@ -753,15 +1005,11 @@ function ScreenLoading() {
   }, []);
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center">
-      <h1 className="text-[26px] font-bold tracking-tight">Building your muscle plan...</h1>
+      <h1 className="text-[24px] font-bold tracking-tight uppercase" style={{ fontFamily: MONO }}>Building your muscle plan...</h1>
       <div className="mt-10 w-full h-[3px] bg-white/15 rounded-full overflow-hidden">
         <div
           className="h-full bg-white rounded-full"
-          style={{
-            width: '100%',
-            transform: 'translateX(-100%)',
-            animation: 'fill 3s linear forwards',
-          }}
+          style={{ width: '100%', transform: 'translateX(-100%)', animation: 'fill 3s linear forwards' }}
         />
       </div>
       <p className="mt-6 text-[14px] text-white/70">{messages[idx]}</p>
@@ -770,54 +1018,129 @@ function ScreenLoading() {
   );
 }
 
+/* ---------- Screen H: Plan reveal dashboard ---------- */
 function ScreenPlanReveal({
-  weight,
-  physique,
+  name,
   protein,
-  date,
+  calories,
+  carbs,
+  fats,
+  goalDate,
+  pace,
   onNext,
 }: {
-  weight: State['weight'];
-  physique: string;
+  name: string | null;
   protein: number;
-  date: string;
+  calories: number;
+  carbs: number;
+  fats: number;
+  goalDate: string;
+  pace: string;
   onNext: () => void;
 }) {
   return (
     <div className="flex-1 flex flex-col">
-      <h1 className="text-[26px] font-bold leading-tight tracking-tight">
-        🔥 Your Muscle Plan is Ready
-      </h1>
-      <div className="mt-6 rounded-3xl bg-[#F5F5F5] p-6">
-        <div className="flex justify-between text-[15px]">
-          <span className="text-[#6B6B6B]">Current weight</span>
-          <span className="font-semibold">{weight.value} {weight.unit}</span>
+      <div className="flex flex-col items-center">
+        <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center">
+          <Check className="w-5 h-5 text-white" strokeWidth={3} />
         </div>
-        <div className="flex justify-between text-[15px] mt-3">
-          <span className="text-[#6B6B6B]">Goal</span>
-          <span className="font-semibold">{physique}</span>
+        <h1 className="mt-4 text-[24px] font-bold tracking-tight uppercase text-center" style={{ fontFamily: MONO }}>
+          Your muscle plan is ready.
+        </h1>
+      </div>
+
+      <div className="mt-6 rounded-3xl bg-black text-white p-6">
+        <div className="text-[12px] tracking-wider text-white/60 font-semibold" style={{ fontFamily: MONO }}>
+          {name ? name.toUpperCase() : 'YOUR PLAN'}
         </div>
-        <div className="h-px bg-[#E2E2E2] my-5" />
-        <div className="text-center">
-          <div className="text-[56px] font-black leading-none tracking-tight">{protein}g</div>
-          <div className="mt-2 text-[13px] uppercase tracking-wider text-[#6B6B6B]">
-            Daily Protein Goal
+
+        <div className="mt-5 text-center">
+          <div className="text-[64px] font-black leading-none tracking-tight">{protein}</div>
+          <div className="mt-2 text-[11px] uppercase tracking-wider text-white/60" style={{ fontFamily: MONO }}>
+            g protein / day
           </div>
         </div>
-        <div className="h-px bg-[#E2E2E2] my-5" />
-        <p className="text-center text-[15px] font-medium">
-          Projected gain: <span className="font-bold">+5kg by {date}</span>
-        </p>
+
+        <div className="h-px bg-white/15 my-5" />
+
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <div className="text-[18px] font-bold">{calories}</div>
+            <div className="mt-1 text-[9px] uppercase tracking-wider text-white/60" style={{ fontFamily: MONO }}>kcal / day</div>
+          </div>
+          <div>
+            <div className="text-[18px] font-bold">{carbs}g</div>
+            <div className="mt-1 text-[9px] uppercase tracking-wider text-white/60" style={{ fontFamily: MONO }}>carbs / day</div>
+          </div>
+          <div>
+            <div className="text-[18px] font-bold">{fats}g</div>
+            <div className="mt-1 text-[9px] uppercase tracking-wider text-white/60" style={{ fontFamily: MONO }}>fats / day</div>
+          </div>
+        </div>
+
+        <div className="h-px bg-white/15 my-5" />
+
+        <div className="text-[13px] text-white/80 space-y-1">
+          <div>Goal date: <span className="text-white font-semibold">{goalDate}</span></div>
+          <div>Pace: <span className="text-white font-semibold">{pace}</span></div>
+        </div>
       </div>
+
       <p className="mt-5 text-center text-[13px] italic text-[#6B6B6B]">
         89% of guys with your profile hit their goal within 90 days.
       </p>
+
       <div className="flex-1" />
-      <PrimaryCTA label="See My Full Plan" onClick={onNext} />
+      <PrimaryCTA label="Let's get started →" onClick={onNext} />
     </div>
   );
 }
 
+/* ---------- Screen I: Sign in ---------- */
+function ScreenSignIn({ onNext }: { onNext: () => void }) {
+  return (
+    <div className="flex-1 flex flex-col">
+      <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+        Save your progress.
+      </h1>
+      <p className="mt-3 text-[15px] text-[#6B6B6B]">Sign in so you never lose your plan.</p>
+
+      <div className="flex-1 flex flex-col justify-center space-y-3">
+        <button
+          onClick={onNext}
+          className="w-full rounded-full bg-black text-white py-4 text-[15px] font-semibold flex items-center justify-center gap-2 active:scale-[0.99]"
+        >
+          <Apple className="w-5 h-5" strokeWidth={2} />
+          Sign in with Apple
+        </button>
+        <button
+          onClick={onNext}
+          className="w-full rounded-full bg-white text-black border border-black py-4 text-[15px] font-semibold flex items-center justify-center gap-2 active:scale-[0.99]"
+        >
+          <GoogleG className="w-5 h-5" />
+          Sign in with Google
+        </button>
+      </div>
+
+      <button onClick={onNext} className="mt-2 mb-2 w-full text-center text-[13px] text-[#6B6B6B] underline py-2">
+        Skip for now
+      </button>
+    </div>
+  );
+}
+
+function GoogleG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} aria-hidden>
+      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.5 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
+      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16.1 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6.1 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+      <path fill="#4CAF50" d="M24 44c5.3 0 10.1-2 13.7-5.3l-6.3-5.3C29.4 35 26.8 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.5 5C9.6 39.6 16.2 44 24 44z" />
+      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.4l6.3 5.3C41.1 35.9 44 30.5 44 24c0-1.3-.1-2.4-.4-3.5z" />
+    </svg>
+  );
+}
+
+/* ---------- Credibility ---------- */
 function ScreenCredibility({ onNext }: { onNext: () => void }) {
   const stats = [
     { big: '80%', sub: "of guys who lift don't hit their protein goal consistently" },
@@ -826,8 +1149,8 @@ function ScreenCredibility({ onNext }: { onNext: () => void }) {
   ];
   return (
     <div className="flex-1 flex flex-col">
-      <h1 className="text-[28px] font-bold leading-tight tracking-tight" style={{ fontFamily: '"SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}>
-        THE PROTEIN GAP IS REAL.
+      <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+        The protein gap is real.
       </h1>
       <div className="mt-7 space-y-3">
         {stats.map((s) => (
@@ -846,6 +1169,7 @@ function ScreenCredibility({ onNext }: { onNext: () => void }) {
   );
 }
 
+/* ---------- Paywall ---------- */
 function ScreenPaywall({
   plan,
   onPlanChange,
@@ -868,18 +1192,16 @@ function ScreenPaywall({
     '90-Day Muscle Plan',
     'Progress Analytics',
   ];
-  const monoFont = '"SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
   return (
     <div className="flex-1 flex flex-col">
-      <h1 className="text-[32px] font-bold leading-tight tracking-tight" style={{ fontFamily: monoFont }}>
-        START BUILDING.
+      <h1 className="text-[30px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+        Start building.
       </h1>
       <p className="mt-3 text-[13px] text-[#6B6B6B]">
         Your protein target: <span className="text-black font-semibold">{protein}g/day</span> · Goal date:{' '}
         <span className="text-black font-semibold">{date}</span>
       </p>
 
-      {/* Plan cards */}
       <div className="mt-6 space-y-3">
         <button
           onClick={() => onPlanChange('yearly')}
@@ -925,11 +1247,7 @@ function ScreenPaywall({
 
       <div className="flex-1" />
 
-      <PrimaryCTA
-        label={busy ? 'Starting…' : 'Start Free Trial'}
-        onClick={onStart}
-        disabled={busy}
-      />
+      <PrimaryCTA label={busy ? 'Starting…' : 'Start Free Trial'} onClick={onStart} disabled={busy} />
       <p className="mt-3 text-center text-[12px] text-[#6B6B6B]">
         7-day free trial. No payment today. Cancel anytime.
       </p>
