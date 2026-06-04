@@ -1268,7 +1268,7 @@ function ScreenSignIn({
       {/* Buttons */}
       <div className="mt-5 space-y-3">
         <button
-          onClick={() => handle('apple')}
+          onClick={() => { void mediumHaptic(); handle('apple'); }}
           disabled={busy !== null}
           className="w-full rounded-full bg-black text-white py-4 text-[15px] font-semibold flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-60"
         >
@@ -1276,7 +1276,7 @@ function ScreenSignIn({
           {busy === 'apple' ? 'Signing in…' : 'Sign in with Apple'}
         </button>
         <button
-          onClick={() => handle('google')}
+          onClick={() => { void mediumHaptic(); handle('google'); }}
           disabled={busy !== null}
           className="w-full rounded-full bg-white text-black border border-black py-4 text-[15px] font-semibold flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-60"
         >
