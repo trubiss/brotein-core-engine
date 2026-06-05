@@ -381,10 +381,11 @@ export default function NewOnboarding({ onDone }: Props) {
     });
   }, [step, state, weightKg, heightCm, birthdateISO, proteinGoal, caloriesGoal, carbsGoal, fatsGoal, goalDateLong]);
 
-  // Finish — write profile and exit
-  const finish = async () => {
-    if (!user || busy) return;
-    setBusy(true);
+  // Persist the calculated profile to Firestore. Safe to call multiple times — guarded
+  // by savedProfileRef so we only write once per onboarding session.
+  const saveProfile = async (): Promise<boolean> => {
+    if (!user) return false;
+    if (savedProfileRef.current) return true;
     try {
       const goal: Goal =
         state.goal === 'Get Lean'
@@ -418,18 +419,62 @@ export default function NewOnboarding({ onDone }: Props) {
         notifications: true,
         units: state.weight.unit === 'kg' ? 'metric' : 'imperial',
       });
-
-      try {
-        localStorage.setItem(`brotein_story_seen:${user.uid}`, '1');
-        localStorage.setItem(`brotein_paywall_seen:${user.uid}`, '1');
-      } catch { /* noop */ }
-
-      startTrial(user.uid);
-      await onDone();
+      savedProfileRef.current = true;
+      await refreshProfile();
+      return true;
     } catch (e) {
+      console.error('saveProfile failed', e);
       toast.error(e instanceof Error ? e.message : 'Could not save profile');
+      return false;
+    }
+  };
+
+  // When the paywall mounts: persist the profile (so macros land in Firestore even if
+  // the user later skips), then check for an existing entitlement and bypass paywall.
+  useEffect(() => {
+    if (step !== PAYWALL_STEP) return;
+    let cancelled = false;
+    void (async () => {
+      await saveProfile();
+      try {
+        const { hasProEntitlement } = await import('@/lib/iap');
+        if (cancelled) return;
+        if (await hasProEntitlement()) go(NOTIF_STEP);
+      } catch { /* ignore — show paywall */ }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, user]);
+
+  // Tapped "Start 7-Day Free Trial" — attempt native purchase, then advance.
+  const startTrialAndAdvance = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await saveProfile();
+      try {
+        const { purchasePlan } = await import('@/lib/iap');
+        await purchasePlan(state.plan === 'yearly' ? 'annual' : 'monthly');
+      } catch (e) {
+        console.warn('Native purchase unavailable / failed', e);
+      }
+      if (user) startTrial(user.uid);
+      go(NOTIF_STEP);
+    } finally {
       setBusy(false);
     }
+  };
+
+  // Final completion after notifications + rating screens.
+  const complete = async () => {
+    await saveProfile();
+    try {
+      if (user) {
+        localStorage.setItem(`brotein_story_seen:${user.uid}`, '1');
+        localStorage.setItem(`brotein_paywall_seen:${user.uid}`, '1');
+      }
+    } catch { /* noop */ }
+    await onDone();
   };
 
   /* ============================================================
