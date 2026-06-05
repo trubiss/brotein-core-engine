@@ -1297,6 +1297,7 @@ function ScreenSignIn({
       console.log(`[signin] ${provider} success`);
       onNext();
     } catch (e: unknown) {
+      sessionStorage.removeItem(ONBOARDING_AUTH_RESUME_KEY);
       const msg = e instanceof Error ? e.message : `${provider} sign-in failed`;
       console.error(`[signin] ${provider} error:`, e);
       if (!/cancel|popup-closed/i.test(msg)) {
