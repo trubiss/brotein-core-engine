@@ -24,6 +24,7 @@ const getResetCode = (): string | null => {
 
 const storySeenKey = (uid: string) => `brotein_story_seen:${uid}`;
 const paywallSeenKey = (uid: string) => `brotein_paywall_seen:${uid}`;
+const ONBOARDING_AUTH_RESUME_KEY = 'brotein_onboarding_auth_resume';
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -37,11 +38,19 @@ const Index = () => {
   const [resetCode, setResetCode] = useState<string | null>(() => getResetCode());
   const [storySeen, setStorySeen] = useState(false);
   const [paywallSeen, setPaywallSeen] = useState(false);
+  const [resumePaywall, setResumePaywall] = useState(false);
 
   // Recompute per-user when auth state changes — prevents User A's "seen"
   // state from suppressing the story for User B on the same device.
   useEffect(() => {
-    if (!user) { setStorySeen(false); setPaywallSeen(false); return; }
+    if (!user) { setStorySeen(false); setPaywallSeen(false); setResumePaywall(false); return; }
+    const shouldResumePaywall = sessionStorage.getItem(ONBOARDING_AUTH_RESUME_KEY) === 'paywall';
+    setResumePaywall(shouldResumePaywall);
+    if (shouldResumePaywall) {
+      setStorySeen(true);
+      setPaywallSeen(false);
+      return;
+    }
     setStorySeen(localStorage.getItem(storySeenKey(user.uid)) === '1');
     setPaywallSeen(localStorage.getItem(paywallSeenKey(user.uid)) === '1');
   }, [user]);
@@ -96,7 +105,7 @@ const Index = () => {
   if (!user || !storySeen || !profile || !paywallSeen) {
     return (
       <Suspense fallback={null}>
-        <NewOnboarding onDone={completeOnboarding} />
+        <NewOnboarding onDone={completeOnboarding} initialStep={resumePaywall ? 25 : 1} />
       </Suspense>
     );
   }

@@ -271,7 +271,10 @@ function ScrollPicker({
 
 interface Props {
   onDone: () => void | Promise<void>;
+  initialStep?: number;
 }
+
+const ONBOARDING_AUTH_RESUME_KEY = 'brotein_onboarding_auth_resume';
 
 const PACE_LABEL: Record<Pace, string> = {
   slow: '0.25 kg/week — Slow & steady',
@@ -279,9 +282,9 @@ const PACE_LABEL: Record<Pace, string> = {
   aggressive: '1 kg/week — Aggressive',
 };
 
-export default function NewOnboarding({ onDone }: Props) {
+export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
   const { user, refreshProfile } = useAuth();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(initialStep);
   const [dir, setDir] = useState(1);
   const [state, setState] = useState<State>(initialState);
   const [busy, setBusy] = useState(false);
@@ -469,6 +472,7 @@ export default function NewOnboarding({ onDone }: Props) {
   const complete = async () => {
     await saveProfile();
     try {
+      sessionStorage.removeItem(ONBOARDING_AUTH_RESUME_KEY);
       if (user) {
         localStorage.setItem(`brotein_story_seen:${user.uid}`, '1');
         localStorage.setItem(`brotein_paywall_seen:${user.uid}`, '1');
@@ -1287,11 +1291,13 @@ function ScreenSignIn({
     console.log(`[signin] ${provider} tapped`);
     setBusy(provider);
     try {
+      sessionStorage.setItem(ONBOARDING_AUTH_RESUME_KEY, 'paywall');
       if (provider === 'apple') await signInWithApple();
       else await signInWithGoogle();
       console.log(`[signin] ${provider} success`);
       onNext();
     } catch (e: unknown) {
+      sessionStorage.removeItem(ONBOARDING_AUTH_RESUME_KEY);
       const msg = e instanceof Error ? e.message : `${provider} sign-in failed`;
       console.error(`[signin] ${provider} error:`, e);
       if (!/cancel|popup-closed/i.test(msg)) {
