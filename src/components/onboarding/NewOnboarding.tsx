@@ -750,14 +750,32 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
 
               {step === NOTIF_STEP && (
                 <ScreenNotifications
-                  onAllow={async () => { await ensureNotificationPermission(); go(RATING_STEP); }}
+                  onAllow={async () => {
+                    try {
+                      if (isNative()) {
+                        await LocalNotifications.requestPermissions();
+                      }
+                    } catch (e) {
+                      console.warn('requestPermissions failed', e);
+                    }
+                    go(RATING_STEP);
+                  }}
                   onSkip={() => go(RATING_STEP)}
                 />
               )}
 
               {step === RATING_STEP && (
                 <ScreenRating
-                  onRate={async () => { await requestAppStoreReview(); void complete(); }}
+                  onRate={async () => {
+                    try {
+                      if (isNative()) {
+                        await InAppReview.requestReview();
+                      }
+                    } catch (e) {
+                      console.warn('requestReview failed', e);
+                    }
+                    void complete();
+                  }}
                   onSkip={() => { void complete(); }}
                 />
               )}
