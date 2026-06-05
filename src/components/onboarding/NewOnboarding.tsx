@@ -5,7 +5,9 @@ import { useAuth } from '@/lib/auth';
 import { createOrUpdateProfile } from '@/lib/firestore';
 import { calculateMacros, ActivityLevel, Goal } from '@/lib/types';
 import { startTrial } from '@/lib/paywall';
-import { tapHaptic, mediumHaptic, heavyHaptic, successHaptic, selectionHaptic, ensureNotificationPermission, requestAppStoreReview } from '@/lib/native';
+import { tapHaptic, mediumHaptic, heavyHaptic, successHaptic, selectionHaptic, isNative } from '@/lib/native';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { InAppReview } from '@capacitor-community/in-app-review';
 import { toast } from 'sonner';
 
 /* ============================================================
