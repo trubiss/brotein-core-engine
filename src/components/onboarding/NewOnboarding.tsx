@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check, Apple, Shield } from 'lucide-react';
+import { ArrowLeft, Check, Apple, Shield, Bell, Star } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { createOrUpdateProfile } from '@/lib/firestore';
 import { calculateMacros, ActivityLevel, Goal } from '@/lib/types';
 import { startTrial } from '@/lib/paywall';
-import { tapHaptic, mediumHaptic, heavyHaptic, successHaptic, selectionHaptic } from '@/lib/native';
+import { tapHaptic, mediumHaptic, heavyHaptic, successHaptic, selectionHaptic, ensureNotificationPermission, requestAppStoreReview } from '@/lib/native';
 import { toast } from 'sonner';
 
 /* ============================================================
