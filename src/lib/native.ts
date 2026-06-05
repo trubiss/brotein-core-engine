@@ -247,7 +247,8 @@ async function getFoodPhoto(src: 'camera' | 'photos'): Promise<string | null> {
 export async function requestAppStoreReview(): Promise<boolean> {
   if (!isNative()) return false;
   try {
-    const mod: any = await import(/* @vite-ignore */ '@capacitor-community/in-app-review');
+    const moduleName = '@capacitor-community/in-app-review';
+    const mod: any = await import(/* @vite-ignore */ moduleName);
     const InAppReview = mod.InAppReview ?? mod.default;
     if (InAppReview?.requestReview) {
       await InAppReview.requestReview();
