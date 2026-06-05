@@ -74,7 +74,9 @@ export async function selectionHaptic() {
   if (!isNative()) return;
   try {
     const { Haptics } = await import('@capacitor/haptics');
+    await Haptics.selectionStart();
     await Haptics.selectionChanged();
+    await Haptics.selectionEnd();
   } catch { /* ignore */ }
 }
 

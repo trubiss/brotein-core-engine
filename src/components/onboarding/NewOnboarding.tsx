@@ -164,6 +164,7 @@ function PrimaryCTA({
    ============================================================ */
 
 const ITEM_H = 44;
+const PICKER_VISIBLE_ITEMS = 5;
 
 function ScrollPicker({
   values,
@@ -180,6 +181,7 @@ function ScrollPicker({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const initial = useRef(true);
+  const lastIdxRef = useRef(Math.max(0, values.indexOf(value)));
 
   useEffect(() => {
     const el = ref.current;
@@ -193,34 +195,48 @@ function ScrollPicker({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    let t: number | undefined;
-    let lastIdx = Math.max(0, values.indexOf(value));
-    const onScroll = () => {
+    let frame: number | undefined;
+    let settle: number | undefined;
+    lastIdxRef.current = Math.max(0, values.indexOf(value));
+
+    const updateSelection = (commit: boolean) => {
       const liveIdx = Math.round(el.scrollTop / ITEM_H);
       const clamped = Math.max(0, Math.min(values.length - 1, liveIdx));
-      if (clamped !== lastIdx) {
-        lastIdx = clamped;
+      if (clamped !== lastIdxRef.current) {
+        lastIdxRef.current = clamped;
         void selectionHaptic();
       }
-      if (t) window.clearTimeout(t);
-      t = window.setTimeout(() => {
+      if (commit) {
         const v = values[clamped];
         if (v !== value) onChange(v);
-      }, 80);
+      }
     };
+
+    const onScroll = () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => updateSelection(false));
+      if (settle) window.clearTimeout(settle);
+      settle = window.setTimeout(() => updateSelection(true), 64);
+    };
+
     el.addEventListener('scroll', onScroll);
     return () => {
       el.removeEventListener('scroll', onScroll);
-      if (t) window.clearTimeout(t);
+      if (frame) window.cancelAnimationFrame(frame);
+      if (settle) window.clearTimeout(settle);
     };
   }, [values, value, onChange]);
 
   return (
-    <div className="relative" style={{ width, height: ITEM_H * 5 }}>
+    <div className="relative" style={{ width, height: ITEM_H * PICKER_VISIBLE_ITEMS }}>
       <div
         ref={ref}
-        className="h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar"
-        style={{ scrollPaddingTop: ITEM_H * 2 }}
+        className="h-full overflow-y-scroll no-scrollbar touch-pan-y overscroll-contain"
+        style={{
+          scrollPaddingTop: ITEM_H * 2,
+          WebkitOverflowScrolling: 'touch',
+          scrollSnapType: 'y proximity',
+        }}
       >
         <div style={{ height: ITEM_H * 2 }} />
         {values.map((v) => {
@@ -228,10 +244,10 @@ function ScrollPicker({
           return (
             <div
               key={v}
-              className={`snap-center flex items-center justify-center transition-all ${
+              className={`flex items-center justify-center transition-all duration-100 ${
                 isActive ? 'text-black font-bold text-3xl' : 'text-[#C8C8C8] text-xl'
               }`}
-              style={{ height: ITEM_H }}
+              style={{ height: ITEM_H, scrollSnapAlign: 'center' }}
             >
               {format ? format(v) : v}
             </div>
