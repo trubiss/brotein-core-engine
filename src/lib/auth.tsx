@@ -87,7 +87,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     track('sign_in', { method: 'password' });
     return cred.user;
   };
-  const signOut = async () => { track('sign_out'); await fbSignOut(auth); };
+  const signOut = async () => {
+    track('sign_out');
+    // Clear local onboarding state so sign-out always returns to the splash
+    // screen and a fresh onboarding session (no carry-over answers, no paywall
+    // resume, no story-seen short-circuit).
+    try {
+      const uid = auth.currentUser?.uid;
+      sessionStorage.removeItem('brotein_onboarding_auth_resume');
+      if (uid) {
+        localStorage.removeItem(`brotein_story_seen:${uid}`);
+        localStorage.removeItem(`brotein_paywall_seen:${uid}`);
+      }
+    } catch { /* ignore storage errors */ }
+    await fbSignOut(auth);
+  };
 
   const signInWithApple = async (): Promise<User> => {
     if (isNative()) {
