@@ -1566,3 +1566,70 @@ function UnitToggle({
     </div>
   );
 }
+
+/* ---------- Notifications permission ---------- */
+function ScreenNotifications({ onAllow, onSkip }: { onAllow: () => void; onSkip: () => void }) {
+  const benefits = [
+    'Daily protein reminders',
+    "Alert when you're behind pace",
+    'Weekly progress updates',
+  ];
+  return (
+    <div className="flex-1 flex flex-col">
+      <h1 className="text-[28px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+        Reach your goals.
+      </h1>
+      <p className="mt-3 text-[15px] text-[#6B6B6B]">
+        Turn on notifications so Brotein can remind you when you&apos;re falling behind.
+      </p>
+
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="w-28 h-28 rounded-full bg-black flex items-center justify-center">
+          <Bell className="w-14 h-14 text-white" strokeWidth={2} />
+        </div>
+      </div>
+
+      <ul className="space-y-3 mb-6">
+        {benefits.map((b) => (
+          <li key={b} className="flex items-center gap-3 text-[15px]">
+            <Check className="w-5 h-5 text-black shrink-0" strokeWidth={3} />
+            {b}
+          </li>
+        ))}
+      </ul>
+
+      <PrimaryCTA label="Turn On Notifications" onClick={onAllow} />
+      <button onClick={() => { void tapHaptic(); onSkip(); }} className="w-full text-center text-[13px] text-[#6B6B6B] underline py-3 mt-1">
+        Not now
+      </button>
+    </div>
+  );
+}
+
+/* ---------- App Store rating ---------- */
+function ScreenRating({ onRate, onSkip }: { onRate: () => void; onSkip: () => void }) {
+  return (
+    <div className="flex-1 flex flex-col">
+      <h1 className="text-[28px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+        Loving Brotein so far?
+      </h1>
+      <p className="mt-3 text-[15px] text-[#6B6B6B]">
+        Rate us on the App Store — it takes 2 seconds and helps us grow.
+      </p>
+
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="flex items-center gap-2">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Star key={i} className="w-10 h-10" fill="#F5B400" stroke="#F5B400" />
+          ))}
+        </div>
+        <p className="mt-4 text-[13px] text-[#6B6B6B] font-semibold">4.8 · 100+ ratings</p>
+      </div>
+
+      <PrimaryCTA label="Rate Brotein" onClick={onRate} />
+      <button onClick={() => { void tapHaptic(); onSkip(); }} className="w-full text-center text-[13px] text-[#6B6B6B] underline py-3 mt-1">
+        Maybe later
+      </button>
+    </div>
+  );
+}
