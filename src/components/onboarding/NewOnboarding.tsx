@@ -280,11 +280,12 @@ const PACE_LABEL: Record<Pace, string> = {
 };
 
 export default function NewOnboarding({ onDone }: Props) {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
   const [state, setState] = useState<State>(initialState);
   const [busy, setBusy] = useState(false);
+  const savedProfileRef = useRef(false);
 
   const go = (n: number) => {
     setDir(n > step ? 1 : -1);
