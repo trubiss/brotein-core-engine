@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check, Apple, Shield } from 'lucide-react';
+import { ArrowLeft, Check, Apple, Shield, Bell, Star } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { createOrUpdateProfile } from '@/lib/firestore';
 import { calculateMacros, ActivityLevel, Goal } from '@/lib/types';
 import { startTrial } from '@/lib/paywall';
-import { tapHaptic, mediumHaptic, heavyHaptic, successHaptic, selectionHaptic } from '@/lib/native';
+import { tapHaptic, mediumHaptic, heavyHaptic, successHaptic, selectionHaptic, ensureNotificationPermission, requestAppStoreReview } from '@/lib/native';
 import { toast } from 'sonner';
 
 /* ============================================================
@@ -58,14 +58,16 @@ const initialState: State = {
    Flow constants
    ============================================================ */
 
-// 25 total screens.
-const TOTAL_SCREENS = 25;
+// 27 total screens.
+const TOTAL_SCREENS = 27;
 const LOADING_STEP = 22;
 const SIGNIN_STEP = 24;
 const PAYWALL_STEP = 25;
+const NOTIF_STEP = 26;
+const RATING_STEP = 27;
 const DARK_STEPS = new Set([8, LOADING_STEP]); // Dark proof + loading
-const HIDE_PROGRESS = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP]);
-const HIDE_BACK = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP]);
+const HIDE_PROGRESS = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP, NOTIF_STEP, RATING_STEP]);
+const HIDE_BACK = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP, NOTIF_STEP, RATING_STEP]);
 
 const MONO = '"SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
@@ -278,11 +280,12 @@ const PACE_LABEL: Record<Pace, string> = {
 };
 
 export default function NewOnboarding({ onDone }: Props) {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
   const [state, setState] = useState<State>(initialState);
   const [busy, setBusy] = useState(false);
+  const savedProfileRef = useRef(false);
 
   const go = (n: number) => {
     setDir(n > step ? 1 : -1);
@@ -378,10 +381,11 @@ export default function NewOnboarding({ onDone }: Props) {
     });
   }, [step, state, weightKg, heightCm, birthdateISO, proteinGoal, caloriesGoal, carbsGoal, fatsGoal, goalDateLong]);
 
-  // Finish — write profile and exit
-  const finish = async () => {
-    if (!user || busy) return;
-    setBusy(true);
+  // Persist the calculated profile to Firestore. Safe to call multiple times — guarded
+  // by savedProfileRef so we only write once per onboarding session.
+  const saveProfile = async (): Promise<boolean> => {
+    if (!user) return false;
+    if (savedProfileRef.current) return true;
     try {
       const goal: Goal =
         state.goal === 'Get Lean'
@@ -415,18 +419,62 @@ export default function NewOnboarding({ onDone }: Props) {
         notifications: true,
         units: state.weight.unit === 'kg' ? 'metric' : 'imperial',
       });
-
-      try {
-        localStorage.setItem(`brotein_story_seen:${user.uid}`, '1');
-        localStorage.setItem(`brotein_paywall_seen:${user.uid}`, '1');
-      } catch { /* noop */ }
-
-      startTrial(user.uid);
-      await onDone();
+      savedProfileRef.current = true;
+      await refreshProfile();
+      return true;
     } catch (e) {
+      console.error('saveProfile failed', e);
       toast.error(e instanceof Error ? e.message : 'Could not save profile');
+      return false;
+    }
+  };
+
+  // When the paywall mounts: persist the profile (so macros land in Firestore even if
+  // the user later skips), then check for an existing entitlement and bypass paywall.
+  useEffect(() => {
+    if (step !== PAYWALL_STEP) return;
+    let cancelled = false;
+    void (async () => {
+      await saveProfile();
+      try {
+        const { hasProEntitlement } = await import('@/lib/iap');
+        if (cancelled) return;
+        if (await hasProEntitlement()) go(NOTIF_STEP);
+      } catch { /* ignore — show paywall */ }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, user]);
+
+  // Tapped "Start 7-Day Free Trial" — attempt native purchase, then advance.
+  const startTrialAndAdvance = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await saveProfile();
+      try {
+        const { purchasePlan } = await import('@/lib/iap');
+        await purchasePlan(state.plan === 'yearly' ? 'annual' : 'monthly');
+      } catch (e) {
+        console.warn('Native purchase unavailable / failed', e);
+      }
+      if (user) startTrial(user.uid);
+      go(NOTIF_STEP);
+    } finally {
       setBusy(false);
     }
+  };
+
+  // Final completion after notifications + rating screens.
+  const complete = async () => {
+    await saveProfile();
+    try {
+      if (user) {
+        localStorage.setItem(`brotein_story_seen:${user.uid}`, '1');
+        localStorage.setItem(`brotein_paywall_seen:${user.uid}`, '1');
+      }
+    } catch { /* noop */ }
+    await onDone();
   };
 
   /* ============================================================
@@ -690,7 +738,21 @@ export default function NewOnboarding({ onDone }: Props) {
                   goalDate={goalDateShort}
                   pace={PACE_LABEL[state.pace]}
                   busy={busy}
-                  onStart={finish}
+                  onStart={startTrialAndAdvance}
+                />
+              )}
+
+              {step === NOTIF_STEP && (
+                <ScreenNotifications
+                  onAllow={async () => { await ensureNotificationPermission(); go(RATING_STEP); }}
+                  onSkip={() => go(RATING_STEP)}
+                />
+              )}
+
+              {step === RATING_STEP && (
+                <ScreenRating
+                  onRate={async () => { await requestAppStoreReview(); void complete(); }}
+                  onSkip={() => { void complete(); }}
                 />
               )}
             </motion.div>
@@ -1501,6 +1563,73 @@ function UnitToggle({
           {u}
         </button>
       ))}
+    </div>
+  );
+}
+
+/* ---------- Notifications permission ---------- */
+function ScreenNotifications({ onAllow, onSkip }: { onAllow: () => void; onSkip: () => void }) {
+  const benefits = [
+    'Daily protein reminders',
+    "Alert when you're behind pace",
+    'Weekly progress updates',
+  ];
+  return (
+    <div className="flex-1 flex flex-col">
+      <h1 className="text-[28px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+        Reach your goals.
+      </h1>
+      <p className="mt-3 text-[15px] text-[#6B6B6B]">
+        Turn on notifications so Brotein can remind you when you&apos;re falling behind.
+      </p>
+
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="w-28 h-28 rounded-full bg-black flex items-center justify-center">
+          <Bell className="w-14 h-14 text-white" strokeWidth={2} />
+        </div>
+      </div>
+
+      <ul className="space-y-3 mb-6">
+        {benefits.map((b) => (
+          <li key={b} className="flex items-center gap-3 text-[15px]">
+            <Check className="w-5 h-5 text-black shrink-0" strokeWidth={3} />
+            {b}
+          </li>
+        ))}
+      </ul>
+
+      <PrimaryCTA label="Turn On Notifications" onClick={onAllow} />
+      <button onClick={() => { void tapHaptic(); onSkip(); }} className="w-full text-center text-[13px] text-[#6B6B6B] underline py-3 mt-1">
+        Not now
+      </button>
+    </div>
+  );
+}
+
+/* ---------- App Store rating ---------- */
+function ScreenRating({ onRate, onSkip }: { onRate: () => void; onSkip: () => void }) {
+  return (
+    <div className="flex-1 flex flex-col">
+      <h1 className="text-[28px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
+        Loving Brotein so far?
+      </h1>
+      <p className="mt-3 text-[15px] text-[#6B6B6B]">
+        Rate us on the App Store — it takes 2 seconds and helps us grow.
+      </p>
+
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="flex items-center gap-2">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Star key={i} className="w-10 h-10" fill="#F5B400" stroke="#F5B400" />
+          ))}
+        </div>
+        <p className="mt-4 text-[13px] text-[#6B6B6B] font-semibold">4.8 · 100+ ratings</p>
+      </div>
+
+      <PrimaryCTA label="Rate Brotein" onClick={onRate} />
+      <button onClick={() => { void tapHaptic(); onSkip(); }} className="w-full text-center text-[13px] text-[#6B6B6B] underline py-3 mt-1">
+        Maybe later
+      </button>
     </div>
   );
 }

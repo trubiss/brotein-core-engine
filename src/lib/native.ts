@@ -236,3 +236,26 @@ async function getFoodPhoto(src: 'camera' | 'photos'): Promise<string | null> {
     throw e;
   }
 }
+
+// ---- App Store rating prompt ---------------------------------------------
+
+/**
+ * Trigger the native App Store in-app review (SKStoreReviewController on iOS).
+ * Returns true if the request was issued. No-op on web.
+ * Requires `@capacitor-community/in-app-review` to be installed for native.
+ */
+export async function requestAppStoreReview(): Promise<boolean> {
+  if (!isNative()) return false;
+  try {
+    const moduleName = '@capacitor-community/in-app-review';
+    const mod: any = await import(/* @vite-ignore */ moduleName);
+    const InAppReview = mod.InAppReview ?? mod.default;
+    if (InAppReview?.requestReview) {
+      await InAppReview.requestReview();
+      return true;
+    }
+  } catch (e) {
+    console.warn('In-app review unavailable', e);
+  }
+  return false;
+}
