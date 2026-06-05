@@ -58,14 +58,16 @@ const initialState: State = {
    Flow constants
    ============================================================ */
 
-// 25 total screens.
-const TOTAL_SCREENS = 25;
+// 27 total screens.
+const TOTAL_SCREENS = 27;
 const LOADING_STEP = 22;
 const SIGNIN_STEP = 24;
 const PAYWALL_STEP = 25;
+const NOTIF_STEP = 26;
+const RATING_STEP = 27;
 const DARK_STEPS = new Set([8, LOADING_STEP]); // Dark proof + loading
-const HIDE_PROGRESS = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP]);
-const HIDE_BACK = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP]);
+const HIDE_PROGRESS = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP, NOTIF_STEP, RATING_STEP]);
+const HIDE_BACK = new Set([1, LOADING_STEP, SIGNIN_STEP, PAYWALL_STEP, NOTIF_STEP, RATING_STEP]);
 
 const MONO = '"SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
