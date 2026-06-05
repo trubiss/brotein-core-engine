@@ -738,7 +738,21 @@ export default function NewOnboarding({ onDone }: Props) {
                   goalDate={goalDateShort}
                   pace={PACE_LABEL[state.pace]}
                   busy={busy}
-                  onStart={finish}
+                  onStart={startTrialAndAdvance}
+                />
+              )}
+
+              {step === NOTIF_STEP && (
+                <ScreenNotifications
+                  onAllow={async () => { await ensureNotificationPermission(); go(RATING_STEP); }}
+                  onSkip={() => go(RATING_STEP)}
+                />
+              )}
+
+              {step === RATING_STEP && (
+                <ScreenRating
+                  onRate={async () => { await requestAppStoreReview(); void complete(); }}
+                  onSkip={() => { void complete(); }}
                 />
               )}
             </motion.div>
