@@ -16,6 +16,28 @@ import { track } from '@/lib/track';
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
 const Paywall = lazy(() => import('./Paywall'));
+const GoalHitCelebration = lazy(() => import('./GoalHitCelebration'));
+
+const GOAL_HIT_FLAG_PREFIX = 'goalHitShown:';
+
+async function getGoalHitFlag(date: string): Promise<boolean> {
+  const key = GOAL_HIT_FLAG_PREFIX + date;
+  try {
+    const { Preferences } = await import('@capacitor/preferences');
+    const { value } = await Preferences.get({ key });
+    if (value) return true;
+  } catch { /* fall through */ }
+  try { return !!localStorage.getItem(key); } catch { return false; }
+}
+
+async function setGoalHitFlag(date: string): Promise<void> {
+  const key = GOAL_HIT_FLAG_PREFIX + date;
+  try {
+    const { Preferences } = await import('@capacitor/preferences');
+    await Preferences.set({ key, value: '1' });
+  } catch { /* ignore */ }
+  try { localStorage.setItem(key, '1'); } catch { /* ignore */ }
+}
 
 
 import { AmbientGrid, BlinkingCursor } from './ui/AmbientGrid';
@@ -81,6 +103,8 @@ export default function Dashboard({ onNavigate }: Props) {
   const [summaries30, setSummaries30] = useState<DailySummary[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [showScan, setShowScan] = useState(false);
+  const [showGoalHit, setShowGoalHit] = useState(false);
+  const goalHitCheckRef = useRef(false);
 
   const [streakBump, setStreakBump] = useState(0);
   const [hasEntitlement, setHasEntitlement] = useState(false);
@@ -259,6 +283,26 @@ export default function Dashboard({ onNavigate }: Props) {
 
     return () => clearInterval(id);
   }, [profile, summary, uid, showPaywall]);
+
+  // Goal-hit celebration — fires once per day when consumed crosses the protein target.
+  const isTodayView = viewDate === today;
+  useEffect(() => {
+    if (!profile || !uid) return;
+    if (showPaywall) return;
+    if (!isTodayView) return;
+    if (target <= 0 || consumed < target) return;
+    if (goalHitCheckRef.current) return;
+    goalHitCheckRef.current = true;
+    (async () => {
+      const already = await getGoalHitFlag(today);
+      if (already) return;
+      await setGoalHitFlag(today);
+      setShowGoalHit(true);
+    })();
+  }, [profile, uid, showPaywall, isTodayView, consumed, target, today]);
+
+  // Reset the once-per-session guard when the day rolls over.
+  useEffect(() => { goalHitCheckRef.current = false; }, [today]);
 
   // ───────── early returns AFTER all hooks ─────────
   if (!profile || !user) return null;
@@ -607,6 +651,15 @@ export default function Dashboard({ onNavigate }: Props) {
           )}
         </Suspense>
       )}
+
+      <Suspense fallback={null}>
+        <GoalHitCelebration
+          open={showGoalHit}
+          grams={consumed}
+          streak={streak}
+          onClose={() => setShowGoalHit(false)}
+        />
+      </Suspense>
     </motion.div>
   );
 }
