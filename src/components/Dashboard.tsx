@@ -651,6 +651,15 @@ export default function Dashboard({ onNavigate }: Props) {
           )}
         </Suspense>
       )}
+
+      <Suspense fallback={null}>
+        <GoalHitCelebration
+          open={showGoalHit}
+          grams={consumed}
+          streak={streak}
+          onClose={() => setShowGoalHit(false)}
+        />
+      </Suspense>
     </motion.div>
   );
 }
