@@ -16,6 +16,28 @@ import { track } from '@/lib/track';
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
 const Paywall = lazy(() => import('./Paywall'));
+const GoalHitCelebration = lazy(() => import('./GoalHitCelebration'));
+
+const GOAL_HIT_FLAG_PREFIX = 'goalHitShown:';
+
+async function getGoalHitFlag(date: string): Promise<boolean> {
+  const key = GOAL_HIT_FLAG_PREFIX + date;
+  try {
+    const { Preferences } = await import('@capacitor/preferences');
+    const { value } = await Preferences.get({ key });
+    if (value) return true;
+  } catch { /* fall through */ }
+  try { return !!localStorage.getItem(key); } catch { return false; }
+}
+
+async function setGoalHitFlag(date: string): Promise<void> {
+  const key = GOAL_HIT_FLAG_PREFIX + date;
+  try {
+    const { Preferences } = await import('@capacitor/preferences');
+    await Preferences.set({ key, value: '1' });
+  } catch { /* ignore */ }
+  try { localStorage.setItem(key, '1'); } catch { /* ignore */ }
+}
 
 
 import { AmbientGrid, BlinkingCursor } from './ui/AmbientGrid';
@@ -81,6 +103,8 @@ export default function Dashboard({ onNavigate }: Props) {
   const [summaries30, setSummaries30] = useState<DailySummary[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [showScan, setShowScan] = useState(false);
+  const [showGoalHit, setShowGoalHit] = useState(false);
+  const goalHitCheckRef = useRef(false);
 
   const [streakBump, setStreakBump] = useState(0);
   const [hasEntitlement, setHasEntitlement] = useState(false);
