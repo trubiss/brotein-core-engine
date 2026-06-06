@@ -284,6 +284,26 @@ export default function Dashboard({ onNavigate }: Props) {
     return () => clearInterval(id);
   }, [profile, summary, uid, showPaywall]);
 
+  // Goal-hit celebration — fires once per day when consumed crosses the protein target.
+  const isTodayView = viewDate === today;
+  useEffect(() => {
+    if (!profile || !uid) return;
+    if (showPaywall) return;
+    if (!isTodayView) return;
+    if (target <= 0 || consumed < target) return;
+    if (goalHitCheckRef.current) return;
+    goalHitCheckRef.current = true;
+    (async () => {
+      const already = await getGoalHitFlag(today);
+      if (already) return;
+      await setGoalHitFlag(today);
+      setShowGoalHit(true);
+    })();
+  }, [profile, uid, showPaywall, isTodayView, consumed, target, today]);
+
+  // Reset the once-per-session guard when the day rolls over.
+  useEffect(() => { goalHitCheckRef.current = false; }, [today]);
+
   // ───────── early returns AFTER all hooks ─────────
   if (!profile || !user) return null;
 
