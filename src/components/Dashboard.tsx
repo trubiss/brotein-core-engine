@@ -517,32 +517,22 @@ export default function Dashboard({ onNavigate }: Props) {
           MACROS
         </p>
         {[
-          { label: 'CALORIES', value: consumedCalories, goal: targetCalories, unit: 'KCAL' },
-          { label: 'CARBS', value: consumedCarbs, goal: targetCarbs, unit: 'G' },
-          { label: 'FAT', value: consumedFats, goal: targetFats, unit: 'G' },
-        ].map(m => {
-          const pct = m.goal > 0 ? Math.min(100, (m.value / m.goal) * 100) : 0;
-          return (
-            <div key={m.label} className="mb-2 last:mb-0">
-              <div className="flex items-baseline justify-between mb-1 min-w-0">
-                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted-foreground/70">
-                  {m.label}
-                </span>
-                <span className="text-[10px] font-bold tracking-[0.04em] text-muted-foreground/70 shrink-0">
-                  {Math.round(m.value)} / {m.goal}{m.unit === 'KCAL' ? ' KCAL' : 'G'}
-                </span>
-              </div>
-              <div className="h-[3px] w-full bg-foreground/10 overflow-hidden">
-                <motion.div
-                  className="h-full bg-foreground/50"
-                  initial={false}
-                  animate={{ width: `${pct}%` }}
-                  transition={{ duration: 0.18, ease: 'easeOut' }}
-                />
-              </div>
+          { label: 'CALORIES', value: consumedCalories, unit: 'KCAL' },
+          { label: 'CARBS', value: consumedCarbs, unit: 'G' },
+          { label: 'FAT', value: consumedFats, unit: 'G' },
+        ].map(m => (
+          <div key={m.label} className="mb-2 last:mb-0">
+            <div className="flex items-baseline justify-between mb-1 min-w-0">
+              <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted-foreground/70">
+                {m.label}
+              </span>
+              <span className="text-[10px] font-bold tracking-[0.04em] text-muted-foreground/70 shrink-0">
+                {Math.round(m.value)}{m.unit === 'KCAL' ? ' KCAL' : 'G'}
+              </span>
             </div>
-          );
-        })}
+          </div>
+        ))}
+
       </motion.div>
 
 
