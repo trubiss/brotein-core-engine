@@ -866,10 +866,9 @@ function ScreenValidation({ onNext }: { onNext: () => void }) {
     <div className="flex-1 flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center text-center">
         <p className="text-[26px] font-bold leading-[1.2] tracking-tight">
-          Most guys in your position gain{' '}
-          <span className="underline decoration-2 underline-offset-4">4–6kg of muscle</span> in 90 days once they fix their protein.
+          Fixing your protein intake is the{' '}
+          <span className="underline decoration-2 underline-offset-4">single highest-leverage change</span> for muscle growth.
         </p>
-        <p className="mt-5 text-[13px] text-[#6B6B6B]">Based on Brotein user data.</p>
       </div>
       <PrimaryCTA label="That could be me →" onClick={onNext} />
     </div>
