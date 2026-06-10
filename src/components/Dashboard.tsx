@@ -240,13 +240,13 @@ export default function Dashboard({ onNavigate }: Props) {
   const macroTargets = { protein: target, carbs: targetCarbs, fats: targetFats, calories: targetCalories };
   const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
 
-  // Paywall tracking (must be declared before any conditional return)
-  const showPaywall =
-    !!profile && !trialActive && !hasEntitlement && shouldShowPaywall({ uid, logsCount: totalLogs, hasEntitlement });
-
+  // Paywall now only shows when the user attempts a SECOND logging action after
+  // they've already used their single free log. `showPaywall` state is driven
+  // by `tryConsumeFreeLog` below.
   useEffect(() => {
-    if (showPaywall) track('paywall_viewed', { logs_count: totalLogs, streak, default_plan: 'annual' });
-  }, [showPaywall, totalLogs, streak]);
+    if (showPaywall) track('paywall_viewed', { streak, default_plan: 'annual' });
+  }, [showPaywall, streak]);
+
 
   // In-app reminder evaluator (toast fallback) + native push scheduling.
   // Gated on `!showPaywall` so reminders never pop on top of the first-run
@@ -336,7 +336,26 @@ export default function Dashboard({ onNavigate }: Props) {
     return { headline: 'ON TRACK', sub: 'STAY CONSISTENT.' };
   })();
 
+  /**
+   * Gate the user's logging actions to ONE free log lifetime.
+   * Returns true if the action may proceed; false if the paywall was shown instead.
+   * On the first allowed log, marks `freeLogUsed=true` on the user's Firestore record.
+   */
+  const tryConsumeFreeLog = (): boolean => {
+    if (hasEntitlement || trialActive) return true;
+    if (freeLogUsed) {
+      setShowPaywall(true);
+      return false;
+    }
+    // First (and only) free log: optimistically flip local state and persist
+    // to the user's account record so it survives restart / reinstall.
+    setFreeLogUsed(true);
+    void markFreeLogUsed(user.uid).catch(e => console.error('markFreeLogUsed failed', e));
+    return true;
+  };
+
   const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number, caloriesKcal?: number) => {
+    if (!tryConsumeFreeLog()) return Promise.resolve();
     haptic();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
@@ -353,19 +372,22 @@ export default function Dashboard({ onNavigate }: Props) {
         <Paywall
           streak={streak}
           onStart={() => {
-            track('trial_started', { streak, logs_count: totalLogs });
+            track('trial_started', { streak });
             startTrial(uid);
             setTrialActive(true);
+            setShowPaywall(false);
           }}
           onClose={() => {
-            track('paywall_dismissed', { streak, logs_count: totalLogs, source: 'dashboard_free_version' });
+            track('paywall_dismissed', { streak, source: 'dashboard_free_version' });
             startTrial(uid);
             setTrialActive(true);
+            setShowPaywall(false);
           }}
         />
       </Suspense>
     );
   }
+
 
   return (
     <motion.div className="screen-container pb-32 relative isolate" variants={stagger} initial="initial" animate="animate">
