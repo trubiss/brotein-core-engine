@@ -1249,6 +1249,10 @@ function ScreenPlanReveal({
 
         <div className="h-px bg-white/15 my-5" />
 
+        <div className="text-[10px] tracking-wider text-white/50 font-semibold mb-3" style={{ fontFamily: MONO }}>
+          FUEL BASELINE — FOR CONTEXT ONLY
+        </div>
+
         <div className="grid grid-cols-3 gap-2 text-center">
           <div>
             <div className="text-[18px] font-bold">{calories}</div>
@@ -1262,6 +1266,10 @@ function ScreenPlanReveal({
             <div className="text-[18px] font-bold">{fats}g</div>
             <div className="mt-1 text-[9px] uppercase tracking-wider text-white/60" style={{ fontFamily: MONO }}>fats / day</div>
           </div>
+        </div>
+
+        <div className="mt-3 text-[11px] text-white/60 text-center" style={{ fontFamily: MONO }}>
+          We only hold you to one number.
         </div>
 
         <div className="h-px bg-white/15 my-5" />
