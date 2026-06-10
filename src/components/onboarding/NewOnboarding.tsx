@@ -444,14 +444,14 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
       try {
         const { hasProEntitlement } = await import('@/lib/iap');
         if (cancelled) return;
-        if (await hasProEntitlement()) go(NOTIF_STEP);
+        if (await hasProEntitlement()) void complete();
       } catch { /* ignore — show paywall */ }
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, user]);
 
-  // Tapped "Start 7-Day Free Trial" — attempt native purchase, then advance.
+  // Tapped "Start 7-Day Free Trial" — attempt native purchase, then complete onboarding.
   const startTrialAndAdvance = async () => {
     if (busy) return;
     setBusy(true);
@@ -464,7 +464,7 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
         console.warn('Native purchase unavailable / failed', e);
       }
       if (user) startTrial(user.uid);
-      go(NOTIF_STEP);
+      void complete();
     } finally {
       setBusy(false);
     }
