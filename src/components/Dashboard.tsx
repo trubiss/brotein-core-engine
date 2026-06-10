@@ -496,7 +496,13 @@ export default function Dashboard({ onNavigate }: Props) {
         <motion.button
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
-          onClick={() => { haptic(); setShowModal(true); }}
+          onClick={() => {
+            haptic();
+            // If the user is already past their one free log, show the paywall
+            // instead of opening the logger.
+            if (!hasEntitlement && !trialActive && freeLogUsed) { setShowPaywall(true); return; }
+            setShowModal(true);
+          }}
           className="w-full bg-foreground text-background py-3.5 font-display font-black text-sm tracking-[0.12em] mb-2.5 active:opacity-90"
         >
           QUICK ADD +
@@ -504,11 +510,16 @@ export default function Dashboard({ onNavigate }: Props) {
         <motion.button
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
-          onClick={() => { haptic(); setShowScan(true); }}
+          onClick={() => {
+            haptic();
+            if (!hasEntitlement && !trialActive && freeLogUsed) { setShowPaywall(true); return; }
+            setShowScan(true);
+          }}
           className="w-full border border-foreground/80 py-3.5 font-display font-black text-sm tracking-[0.12em] active:bg-foreground/5"
         >
           SCAN FOOD WITH AI
         </motion.button>
+
       </motion.div>
 
       {/* Secondary one-tap shortcuts — feel like extensions of the card */}
