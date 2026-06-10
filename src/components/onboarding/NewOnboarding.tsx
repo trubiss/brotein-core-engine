@@ -1272,10 +1272,6 @@ function ScreenPlanReveal({
         </div>
       </div>
 
-      <p className="mt-5 text-center text-[13px] italic text-[#6B6B6B]">
-        89% of guys with your profile hit their goal within 90 days.
-      </p>
-
       <div className="flex-1" />
       <PrimaryCTA label="Let's get started →" onClick={onNext} />
     </div>
