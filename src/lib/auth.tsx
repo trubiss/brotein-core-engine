@@ -262,3 +262,12 @@ export function useAuth() {
   if (!v) throw new Error('useAuth must be inside AuthProvider');
   return v;
 }
+
+// Opt out of HMR for this module. The auth Context is created at module
+// scope; if Vite hot-reloads this file, a new Context object replaces the
+// old one for `useAuth`, while the already-mounted <AuthProvider/> in
+// App.tsx still references the OLD Context — causing "useAuth must be
+// inside AuthProvider". Forcing a full reload keeps both sides in sync.
+if (import.meta.hot) {
+  import.meta.hot.invalidate();
+}
