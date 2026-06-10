@@ -970,26 +970,23 @@ function ScreenDarkProof({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex-1 flex flex-col text-white">
       <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
-        Guys who track protein build 2X more muscle.
+        Tracking protein beats guessing.
       </h1>
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-full grid grid-cols-2 gap-3 items-end">
-          <div className="rounded-2xl bg-[#1A1A1A] p-4 text-center">
+        <div className="w-full grid grid-cols-2 gap-3 items-stretch">
+          <div className="rounded-2xl bg-[#1A1A1A] p-5 text-center flex flex-col justify-center min-h-[140px]">
             <div className="text-[10px] tracking-wider text-white/60 font-semibold">WITHOUT BROTEIN</div>
-            <div className="mt-3 text-[20px] font-bold leading-tight">1.2kg</div>
-            <div className="text-[11px] text-white/60 mt-1">avg gain · 90 days</div>
+            <div className="mt-3 text-[22px] font-black leading-tight tracking-tight">GUESSING</div>
+            <div className="text-[11px] text-white/60 mt-2">Hit-or-miss days</div>
           </div>
-          <div className="rounded-2xl bg-white text-black p-5 text-center shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+          <div className="rounded-2xl bg-white text-black p-5 text-center shadow-[0_0_30px_rgba(255,255,255,0.1)] flex flex-col justify-center min-h-[140px]">
             <div className="text-[10px] tracking-wider text-black/60 font-semibold">WITH BROTEIN</div>
-            <div className="mt-3 text-[32px] font-black leading-none tracking-tight">3.1kg</div>
-            <div className="text-[11px] text-black/60 mt-1">avg gain · 90 days</div>
+            <div className="mt-3 text-[22px] font-black leading-tight tracking-tight">TRACKING</div>
+            <div className="text-[11px] text-black/60 mt-2">Hit the number daily</div>
           </div>
         </div>
       </div>
-      <p className="text-center text-[12px] text-white/60 mb-5">
-        Brotein users who hit their protein goal 5+ days per week.
-      </p>
-      <PrimaryCTA label="I want the 3.1kg" onClick={onNext} variant="dark" />
+      <PrimaryCTA label="Let's track it" onClick={onNext} variant="dark" />
     </div>
   );
 }
