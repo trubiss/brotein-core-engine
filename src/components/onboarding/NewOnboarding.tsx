@@ -1429,10 +1429,10 @@ function GoogleG({ className }: { className?: string }) {
 
 /* ---------- Credibility ---------- */
 function ScreenCredibility({ onNext }: { onNext: () => void }) {
-  const stats = [
-    { big: '80%', sub: "of guys who lift don't hit their protein goal consistently" },
-    { big: '2-3X', sub: 'more muscle gained by those who hit their protein daily' },
-    { big: '90 days', sub: 'is all it takes to see a visible difference in your physique' },
+  const points = [
+    { title: 'UNDER-EATING PROTEIN', sub: "It's the most common reason lifters stop progressing." },
+    { title: 'GUESSING DOESN\'T WORK', sub: 'Without a number, every day is a coin flip.' },
+    { title: 'CONSISTENCY COMPOUNDS', sub: 'Hit the number daily and your body has no choice but to adapt.' },
   ];
   return (
     <div className="flex-1 flex flex-col">
@@ -1440,10 +1440,10 @@ function ScreenCredibility({ onNext }: { onNext: () => void }) {
         The protein gap is real.
       </h1>
       <div className="mt-7 space-y-3">
-        {stats.map((s) => (
-          <div key={s.big} className="rounded-2xl bg-[#F5F5F5] p-5">
-            <div className="text-[40px] font-black leading-none tracking-tight">{s.big}</div>
-            <p className="mt-2 text-[14px] text-[#6B6B6B] leading-snug">{s.sub}</p>
+        {points.map((p) => (
+          <div key={p.title} className="rounded-2xl bg-[#F5F5F5] p-5">
+            <div className="text-[18px] font-black leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>{p.title}</div>
+            <p className="mt-2 text-[14px] text-[#6B6B6B] leading-snug">{p.sub}</p>
           </div>
         ))}
       </div>
