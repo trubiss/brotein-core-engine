@@ -10,7 +10,8 @@ import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 import { User, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { computePace } from '@/lib/pace';
-import { markFirstOpen, shouldShowPaywall, startTrial, isTrialActive } from '@/lib/paywall';
+import { markFirstOpen, startTrial, isTrialActive } from '@/lib/paywall';
+import { markFreeLogUsed } from '@/lib/firestore';
 import { track } from '@/lib/track';
 
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
@@ -109,7 +110,8 @@ export default function Dashboard({ onNavigate }: Props) {
   const [streakBump, setStreakBump] = useState(0);
   const [hasEntitlement, setHasEntitlement] = useState(false);
   const [trialActive, setTrialActive] = useState(() => isTrialActive(uid));
-  const [totalLogs, setTotalLogs] = useState(0);
+  const [freeLogUsed, setFreeLogUsed] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const [nowTick, setNowTick] = useState(Date.now());
   
 
