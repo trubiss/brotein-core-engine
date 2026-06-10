@@ -4,7 +4,27 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ command, mode }) => {
-  const plugins: PluginOption[] = [react()];
+  const plugins: PluginOption[] = [
+    react({
+      babel: {
+        presets: [
+          "@babel/preset-typescript",
+          ["@babel/preset-react", { runtime: "automatic" }],
+        ],
+      },
+    }),
+    {
+      name: "disable-native-esbuild-for-build",
+      config: (_, env) => env.command === "build" ? {
+        esbuild: false,
+        build: {
+          target: "esnext",
+          minify: "terser",
+          cssMinify: false,
+        },
+      } : undefined,
+    },
+  ];
 
   if (command === "serve" && mode === "development" && process.env.LOVABLE_DISABLE_TAGGER !== "1") {
     const { componentTagger } = await import("lovable-tagger");
