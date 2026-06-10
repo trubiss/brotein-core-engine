@@ -9,6 +9,7 @@ const required = {
   vite: '5.4.19',
   reactPlugin: '4.3.4',
   capacitorCli: '8.3.4',
+  firebase: '12.12.1',
 };
 
 function readVersion(packageName) {
@@ -32,6 +33,7 @@ const actual = {
   vite: readVersion('vite'),
   reactPlugin: readVersion('@vitejs/plugin-react'),
   capacitorCli: readVersion('@capacitor/cli'),
+  firebase: readVersion('firebase'),
 };
 
 const failures = [];
@@ -39,6 +41,7 @@ if (actual.nodeMajor !== required.nodeMajor) failures.push(`Node must be v22.x, 
 if (actual.vite !== required.vite) failures.push(`vite must be ${required.vite}, found ${actual.vite}`);
 if (actual.reactPlugin !== required.reactPlugin) failures.push(`@vitejs/plugin-react must be ${required.reactPlugin}, found ${actual.reactPlugin}`);
 if (actual.capacitorCli !== required.capacitorCli) failures.push(`@capacitor/cli must be ${required.capacitorCli}, found ${actual.capacitorCli}`);
+if (actual.firebase !== required.firebase) failures.push(`firebase must be ${required.firebase}, found ${actual.firebase}`);
 
 if (failures.length) {
   console.error('\nBuild environment is wrong:\n');
@@ -50,4 +53,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`Build environment OK: Node ${process.versions.node}, vite ${actual.vite}, @vitejs/plugin-react ${actual.reactPlugin}, @capacitor/cli ${actual.capacitorCli}`);
+console.log(`Build environment OK: Node ${process.versions.node}, vite ${actual.vite}, @vitejs/plugin-react ${actual.reactPlugin}, @capacitor/cli ${actual.capacitorCli}, firebase ${actual.firebase}`);
