@@ -245,8 +245,8 @@ export default function Dashboard({ onNavigate }: Props) {
   // they've already used their single free log. `showPaywall` state is driven
   // by `tryConsumeFreeLog` below.
   useEffect(() => {
-    if (showPaywall) track('paywall_viewed', { streak, default_plan: 'annual' });
-  }, [showPaywall, streak]);
+    if (showPaywall) track('paywall_viewed', { streak, source: paywallSource });
+  }, [showPaywall, streak, paywallSource]);
 
 
   // In-app reminder evaluator (toast fallback) + native push scheduling.
