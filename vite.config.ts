@@ -1,14 +1,14 @@
-import { defineConfig } from "vite";
+import { defineConfig, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ command, mode }) => {
-  const plugins = [react()];
+  const plugins: PluginOption[] = [react()];
 
   if (command === "serve" && mode === "development" && process.env.LOVABLE_DISABLE_TAGGER !== "1") {
     const { componentTagger } = await import("lovable-tagger");
-    plugins.push(componentTagger());
+    plugins.push(componentTagger() as PluginOption);
   }
 
   return {
