@@ -1,4 +1,6 @@
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 const require = createRequire(import.meta.url);
 
@@ -10,7 +12,18 @@ const required = {
 };
 
 function readVersion(packageName) {
-  return require(`${packageName}/package.json`).version;
+  const entry = require.resolve(packageName);
+  let dir = dirname(entry);
+
+  while (dir !== dirname(dir)) {
+    try {
+      return JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).version;
+    } catch {
+      dir = dirname(dir);
+    }
+  }
+
+  throw new Error(`Could not read ${packageName} version`);
 }
 
 const nodeMajor = Number(process.versions.node.split('.')[0]);
