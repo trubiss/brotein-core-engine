@@ -342,9 +342,10 @@ export default function Dashboard({ onNavigate }: Props) {
    * Returns true if the action may proceed; false if the paywall was shown instead.
    * On the first allowed log, marks `freeLogUsed=true` on the user's Firestore record.
    */
-  const tryConsumeFreeLog = (): boolean => {
+  const tryConsumeFreeLog = (type: 'manual' | 'quick_add' | 'ai_scan'): boolean => {
     if (hasEntitlement || trialActive) return true;
     if (freeLogUsed) {
+      setPaywallSource('second_log_attempt');
       setShowPaywall(true);
       return false;
     }
@@ -352,11 +353,12 @@ export default function Dashboard({ onNavigate }: Props) {
     // to the user's account record so it survives restart / reinstall.
     setFreeLogUsed(true);
     void markFreeLogUsed(user.uid).catch(e => console.error('markFreeLogUsed failed', e));
+    track('free_log_used', { type });
     return true;
   };
 
-  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number, caloriesKcal?: number) => {
-    if (!tryConsumeFreeLog()) return Promise.resolve();
+  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number, caloriesKcal?: number, logType: 'manual' | 'quick_add' = 'manual') => {
+    if (!tryConsumeFreeLog(logType)) return Promise.resolve();
     haptic();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
