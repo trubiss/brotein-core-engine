@@ -1486,7 +1486,7 @@ function ScreenPaywall({
 }) {
   const features = [
     'AI Food Scanner',
-    'Protein & Macro Tracking',
+    'Daily Protein Tracking',
     'Daily Accountability',
     '90-Day Muscle Plan',
     'Progress Analytics',
