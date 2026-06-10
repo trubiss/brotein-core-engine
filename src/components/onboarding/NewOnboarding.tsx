@@ -885,10 +885,7 @@ function ScreenRealisticTarget({ onNext }: { onNext: () => void }) {
       <p className="mt-3 text-[15px] text-[#6B6B6B]">It's not hard at all.</p>
       <div className="flex-1 flex flex-col items-center justify-center text-center">
         <p className="text-[24px] font-bold leading-[1.25] tracking-tight">
-          90% of guys who fix their protein and stay consistent hit their muscle goal within 90 days. You're already ahead just by being here.
-        </p>
-        <p className="mt-6 text-[13px] text-[#6B6B6B]">
-          Brotein users report visible changes in as little as 3 weeks.
+          Most lifters who fail to grow are simply under-eating protein. Consistency fixes it.
         </p>
       </div>
       <PrimaryCTA label="Let's keep going →" onClick={onNext} />
