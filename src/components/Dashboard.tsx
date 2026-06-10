@@ -375,7 +375,6 @@ export default function Dashboard({ onNavigate }: Props) {
         <Paywall
           streak={streak}
           onStart={() => {
-            track('trial_started', { streak });
             startTrial(uid);
             setTrialActive(true);
             setShowPaywall(false);
