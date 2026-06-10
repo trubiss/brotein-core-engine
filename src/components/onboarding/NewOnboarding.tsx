@@ -818,7 +818,7 @@ function ScreenSplash({ onStart }: { onStart: () => void }) {
           ))}
         </div>
         <p className="mt-5 text-[12px] italic text-[#6B6B6B]">
-          Join 2,300+ guys already building.
+          Built for guys serious about building.
         </p>
       </div>
       <PrimaryCTA label="Start Building" onClick={onStart} />
