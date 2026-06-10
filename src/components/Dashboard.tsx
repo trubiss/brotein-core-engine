@@ -218,20 +218,9 @@ export default function Dashboard({ onNavigate }: Props) {
   const macroTargets = { protein: target, carbs: targetCarbs, fats: targetFats, calories: targetCalories };
   const pace = useMemo(() => computePace(consumed, target, new Date()), [consumed, target]);
 
-  // Paywall now only shows when the user attempts a SECOND logging action after
-  // they've already used their single free log. `showPaywall` state is driven
-  // by `tryConsumeFreeLog` below.
-  useEffect(() => {
-    if (showPaywall) track('paywall_viewed', { streak, source: paywallSource });
-  }, [showPaywall, streak, paywallSource]);
-
-
   // In-app reminder evaluator (toast fallback) + native push scheduling.
-  // Gated on `!showPaywall` so reminders never pop on top of the first-run
-  // paywall / onboarding overlay.
   useEffect(() => {
     if (!profile || !uid) return;
-    if (showPaywall) return;
     const settings = getReminderSettings(profile);
     const tick = () => {
       const events = evaluateReminders(uid, settings, {
@@ -254,13 +243,12 @@ export default function Dashboard({ onNavigate }: Props) {
     })();
 
     return () => clearInterval(id);
-  }, [profile, summary, uid, showPaywall]);
+  }, [profile, summary, uid]);
 
   // Goal-hit celebration — fires once per day when consumed crosses the protein target.
   const isTodayView = viewDate === today;
   useEffect(() => {
     if (!profile || !uid) return;
-    if (showPaywall) return;
     if (!isTodayView) return;
     if (target <= 0 || consumed < target) return;
     if (goalHitCheckRef.current) return;
@@ -271,7 +259,7 @@ export default function Dashboard({ onNavigate }: Props) {
       await setGoalHitFlag(today);
       setShowGoalHit(true);
     })();
-  }, [profile, uid, showPaywall, isTodayView, consumed, target, today]);
+  }, [profile, uid, isTodayView, consumed, target, today]);
 
   // Reset the once-per-session guard when the day rolls over.
   useEffect(() => { goalHitCheckRef.current = false; }, [today]);
@@ -314,58 +302,18 @@ export default function Dashboard({ onNavigate }: Props) {
     return { headline: 'ON TRACK', sub: 'STAY CONSISTENT.' };
   })();
 
-  /**
-   * Gate the user's logging actions to ONE free log lifetime.
-   * Returns true if the action may proceed; false if the paywall was shown instead.
-   * On the first allowed log, marks `freeLogUsed=true` on the user's Firestore record.
-   */
-  const tryConsumeFreeLog = (type: 'manual' | 'quick_add' | 'ai_scan'): boolean => {
-    if (hasEntitlement || trialActive) return true;
-    if (freeLogUsed) {
-      setPaywallSource('second_log_attempt');
-      setShowPaywall(true);
-      return false;
-    }
-    // First (and only) free log: optimistically flip local state and persist
-    // to the user's account record so it survives restart / reinstall.
-    setFreeLogUsed(true);
-    void markFreeLogUsed(user.uid).catch(e => console.error('markFreeLogUsed failed', e));
-    track('free_log_used', { type });
-    return true;
-  };
-
   const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number, caloriesKcal?: number, logType: 'manual' | 'quick_add' = 'manual') => {
-    if (!tryConsumeFreeLog(logType)) return Promise.resolve();
     haptic();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
-    track('food_logged', { grams: proteinGrams, meal: mealType ?? 'unspecified', source: 'manual', is_today: isToday });
+    track('food_logged', { grams: proteinGrams, meal: mealType ?? 'unspecified', source: logType, is_today: isToday });
     return addLog(user.uid, { foodName, proteinGrams, carbsGrams, fatsGrams, caloriesKcal, mealType, date: viewDate }, macroTargets)
       .catch((e: unknown) => {
         toast.error(e instanceof Error ? e.message : 'Failed to log');
       });
   };
 
-  if (showPaywall) {
-    return (
-      <Suspense fallback={null}>
-        <Paywall
-          streak={streak}
-          onStart={() => {
-            startTrial(uid);
-            setTrialActive(true);
-            setShowPaywall(false);
-          }}
-          onClose={() => {
-            track('paywall_dismissed', { streak, source: 'dashboard_free_version' });
-            startTrial(uid);
-            setTrialActive(true);
-            setShowPaywall(false);
-          }}
-        />
-      </Suspense>
-    );
-  }
+
 
 
   return (
