@@ -127,22 +127,8 @@ export default function Dashboard({ onNavigate }: Props) {
     return () => { cancelAnimationFrame(raf); clearTimeout(t); };
   }, []);
 
-  // Check RevenueCat entitlement on boot. If the user already has Pro
-  // (returning subscriber, restored on reinstall), bypass the paywall.
-  useEffect(() => {
-    if (!uid) return;
-    let cancelled = false;
-    void import('@/lib/iap')
-      .then(m => m.hasProEntitlement())
-      .then(active => { if (!cancelled) setHasEntitlement(active); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [uid]);
 
-  // Sync freeLogUsed from the user's profile record (source of truth).
-  useEffect(() => {
-    setFreeLogUsed(!!profile?.freeLogUsed);
-  }, [profile?.freeLogUsed]);
+
 
 
   // Roll over at midnight
