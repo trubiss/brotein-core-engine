@@ -112,6 +112,7 @@ export default function Dashboard({ onNavigate }: Props) {
   const [trialActive, setTrialActive] = useState(() => isTrialActive(uid));
   const [freeLogUsed, setFreeLogUsed] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallSource, setPaywallSource] = useState('second_log_attempt');
   const [nowTick, setNowTick] = useState(Date.now());
   
 
