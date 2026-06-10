@@ -616,7 +616,7 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
               {step === 12 && (
                 <ChoiceScreen
                   title="What's your training style?"
-                  subtitle="This helps personalize your macro split."
+                  subtitle="This shapes your protein target."
                   options={[
                     'Mostly lifting — I want to get bigger',
                     'Lifting + cardio — I want to lean out',
