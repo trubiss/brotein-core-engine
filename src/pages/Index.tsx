@@ -1,12 +1,10 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
-import SignInScreen from '@/components/SignInScreen';
-
-import Dashboard from '@/components/Dashboard';
 import ResetPasswordScreen from '@/components/ResetPasswordScreen';
 
 const NewOnboarding = lazy(() => import('@/components/onboarding/NewOnboarding'));
+const Dashboard = lazy(() => import('@/components/Dashboard'));
 const HistoryScreen = lazy(() => import('@/components/HistoryScreen'));
 const ProfileScreen = lazy(() => import('@/components/ProfileScreen'));
 const InsightsScreen = lazy(() => import('@/components/InsightsScreen'));
