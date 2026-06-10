@@ -13,7 +13,12 @@ const required = {
 };
 
 function readVersion(packageName) {
-  const entry = require.resolve(packageName);
+  let entry;
+  try {
+    entry = require.resolve(`${packageName}/package.json`);
+  } catch {
+    entry = require.resolve(packageName);
+  }
   let dir = dirname(entry);
 
   while (dir !== dirname(dir)) {
