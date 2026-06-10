@@ -35,6 +35,8 @@ export interface UserProfile {
     evening: { enabled: boolean; time: string };
     behindTarget: { enabled: boolean; thresholdPct: number };
   };
+  /** True once the user has used their single free logging action. Persisted in Firestore. */
+  freeLogUsed?: boolean;
   createdAt?: number;
   updatedAt?: number;
 }

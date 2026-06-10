@@ -105,7 +105,7 @@ const Index = () => {
   if (!user || !storySeen || !profile || !paywallSeen) {
     return (
       <Suspense fallback={null}>
-        <NewOnboarding onDone={completeOnboarding} initialStep={resumePaywall ? 25 : 1} />
+        <NewOnboarding onDone={completeOnboarding} initialStep={resumePaywall ? 26 : 1} />
       </Suspense>
     );
   }

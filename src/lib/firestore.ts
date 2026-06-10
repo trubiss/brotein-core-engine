@@ -102,6 +102,11 @@ export async function updateProfileFields(uid: string, partial: Partial<UserProf
   return merged;
 }
 
+/** Mark that the user has consumed their single free logging action. */
+export async function markFreeLogUsed(uid: string): Promise<void> {
+  await setDoc(userDoc(uid), { freeLogUsed: true, updatedAt: Date.now() }, { merge: true });
+}
+
 type Targets = { protein: number; carbs?: number; fats?: number; calories?: number };
 
 function normalizeTargets(t: number | Targets | undefined): Targets | undefined {
