@@ -20,7 +20,11 @@ async function getAnalytics(): Promise<Analytics | null> {
 
   analyticsPromise = (async () => {
     try {
-      mod = await import('firebase/analytics');
+      const [{ app }, analyticsModule] = await Promise.all([
+        import('./firebase'),
+        import('firebase/analytics'),
+      ]);
+      mod = analyticsModule;
       const supported = await mod.isSupported();
       if (!supported) return null;
       return mod.getAnalytics(app);
@@ -30,11 +34,6 @@ async function getAnalytics(): Promise<Analytics | null> {
     }
   })();
   return analyticsPromise;
-}
-
-// Eagerly warm up on module load so first event has no cold-start delay.
-if (typeof window !== 'undefined' && measurementId) {
-  void getAnalytics();
 }
 
 export type TrackEvent =
