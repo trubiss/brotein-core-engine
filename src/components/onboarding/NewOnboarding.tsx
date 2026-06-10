@@ -733,20 +733,7 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
                 />
               )}
 
-              {step === SIGNIN_STEP && <ScreenSignIn onNext={() => go(PAYWALL_STEP)} protein={proteinGoal} calories={caloriesGoal} goalDate={goalDateLong} pace={PACE_LABEL[state.pace]} />}
-
-              {step === PAYWALL_STEP && (
-                <ScreenPaywall
-                  plan={state.plan}
-                  onPlanChange={(p) => set('plan', p)}
-                  protein={proteinGoal}
-                  calories={caloriesGoal}
-                  goalDate={goalDateShort}
-                  pace={PACE_LABEL[state.pace]}
-                  busy={busy}
-                  onStart={startTrialAndAdvance}
-                />
-              )}
+              {step === SIGNIN_STEP && <ScreenSignIn onNext={() => go(NOTIF_STEP)} protein={proteinGoal} calories={caloriesGoal} goalDate={goalDateLong} pace={PACE_LABEL[state.pace]} />}
 
               {step === NOTIF_STEP && (
                 <ScreenNotifications
@@ -774,9 +761,22 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
                     } catch (e) {
                       console.warn('requestReview failed', e);
                     }
-                    void complete();
+                    go(PAYWALL_STEP);
                   }}
-                  onSkip={() => { void complete(); }}
+                  onSkip={() => go(PAYWALL_STEP)}
+                />
+              )}
+
+              {step === PAYWALL_STEP && (
+                <ScreenPaywall
+                  plan={state.plan}
+                  onPlanChange={(p) => set('plan', p)}
+                  protein={proteinGoal}
+                  calories={caloriesGoal}
+                  goalDate={goalDateShort}
+                  pace={PACE_LABEL[state.pace]}
+                  busy={busy}
+                  onStart={startTrialAndAdvance}
                 />
               )}
             </motion.div>
