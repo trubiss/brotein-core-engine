@@ -635,7 +635,7 @@ export default function Dashboard({ onNavigate }: Props) {
               onClose={() => setShowScan(false)}
               onConfirm={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, caloriesKcal, mealType, ai, edited }) => {
                 // Gate AI scan logs through the same one-free-log rule.
-                if (!tryConsumeFreeLog()) { setShowScan(false); return; }
+                if (!tryConsumeFreeLog('ai_scan')) { setShowScan(false); return; }
                 try {
                   await addLog(user.uid, {
                     foodName,
