@@ -8,7 +8,7 @@ export default defineConfig(async ({ command, mode }) => {
     react({
       babel: {
         presets: [
-          ["@babel/preset-typescript", { onlyRemoveTypeImports: true }],
+          "@babel/preset-typescript",
           ["@babel/preset-react", { runtime: "automatic" }],
         ],
       },
