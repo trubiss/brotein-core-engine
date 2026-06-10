@@ -112,6 +112,7 @@ export default function Dashboard({ onNavigate }: Props) {
   const [trialActive, setTrialActive] = useState(() => isTrialActive(uid));
   const [freeLogUsed, setFreeLogUsed] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallSource, setPaywallSource] = useState('second_log_attempt');
   const [nowTick, setNowTick] = useState(Date.now());
   
 
@@ -244,8 +245,8 @@ export default function Dashboard({ onNavigate }: Props) {
   // they've already used their single free log. `showPaywall` state is driven
   // by `tryConsumeFreeLog` below.
   useEffect(() => {
-    if (showPaywall) track('paywall_viewed', { streak, default_plan: 'annual' });
-  }, [showPaywall, streak]);
+    if (showPaywall) track('paywall_viewed', { streak, source: paywallSource });
+  }, [showPaywall, streak, paywallSource]);
 
 
   // In-app reminder evaluator (toast fallback) + native push scheduling.
@@ -341,9 +342,10 @@ export default function Dashboard({ onNavigate }: Props) {
    * Returns true if the action may proceed; false if the paywall was shown instead.
    * On the first allowed log, marks `freeLogUsed=true` on the user's Firestore record.
    */
-  const tryConsumeFreeLog = (): boolean => {
+  const tryConsumeFreeLog = (type: 'manual' | 'quick_add' | 'ai_scan'): boolean => {
     if (hasEntitlement || trialActive) return true;
     if (freeLogUsed) {
+      setPaywallSource('second_log_attempt');
       setShowPaywall(true);
       return false;
     }
@@ -351,11 +353,12 @@ export default function Dashboard({ onNavigate }: Props) {
     // to the user's account record so it survives restart / reinstall.
     setFreeLogUsed(true);
     void markFreeLogUsed(user.uid).catch(e => console.error('markFreeLogUsed failed', e));
+    track('free_log_used', { type });
     return true;
   };
 
-  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number, caloriesKcal?: number) => {
-    if (!tryConsumeFreeLog()) return Promise.resolve();
+  const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number, caloriesKcal?: number, logType: 'manual' | 'quick_add' = 'manual') => {
+    if (!tryConsumeFreeLog(logType)) return Promise.resolve();
     haptic();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
@@ -372,7 +375,6 @@ export default function Dashboard({ onNavigate }: Props) {
         <Paywall
           streak={streak}
           onStart={() => {
-            track('trial_started', { streak });
             startTrial(uid);
             setTrialActive(true);
             setShowPaywall(false);
@@ -500,7 +502,7 @@ export default function Dashboard({ onNavigate }: Props) {
             haptic();
             // If the user is already past their one free log, show the paywall
             // instead of opening the logger.
-            if (!hasEntitlement && !trialActive && freeLogUsed) { setShowPaywall(true); return; }
+            if (!hasEntitlement && !trialActive && freeLogUsed) { setPaywallSource('second_log_attempt'); setShowPaywall(true); return; }
             setShowModal(true);
           }}
           className="w-full bg-foreground text-background py-3.5 font-display font-black text-sm tracking-[0.12em] mb-2.5 active:opacity-90"
@@ -512,7 +514,7 @@ export default function Dashboard({ onNavigate }: Props) {
           transition={{ duration: 0.06 }}
           onClick={() => {
             haptic();
-            if (!hasEntitlement && !trialActive && freeLogUsed) { setShowPaywall(true); return; }
+            if (!hasEntitlement && !trialActive && freeLogUsed) { setPaywallSource('second_log_attempt'); setShowPaywall(true); return; }
             setShowScan(true);
           }}
           className="w-full border border-foreground/80 py-3.5 font-display font-black text-sm tracking-[0.12em] active:bg-foreground/5"
@@ -529,7 +531,7 @@ export default function Dashboard({ onNavigate }: Props) {
             key={g}
             whileTap={{ scale: 0.96 }}
             transition={{ duration: 0.06 }}
-            onClick={() => log(`+${g}g protein`, g)}
+            onClick={() => log(`+${g}g protein`, g, undefined, undefined, undefined, undefined, 'quick_add')}
             className="border border-foreground/70 py-2.5 font-display font-black text-base tracking-[0.06em] active:bg-foreground/5"
             aria-label={`Quick add ${g} grams`}
           >
@@ -633,7 +635,7 @@ export default function Dashboard({ onNavigate }: Props) {
               onClose={() => setShowScan(false)}
               onConfirm={async ({ foodName, proteinGrams, carbsGrams, fatsGrams, caloriesKcal, mealType, ai, edited }) => {
                 // Gate AI scan logs through the same one-free-log rule.
-                if (!tryConsumeFreeLog()) { setShowScan(false); return; }
+                if (!tryConsumeFreeLog('ai_scan')) { setShowScan(false); return; }
                 try {
                   await addLog(user.uid, {
                     foodName,
