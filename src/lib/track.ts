@@ -2,7 +2,6 @@
 // Falls back to a no-op (with optional console log in dev) when
 // VITE_FIREBASE_MEASUREMENT_ID is not configured, so the app never breaks.
 
-import { app } from './firebase';
 import type { Analytics } from 'firebase/analytics';
 
 type AnalyticsModule = typeof import('firebase/analytics');
