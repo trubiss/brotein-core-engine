@@ -444,14 +444,14 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
       try {
         const { hasProEntitlement } = await import('@/lib/iap');
         if (cancelled) return;
-        if (await hasProEntitlement()) go(NOTIF_STEP);
+        if (await hasProEntitlement()) void complete();
       } catch { /* ignore — show paywall */ }
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, user]);
 
-  // Tapped "Start 7-Day Free Trial" — attempt native purchase, then advance.
+  // Tapped "Start 7-Day Free Trial" — attempt native purchase, then complete onboarding.
   const startTrialAndAdvance = async () => {
     if (busy) return;
     setBusy(true);
@@ -464,7 +464,7 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
         console.warn('Native purchase unavailable / failed', e);
       }
       if (user) startTrial(user.uid);
-      go(NOTIF_STEP);
+      void complete();
     } finally {
       setBusy(false);
     }
@@ -733,20 +733,7 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
                 />
               )}
 
-              {step === SIGNIN_STEP && <ScreenSignIn onNext={() => go(PAYWALL_STEP)} protein={proteinGoal} calories={caloriesGoal} goalDate={goalDateLong} pace={PACE_LABEL[state.pace]} />}
-
-              {step === PAYWALL_STEP && (
-                <ScreenPaywall
-                  plan={state.plan}
-                  onPlanChange={(p) => set('plan', p)}
-                  protein={proteinGoal}
-                  calories={caloriesGoal}
-                  goalDate={goalDateShort}
-                  pace={PACE_LABEL[state.pace]}
-                  busy={busy}
-                  onStart={startTrialAndAdvance}
-                />
-              )}
+              {step === SIGNIN_STEP && <ScreenSignIn onNext={() => go(NOTIF_STEP)} protein={proteinGoal} calories={caloriesGoal} goalDate={goalDateLong} pace={PACE_LABEL[state.pace]} />}
 
               {step === NOTIF_STEP && (
                 <ScreenNotifications
@@ -774,9 +761,22 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
                     } catch (e) {
                       console.warn('requestReview failed', e);
                     }
-                    void complete();
+                    go(PAYWALL_STEP);
                   }}
-                  onSkip={() => { void complete(); }}
+                  onSkip={() => go(PAYWALL_STEP)}
+                />
+              )}
+
+              {step === PAYWALL_STEP && (
+                <ScreenPaywall
+                  plan={state.plan}
+                  onPlanChange={(p) => set('plan', p)}
+                  protein={proteinGoal}
+                  calories={caloriesGoal}
+                  goalDate={goalDateShort}
+                  pace={PACE_LABEL[state.pace]}
+                  busy={busy}
+                  onStart={startTrialAndAdvance}
                 />
               )}
             </motion.div>
