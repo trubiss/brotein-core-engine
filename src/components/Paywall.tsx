@@ -84,11 +84,11 @@ export default function Paywall({ streak = 0, onStart, onClose }: Props) {
     }
     setPlan(which);
     track('paywall_plan_selected', { plan: which });
-    if (!native) { onStart(); return; }
+    if (!native) { track('trial_started', { plan: which, streak }); onStart(); return; }
     setBusy(true);
     try {
       const ok = await purchasePlan(which);
-      if (ok) onStart();
+      if (ok) { track('trial_started', { plan: which, streak }); onStart(); }
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Purchase failed');
     } finally {
