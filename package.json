@@ -67,7 +67,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
-    "firebase": "^12.12.0",
+    "firebase": "12.12.1",
     "framer-motion": "^12.38.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
@@ -114,6 +114,7 @@
     "@capacitor/cli": "8.3.4",
     "@capacitor/core": "8.3.4",
     "@capacitor/ios": "8.3.4",
+    "firebase": "12.12.1",
     "@vitejs/plugin-react": "4.3.4",
     "vite": "5.4.19"
   }

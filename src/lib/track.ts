@@ -2,7 +2,6 @@
 // Falls back to a no-op (with optional console log in dev) when
 // VITE_FIREBASE_MEASUREMENT_ID is not configured, so the app never breaks.
 
-import { app } from './firebase';
 import type { Analytics } from 'firebase/analytics';
 
 type AnalyticsModule = typeof import('firebase/analytics');
@@ -20,7 +19,11 @@ async function getAnalytics(): Promise<Analytics | null> {
 
   analyticsPromise = (async () => {
     try {
-      mod = await import('firebase/analytics');
+      const [{ app }, analyticsModule] = await Promise.all([
+        import('./firebase'),
+        import('firebase/analytics'),
+      ]);
+      mod = analyticsModule;
       const supported = await mod.isSupported();
       if (!supported) return null;
       return mod.getAnalytics(app);
@@ -30,11 +33,6 @@ async function getAnalytics(): Promise<Analytics | null> {
     }
   })();
   return analyticsPromise;
-}
-
-// Eagerly warm up on module load so first event has no cold-start delay.
-if (typeof window !== 'undefined' && measurementId) {
-  void getAnalytics();
 }
 
 export type TrackEvent =
