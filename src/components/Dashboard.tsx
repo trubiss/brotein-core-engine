@@ -147,19 +147,11 @@ export default function Dashboard({ onNavigate }: Props) {
     return () => { cancelled = true; };
   }, [uid]);
 
-  // Track total log count for paywall trigger.
+  // Sync freeLogUsed from the user's profile record (source of truth).
   useEffect(() => {
-    if (!user || trialActive || hasEntitlement) return;
-    let cancelled = false;
-    getRecentSummaries(user.uid, 30)
-      .then(all => {
-        if (cancelled) return;
-        const sum = all.reduce((acc, s) => acc + (s.logCount ?? 0), 0);
-        setTotalLogs(sum);
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [user, trialActive, hasEntitlement, streakBump]);
+    setFreeLogUsed(!!profile?.freeLogUsed);
+  }, [profile?.freeLogUsed]);
+
 
   // Roll over at midnight
   useEffect(() => {
