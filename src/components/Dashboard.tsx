@@ -10,13 +10,11 @@ import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 import { User, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { computePace } from '@/lib/pace';
-import { markFirstOpen, startTrial, isTrialActive } from '@/lib/paywall';
-import { markFreeLogUsed } from '@/lib/firestore';
+import { markFirstOpen } from '@/lib/paywall';
 import { track } from '@/lib/track';
 
 const QuickLogModal = lazy(() => import('./QuickLogModal'));
 const FoodScanModal = lazy(() => import('./FoodScanModal'));
-const Paywall = lazy(() => import('./Paywall'));
 const GoalHitCelebration = lazy(() => import('./GoalHitCelebration'));
 
 const GOAL_HIT_FLAG_PREFIX = 'goalHitShown:';
