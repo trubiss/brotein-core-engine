@@ -818,7 +818,7 @@ function ScreenSplash({ onStart }: { onStart: () => void }) {
           ))}
         </div>
         <p className="mt-5 text-[12px] italic text-[#6B6B6B]">
-          Join 2,300+ guys already building.
+          Built for guys serious about building.
         </p>
       </div>
       <PrimaryCTA label="Start Building" onClick={onStart} />
@@ -866,10 +866,9 @@ function ScreenValidation({ onNext }: { onNext: () => void }) {
     <div className="flex-1 flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center text-center">
         <p className="text-[26px] font-bold leading-[1.2] tracking-tight">
-          Most guys in your position gain{' '}
-          <span className="underline decoration-2 underline-offset-4">4–6kg of muscle</span> in 90 days once they fix their protein.
+          Fixing your protein intake is the{' '}
+          <span className="underline decoration-2 underline-offset-4">single highest-leverage change</span> for muscle growth.
         </p>
-        <p className="mt-5 text-[13px] text-[#6B6B6B]">Based on Brotein user data.</p>
       </div>
       <PrimaryCTA label="That could be me →" onClick={onNext} />
     </div>
@@ -886,10 +885,7 @@ function ScreenRealisticTarget({ onNext }: { onNext: () => void }) {
       <p className="mt-3 text-[15px] text-[#6B6B6B]">It's not hard at all.</p>
       <div className="flex-1 flex flex-col items-center justify-center text-center">
         <p className="text-[24px] font-bold leading-[1.25] tracking-tight">
-          90% of guys who fix their protein and stay consistent hit their muscle goal within 90 days. You're already ahead just by being here.
-        </p>
-        <p className="mt-6 text-[13px] text-[#6B6B6B]">
-          Brotein users report visible changes in as little as 3 weeks.
+          Most lifters who fail to grow are simply under-eating protein. Consistency fixes it.
         </p>
       </div>
       <PrimaryCTA label="Let's keep going →" onClick={onNext} />
@@ -974,26 +970,23 @@ function ScreenDarkProof({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex-1 flex flex-col text-white">
       <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
-        Guys who track protein build 2X more muscle.
+        Tracking protein beats guessing.
       </h1>
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-full grid grid-cols-2 gap-3 items-end">
-          <div className="rounded-2xl bg-[#1A1A1A] p-4 text-center">
+        <div className="w-full grid grid-cols-2 gap-3 items-stretch">
+          <div className="rounded-2xl bg-[#1A1A1A] p-5 text-center flex flex-col justify-center min-h-[140px]">
             <div className="text-[10px] tracking-wider text-white/60 font-semibold">WITHOUT BROTEIN</div>
-            <div className="mt-3 text-[20px] font-bold leading-tight">1.2kg</div>
-            <div className="text-[11px] text-white/60 mt-1">avg gain · 90 days</div>
+            <div className="mt-3 text-[22px] font-black leading-tight tracking-tight">GUESSING</div>
+            <div className="text-[11px] text-white/60 mt-2">Hit-or-miss days</div>
           </div>
-          <div className="rounded-2xl bg-white text-black p-5 text-center shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+          <div className="rounded-2xl bg-white text-black p-5 text-center shadow-[0_0_30px_rgba(255,255,255,0.1)] flex flex-col justify-center min-h-[140px]">
             <div className="text-[10px] tracking-wider text-black/60 font-semibold">WITH BROTEIN</div>
-            <div className="mt-3 text-[32px] font-black leading-none tracking-tight">3.1kg</div>
-            <div className="text-[11px] text-black/60 mt-1">avg gain · 90 days</div>
+            <div className="mt-3 text-[22px] font-black leading-tight tracking-tight">TRACKING</div>
+            <div className="text-[11px] text-black/60 mt-2">Hit the number daily</div>
           </div>
         </div>
       </div>
-      <p className="text-center text-[12px] text-white/60 mb-5">
-        Brotein users who hit their protein goal 5+ days per week.
-      </p>
-      <PrimaryCTA label="I want the 3.1kg" onClick={onNext} variant="dark" />
+      <PrimaryCTA label="Let's track it" onClick={onNext} variant="dark" />
     </div>
   );
 }
@@ -1279,10 +1272,6 @@ function ScreenPlanReveal({
         </div>
       </div>
 
-      <p className="mt-5 text-center text-[13px] italic text-[#6B6B6B]">
-        89% of guys with your profile hit their goal within 90 days.
-      </p>
-
       <div className="flex-1" />
       <PrimaryCTA label="Let's get started →" onClick={onNext} />
     </div>
@@ -1440,10 +1429,10 @@ function GoogleG({ className }: { className?: string }) {
 
 /* ---------- Credibility ---------- */
 function ScreenCredibility({ onNext }: { onNext: () => void }) {
-  const stats = [
-    { big: '80%', sub: "of guys who lift don't hit their protein goal consistently" },
-    { big: '2-3X', sub: 'more muscle gained by those who hit their protein daily' },
-    { big: '90 days', sub: 'is all it takes to see a visible difference in your physique' },
+  const points = [
+    { title: 'UNDER-EATING PROTEIN', sub: "It's the most common reason lifters stop progressing." },
+    { title: 'GUESSING DOESN\'T WORK', sub: 'Without a number, every day is a coin flip.' },
+    { title: 'CONSISTENCY COMPOUNDS', sub: 'Hit the number daily and your body has no choice but to adapt.' },
   ];
   return (
     <div className="flex-1 flex flex-col">
@@ -1451,10 +1440,10 @@ function ScreenCredibility({ onNext }: { onNext: () => void }) {
         The protein gap is real.
       </h1>
       <div className="mt-7 space-y-3">
-        {stats.map((s) => (
-          <div key={s.big} className="rounded-2xl bg-[#F5F5F5] p-5">
-            <div className="text-[40px] font-black leading-none tracking-tight">{s.big}</div>
-            <p className="mt-2 text-[14px] text-[#6B6B6B] leading-snug">{s.sub}</p>
+        {points.map((p) => (
+          <div key={p.title} className="rounded-2xl bg-[#F5F5F5] p-5">
+            <div className="text-[18px] font-black leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>{p.title}</div>
+            <p className="mt-2 text-[14px] text-[#6B6B6B] leading-snug">{p.sub}</p>
           </div>
         ))}
       </div>
