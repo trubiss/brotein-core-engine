@@ -106,16 +106,9 @@ export default function Dashboard({ onNavigate }: Props) {
   const goalHitCheckRef = useRef(false);
 
   const [streakBump, setStreakBump] = useState(0);
-  const [hasEntitlement, setHasEntitlement] = useState(false);
-  const [trialActive, setTrialActive] = useState(() => isTrialActive(uid));
-  const [freeLogUsed, setFreeLogUsed] = useState(false);
-  const [showPaywall, setShowPaywall] = useState(false);
-  const [paywallSource, setPaywallSource] = useState('second_log_attempt');
   const [nowTick, setNowTick] = useState(Date.now());
   
 
-  // Keep trialActive in sync when uid changes (login/logout) — preserves expiry semantics.
-  useEffect(() => { setTrialActive(isTrialActive(uid)); }, [uid]);
 
   useEffect(() => { if (uid) markFirstOpen(uid); }, [uid]);
 
