@@ -8,7 +8,7 @@ import { todayKey, FoodLog, DailySummary, kcalFromMacros } from '@/lib/types';
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 
 import { User, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
-import { mediumHaptic } from '@/lib/native';
+import { lightTap, mediumTap, success, warning } from '@/lib/haptics';
 import { toast } from 'sonner';
 import { computePace } from '@/lib/pace';
 import { markFirstOpen } from '@/lib/paywall';
