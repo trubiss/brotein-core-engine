@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { heavyHaptic, successHaptic } from '@/lib/native';
+import { success } from '@/lib/haptics';
 
 interface Props {
   open: boolean;
