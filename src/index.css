@@ -62,11 +62,14 @@
   }
 
   html, body {
+    height: 100%;
     overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
     -webkit-overflow-scrolling: auto;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     overflow-x: hidden;
+    touch-action: pan-y;
   }
 
   body {
@@ -77,8 +80,16 @@
   }
 
   #root {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
     min-height: 100svh;
+    max-width: 100%;
+    overflow-y: auto;
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
