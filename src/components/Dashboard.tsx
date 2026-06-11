@@ -430,7 +430,7 @@ export default function Dashboard({ onNavigate }: Props) {
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
           onClick={() => {
-            haptic();
+            void mediumTap();
             setShowModal(true);
           }}
           className="w-full bg-foreground text-background py-3.5 font-display font-black text-sm tracking-[0.12em] mb-2.5 active:opacity-90"
@@ -441,7 +441,7 @@ export default function Dashboard({ onNavigate }: Props) {
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
           onClick={() => {
-            haptic();
+            void mediumTap();
             setShowScan(true);
           }}
           className="w-full border border-foreground/80 py-3.5 font-display font-black text-sm tracking-[0.12em] active:bg-foreground/5"
