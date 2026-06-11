@@ -458,7 +458,7 @@ export default function Dashboard({ onNavigate }: Props) {
             key={g}
             whileTap={{ scale: 0.96 }}
             transition={{ duration: 0.06 }}
-            onClick={() => { void mediumHaptic(); log(`+${g}g protein`, g, undefined, undefined, undefined, undefined, 'quick_add'); }}
+            onClick={() => { void lightTap(); log(`+${g}g protein`, g, undefined, undefined, undefined, undefined, 'quick_add'); }}
             className="border border-foreground/70 py-2.5 font-display font-black text-base tracking-[0.06em] active:bg-foreground/5"
             aria-label={`Quick add ${g} grams`}
           >
