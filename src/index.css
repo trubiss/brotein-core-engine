@@ -99,8 +99,10 @@
     --sidebar-border: 0 0% 85%;
     --sidebar-ring: 0 0% 0%;
 
-    --font-display: 'Space Mono', monospace;
-    --font-body: 'Space Grotesk', sans-serif;
+    --font-display: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-body: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
   }
 
   * {
@@ -108,6 +110,8 @@
   }
 
   html, body {
+    height: 100%;
+    overflow: hidden;
     overscroll-behavior-y: none;
     -webkit-overflow-scrolling: auto;
     -webkit-text-size-adjust: 100%;
@@ -118,6 +122,13 @@
     @apply bg-background text-foreground;
     font-family: var(--font-body);
     margin: 0;
+  }
+
+  #root {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -183,11 +194,11 @@
   }
 
   .screen-container {
-    @apply min-h-screen flex flex-col px-6 max-w-md mx-auto;
+    @apply min-h-full flex flex-col px-6 max-w-md mx-auto;
     /* Single source of truth for top inset on iOS: env(safe-area-inset-top).
        Small additive padding for visual breathing room on web/desktop. */
-    padding-top: calc(env(safe-area-inset-top) + 1.375rem);
-    padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+    padding-top: calc(var(--sat) + 1.375rem);
+    padding-bottom: calc(var(--sab) + 1rem);
   }
 
   .section-divider {
