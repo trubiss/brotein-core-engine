@@ -10,7 +10,6 @@ import PrivacyPolicy from "./components/legal/PrivacyPolicy";
 import TermsOfService from "./components/legal/TermsOfService";
 import ScrollToTop from "./components/ScrollToTop";
 
-const queryClient = new QueryClient();
 
 
 const App = () => (
