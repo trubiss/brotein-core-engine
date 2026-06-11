@@ -354,7 +354,7 @@ export default function Dashboard({ onNavigate }: Props) {
               {dateLabel}
             </span>
             <button
-              onClick={() => shiftDate(1)}
+              onClick={() => { void lightTap(); shiftDate(1); }}
               disabled={isToday}
               className="p-1 active:opacity-50 transition-opacity disabled:opacity-20"
               aria-label="Next day"
