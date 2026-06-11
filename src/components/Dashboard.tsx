@@ -328,7 +328,7 @@ export default function Dashboard({ onNavigate }: Props) {
   return (
     <motion.div
       className="screen-container pb-32 relative isolate"
-      style={{ width: '100%', maxWidth: '28rem', marginInline: 'auto', paddingLeft: 24, paddingRight: 24 }}
+      style={{ boxSizing: 'border-box', width: '100%', maxWidth: '28rem', marginInline: 'auto', paddingLeft: 24, paddingRight: 24, overflowX: 'hidden', contain: 'inline-size' }}
       variants={stagger}
       initial="initial"
       animate="animate"

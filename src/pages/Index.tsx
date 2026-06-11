@@ -137,6 +137,8 @@ const Index = () => {
     <AnimatePresence mode="wait">
       <motion.div
         key={page}
+        className="w-full max-w-full overflow-x-hidden"
+        style={{ boxSizing: 'border-box' }}
         variants={pageVariants}
         initial="initial"
         animate="animate"
