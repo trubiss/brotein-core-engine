@@ -444,20 +444,38 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
   }, [step, user]);
 
 
-  // Tapped "Start 7-Day Free Trial" — attempt native purchase, then complete onboarding.
+  // Tapped "Start 7-Day Free Trial" — attempt native purchase. ONLY advance past the
+  // paywall if the purchase actually succeeded (entitlement granted). On cancel,
+  // decline, or any failure we stay on the paywall so the user must subscribe or
+  // explicitly use Restore Purchases to proceed.
   const startTrialAndAdvance = async () => {
     if (busy) return;
     setBusy(true);
     try {
       await saveProfile();
-      try {
-        const { purchasePlan } = await import('@/lib/iap');
-        await purchasePlan(state.plan === 'yearly' ? 'annual' : 'monthly');
-      } catch (e) {
-        console.warn('Native purchase unavailable / failed', e);
+      const native = isNative() && isIOS();
+      if (native) {
+        // Native path: require a real entitlement before advancing.
+        let purchased = false;
+        try {
+          const { purchasePlan } = await import('@/lib/iap');
+          purchased = await purchasePlan(state.plan === 'yearly' ? 'annual' : 'monthly');
+        } catch (e) {
+          console.warn('Native purchase failed', e);
+          toast.error(e instanceof Error ? e.message : 'Purchase failed. Please try again.');
+          return;
+        }
+        if (!purchased) {
+          // User cancelled / declined — stay on paywall, do NOT complete onboarding.
+          return;
+        }
+        if (user) startTrial(user.uid);
+        void complete();
+      } else {
+        // Non-native (web/preview): keep the existing web-trial fallback.
+        if (user) startTrial(user.uid);
+        void complete();
       }
-      if (user) startTrial(user.uid);
-      void complete();
     } finally {
       setBusy(false);
     }
