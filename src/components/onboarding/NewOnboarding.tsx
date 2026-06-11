@@ -435,21 +435,14 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
   };
 
   // When the paywall mounts: persist the profile (so macros land in Firestore even if
-  // the user later skips), then check for an existing entitlement and bypass paywall.
+  // the user later skips). The paywall is ALWAYS shown during onboarding — entitlement
+  // checks live in the paywall's own Restore button, not here.
   useEffect(() => {
     if (step !== PAYWALL_STEP) return;
-    let cancelled = false;
-    void (async () => {
-      await saveProfile();
-      try {
-        const { hasProEntitlement } = await import('@/lib/iap');
-        if (cancelled) return;
-        if (await hasProEntitlement()) void complete();
-      } catch { /* ignore — show paywall */ }
-    })();
-    return () => { cancelled = true; };
+    void saveProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, user]);
+
 
   // Tapped "Start 7-Day Free Trial" — attempt native purchase, then complete onboarding.
   const startTrialAndAdvance = async () => {
