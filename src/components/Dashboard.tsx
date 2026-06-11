@@ -515,7 +515,7 @@ export default function Dashboard({ onNavigate }: Props) {
                 key={l.id}
                 onTap={() => {}}
                 onDelete={async () => {
-                  haptic();
+                  void warning();
                   try {
                     await deleteLog(user.uid, l.id, macroTargets);
                     setStreakBump(b => b + 1);
