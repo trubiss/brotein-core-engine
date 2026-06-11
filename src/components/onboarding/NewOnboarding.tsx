@@ -1422,15 +1422,7 @@ function ScreenSignIn({
         ))}
       </div>
 
-      {/* Spacer pushes Skip to bottom */}
       <div className="flex-1" />
-
-      <button
-        onClick={onNext}
-        className="w-full text-center text-[10px] text-[#C8C8C8] py-2"
-      >
-        Skip for now
-      </button>
     </div>
   );
 }
