@@ -858,7 +858,7 @@ function ScreenSplash({ onStart }: { onStart: () => void }) {
           className="mt-3 inline-block bg-black text-white text-[11px] font-bold tracking-wider uppercase"
           style={{ fontFamily: MONO, padding: '4px 10px' }}
         >
-          BUILD {__BUILD_ID__}
+          BUILD {typeof __BUILD_TIMESTAMP__ !== 'undefined' ? __BUILD_TIMESTAMP__.slice(5, 16).replace('T', ' ') : 'DEV'}
         </div>
         <p className="mt-5 text-[15px] text-[#6B6B6B] max-w-[260px]">
           Built for serious muscle growth.
