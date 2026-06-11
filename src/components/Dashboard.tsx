@@ -326,13 +326,7 @@ export default function Dashboard({ onNavigate }: Props) {
 
 
   return (
-    <motion.div
-      className="screen-container pb-32 relative isolate"
-      style={{ boxSizing: 'border-box', width: '100%', maxWidth: '28rem', marginInline: 'auto', paddingLeft: 24, paddingRight: 24, overflowX: 'hidden', contain: 'inline-size' }}
-      variants={stagger}
-      initial="initial"
-      animate="animate"
-    >
+    <motion.div className="screen-container pb-32 relative isolate" variants={stagger} initial="initial" animate="animate">
       <AmbientGrid opacity={0.04} />
 
       <motion.div variants={fadeUp} className="flex items-center justify-between mb-8 min-w-0">
@@ -347,10 +341,10 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
       </motion.div>
 
-      <motion.div variants={fadeUp} className="mb-6 min-w-0 overflow-hidden">
+      <motion.div variants={fadeUp} className="mb-6 min-w-0">
         {/* Inline date control — sits with FUEL STATUS, owns the day's context */}
-        <div className="flex items-center justify-between gap-3 mb-1 min-w-0">
-          <p className="label-spaced mb-0 opacity-40 tracking-[0.25em] truncate">FUEL STATUS</p>
+        <div className="flex items-center justify-between gap-3 mb-1">
+          <p className="label-spaced mb-0 opacity-40 tracking-[0.25em]">FUEL STATUS</p>
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => shiftDate(-1)}
