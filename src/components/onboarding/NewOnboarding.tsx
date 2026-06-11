@@ -754,11 +754,12 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
                     } catch (e) {
                       console.warn('requestReview failed', e);
                     }
-                    go(PAYWALL_STEP);
                   }}
+                  onContinue={() => go(PAYWALL_STEP)}
                   onSkip={() => go(PAYWALL_STEP)}
                 />
               )}
+
 
               {step === PAYWALL_STEP && (
                 <ScreenPaywall
