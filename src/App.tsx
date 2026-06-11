@@ -12,28 +12,6 @@ import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
-const BuildStamp = () => (
-  <div
-    aria-label="Build version stamp"
-    style={{
-      position: 'fixed',
-      top: 'max(10px, env(safe-area-inset-top))',
-      left: 10,
-      zIndex: 2147483647,
-      background: '#000',
-      color: '#fff',
-      fontFamily: '"SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-      fontSize: 11,
-      fontWeight: 900,
-      lineHeight: 1.25,
-      padding: '5px 7px',
-      letterSpacing: 0,
-      pointerEvents: 'none',
-    }}
-  >
-    V2 · {typeof __BUILD_TIMESTAMP__ !== 'undefined' ? __BUILD_TIMESTAMP__.slice(5, 19).replace('T', ' ') : 'DEV'}
-  </div>
-);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
