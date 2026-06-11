@@ -326,7 +326,7 @@ export default function Dashboard({ onNavigate }: Props) {
 
 
   return (
-    <motion.div className="screen-container pb-32 relative isolate" variants={stagger} initial="initial" animate="animate">
+    <motion.div className="screen-container pb-32 relative isolate max-w-full" variants={stagger} initial="initial" animate="animate">
       <AmbientGrid opacity={0.04} />
 
       <motion.div variants={fadeUp} className="flex items-center justify-between mb-8 min-w-0">
