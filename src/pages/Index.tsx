@@ -24,6 +24,7 @@ const getResetCode = (): string | null => {
 const storySeenKey = (uid: string) => `brotein_story_seen:${uid}`;
 const paywallSeenKey = (uid: string) => `brotein_paywall_seen:${uid}`;
 const ONBOARDING_AUTH_RESUME_KEY = 'brotein_onboarding_auth_resume';
+const VIEWPORT_CONTENT = 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover';
 
 const pageVariants = {
   initial: { opacity: 0 },
@@ -75,6 +76,9 @@ const Index = () => {
 
   useEffect(() => {
     const reset = () => {
+      const active = document.activeElement as HTMLElement | null;
+      active?.blur?.();
+      document.querySelector<HTMLMetaElement>('meta[name="viewport"]')?.setAttribute('content', VIEWPORT_CONTENT);
       try { window.scrollTo(0, 0); } catch { /* noop */ }
       if (document.documentElement) document.documentElement.scrollTop = 0;
       if (document.body) document.body.scrollTop = 0;
