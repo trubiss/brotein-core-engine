@@ -24,6 +24,7 @@ const REVENUECAT_IOS_API_KEY = 'appl_GMNzqrpWvFAfMqRzNyusqJgZTLw';
 const REVENUECAT_ANDROID_API_KEY = ''; // fill in if/when Android ships
 const ENTITLEMENT_ID = 'Brotein Pro';
 const OFFERING_ID = 'default';
+const KNOWN_PRODUCT_IDS = ['brotein_yearly_3999', 'brotein_monthly_499'];
 
 export type PlanId = 'annual' | 'monthly';
 
@@ -82,6 +83,35 @@ function pkgToOffer(pkg: any): NativeOffer | null {
   };
 }
 
+function hasActivePro(customerInfo: any): boolean {
+  const activeEntitlements = customerInfo?.entitlements?.active ?? {};
+  if (activeEntitlements[ENTITLEMENT_ID]) return true;
+  if (Object.keys(activeEntitlements).length > 0) return true;
+
+  const activeSubscriptions: string[] = customerInfo?.activeSubscriptions ?? [];
+  if (activeSubscriptions.some(id => KNOWN_PRODUCT_IDS.includes(id))) return true;
+
+  const subsByProduct = customerInfo?.subscriptionsByProductIdentifier ?? {};
+  return KNOWN_PRODUCT_IDS.some((id) => {
+    const sub = subsByProduct[id];
+    if (!sub) return false;
+    if (sub.unsubscribeDetectedAt || sub.billingIssuesDetectedAt) return false;
+    const expires = sub.expiresDate ?? sub.expirationDate;
+    return !expires || Date.parse(expires) > Date.now();
+  });
+}
+
+async function waitForActivePro(customerInfo?: any): Promise<boolean> {
+  if (hasActivePro(customerInfo)) return true;
+  const { Purchases } = await import('@revenuecat/purchases-capacitor');
+  for (const delay of [500, 1000, 1500, 2500]) {
+    await new Promise(resolve => setTimeout(resolve, delay));
+    const refreshed = await Purchases.getCustomerInfo();
+    if (hasActivePro(refreshed.customerInfo)) return true;
+  }
+  return false;
+}
+
 export interface Offers {
   annual: NativeOffer | null;
   monthly: NativeOffer | null;
@@ -120,7 +150,7 @@ export async function purchasePlan(plan: PlanId): Promise<boolean> {
   if (!pkg) throw new Error(`No ${plan} subscription available`);
   try {
     const result = await Purchases.purchasePackage({ aPackage: pkg });
-    const active = !!result.customerInfo.entitlements.active[ENTITLEMENT_ID];
+    const active = await waitForActivePro(result.customerInfo);
     track('paywall_purchase', { plan, active });
     return active;
   } catch (e: any) {
@@ -139,7 +169,7 @@ export async function restorePurchases(): Promise<boolean> {
   await ensureInit();
   const { Purchases } = await import('@revenuecat/purchases-capacitor');
   const info = await Purchases.restorePurchases();
-  const active = !!info.customerInfo.entitlements.active[ENTITLEMENT_ID];
+  const active = await waitForActivePro(info.customerInfo);
   track('paywall_restore', { active });
   return active;
 }
@@ -151,7 +181,7 @@ export async function hasProEntitlement(): Promise<boolean> {
     await ensureInit();
     const { Purchases } = await import('@revenuecat/purchases-capacitor');
     const { customerInfo } = await Purchases.getCustomerInfo();
-    return !!customerInfo.entitlements.active[ENTITLEMENT_ID];
+    return hasActivePro(customerInfo);
   } catch { return false; }
 }
 
@@ -185,7 +215,9 @@ export async function getSubscriptionStatus(): Promise<SubscriptionStatus> {
     await ensureInit();
     const { Purchases } = await import('@revenuecat/purchases-capacitor');
     const { customerInfo } = await Purchases.getCustomerInfo();
-    const ent: any = customerInfo.entitlements.active[ENTITLEMENT_ID];
+    const ent: any = customerInfo.entitlements.active[ENTITLEMENT_ID]
+      ?? Object.values(customerInfo.entitlements.active)[0]
+      ?? null;
     const managementURL = (customerInfo as any).managementURL ?? null;
     if (!ent) return { ...empty, managementURL };
     const productId: string | null = ent.productIdentifier ?? null;
