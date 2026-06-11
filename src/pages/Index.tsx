@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 import { isIOS, isNative } from '@/lib/native';
 import ResetPasswordScreen from '@/components/ResetPasswordScreen';
+import NewOnboarding from '@/components/onboarding/NewOnboarding';
 
-const NewOnboarding = lazy(() => import('@/components/onboarding/NewOnboarding'));
 const Dashboard = lazy(() => import('@/components/Dashboard'));
 const HistoryScreen = lazy(() => import('@/components/HistoryScreen'));
 const ProfileScreen = lazy(() => import('@/components/ProfileScreen'));
