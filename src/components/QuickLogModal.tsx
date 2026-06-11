@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { watchFavorites, watchRecentLogs, addFavorite, removeFavorite, FavoriteFood } from '@/lib/firestore';
 import { Search, Star, X, Camera, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { lightTap, mediumTap } from '@/lib/haptics';
 
 interface Props {
   initial?: {
@@ -143,6 +144,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
 
   const handleSubmit = () => {
     if (!canLog || busy) return;
+    void mediumTap();
     const payload = {
       foodName: name.trim(),
       proteinGrams: Number(protein),
@@ -158,7 +160,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
   };
 
   const quickAdd = (foodName: string, proteinGrams: number, mt?: MealType) => {
-    try { if ('vibrate' in navigator) navigator.vibrate?.(8); } catch { /* noop */ }
+    void lightTap();
     toast.success(`+${proteinGrams}G ADDED`, { duration: 1200 });
     Promise.resolve(onSubmit({ foodName, proteinGrams, mealType: mt })).catch((e) => {
       toast.error(e instanceof Error ? e.message : 'Log failed');

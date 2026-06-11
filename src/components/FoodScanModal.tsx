@@ -5,7 +5,8 @@ import { Camera, Upload, X, RefreshCw, Check, Loader2, AlertTriangle } from 'luc
 import { MealType } from '@/lib/types';
 import { scanFoodImage, fileToCompressedDataUrl, ScanResult } from '@/lib/scan';
 import { track } from '@/lib/track';
-import { isNative, takeFoodPhoto, pickFoodPhoto, tapHaptic } from '@/lib/native';
+import { isNative, takeFoodPhoto, pickFoodPhoto } from '@/lib/native';
+import { mediumTap } from '@/lib/haptics';
 import { toast } from 'sonner';
 
 interface Props {
@@ -113,7 +114,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   };
 
   const onCamera = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    void tapHaptic();
+    void mediumTap();
     if (isNative()) {
       const dataUrl = await takeFoodPhoto();
       if (dataUrl) void handleDataUrl(dataUrl);
@@ -138,6 +139,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
 
   const confirm = async () => {
     if (!ai || !imageDataUrl || !canConfirm || busy) return;
+    void mediumTap();
     setBusy(true);
     try {
       const edited = foodName.trim() !== ai.foodName || Number(protein) !== ai.proteinGrams;
@@ -181,7 +183,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
               </p>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <button onClick={async () => {
-                  void tapHaptic();
+                  void mediumTap();
                   if (isNative()) {
                     const dataUrl = await takeFoodPhoto();
                     if (dataUrl) void handleDataUrl(dataUrl);

@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { heavyHaptic, successHaptic } from '@/lib/native';
+import { success } from '@/lib/haptics';
 
 interface Props {
   open: boolean;
@@ -14,8 +14,8 @@ const CONFETTI_COLORS = ['#FF3B30', '#FFCC00', '#34C759', '#0A84FF', '#AF52DE', 
 export default function GoalHitCelebration({ open, grams, streak, onClose }: Props) {
   useEffect(() => {
     if (!open) return;
-    void heavyHaptic();
-    const t = setTimeout(() => { void successHaptic(); }, 300);
+    void success();
+    const t = setTimeout(() => { void success(); }, 320);
     return () => clearTimeout(t);
   }, [open]);
 

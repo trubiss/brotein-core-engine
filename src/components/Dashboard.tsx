@@ -8,7 +8,7 @@ import { todayKey, FoodLog, DailySummary, kcalFromMacros } from '@/lib/types';
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 
 import { User, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
-import { mediumHaptic } from '@/lib/native';
+import { lightTap, mediumTap, success, warning } from '@/lib/haptics';
 import { toast } from 'sonner';
 import { computePace } from '@/lib/pace';
 import { markFirstOpen } from '@/lib/paywall';
@@ -73,11 +73,7 @@ const fadeUp = {
   animate: { opacity: 1, y: 0, transition: { duration: 0.18, ease: 'easeOut' as const } },
 };
 
-const haptic = () => {
-  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-    try { navigator.vibrate(8); } catch { /* noop */ }
-  }
-};
+const haptic = () => { void lightTap(); };
 
 function relTime(ts: number, now: number): string {
   const diff = Math.max(0, now - ts);
@@ -199,6 +195,15 @@ export default function Dashboard({ onNavigate }: Props) {
     return () => clearInterval(id);
   }, []);
 
+  // Streak extension — fire success haptic when streak count grows.
+  const prevStreakRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (prevStreakRef.current !== null && streak > prevStreakRef.current) {
+      void success();
+    }
+    prevStreakRef.current = streak;
+  }, [streak]);
+
   // Reminder effect moved below — it depends on `showPaywall` which is
   // declared after the pace computation.
 
@@ -313,7 +318,7 @@ export default function Dashboard({ onNavigate }: Props) {
   })();
 
   const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number, caloriesKcal?: number, logType: 'manual' | 'quick_add' = 'manual') => {
-    haptic();
+    void success();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
     track('food_logged', { grams: proteinGrams, meal: mealType ?? 'unspecified', source: logType, is_today: isToday });
@@ -348,7 +353,7 @@ export default function Dashboard({ onNavigate }: Props) {
           <p className="label-spaced mb-0 opacity-40 tracking-[0.25em]">FUEL STATUS</p>
           <div className="flex items-center gap-1 shrink-0">
             <button
-              onClick={() => shiftDate(-1)}
+              onClick={() => { void lightTap(); shiftDate(-1); }}
               className="p-1 active:opacity-50 transition-opacity"
               aria-label="Previous day"
             >
@@ -358,7 +363,7 @@ export default function Dashboard({ onNavigate }: Props) {
               {dateLabel}
             </span>
             <button
-              onClick={() => shiftDate(1)}
+              onClick={() => { void lightTap(); shiftDate(1); }}
               disabled={isToday}
               className="p-1 active:opacity-50 transition-opacity disabled:opacity-20"
               aria-label="Next day"
@@ -434,7 +439,7 @@ export default function Dashboard({ onNavigate }: Props) {
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
           onClick={() => {
-            haptic();
+            void mediumTap();
             setShowModal(true);
           }}
           className="w-full bg-foreground text-background py-3.5 font-display font-black text-sm tracking-[0.12em] mb-2.5 active:opacity-90"
@@ -445,7 +450,7 @@ export default function Dashboard({ onNavigate }: Props) {
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.06 }}
           onClick={() => {
-            haptic();
+            void mediumTap();
             setShowScan(true);
           }}
           className="w-full border border-foreground/80 py-3.5 font-display font-black text-sm tracking-[0.12em] active:bg-foreground/5"
@@ -462,7 +467,7 @@ export default function Dashboard({ onNavigate }: Props) {
             key={g}
             whileTap={{ scale: 0.96 }}
             transition={{ duration: 0.06 }}
-            onClick={() => { void mediumHaptic(); log(`+${g}g protein`, g, undefined, undefined, undefined, undefined, 'quick_add'); }}
+            onClick={() => { void lightTap(); log(`+${g}g protein`, g, undefined, undefined, undefined, undefined, 'quick_add'); }}
             className="border border-foreground/70 py-2.5 font-display font-black text-base tracking-[0.06em] active:bg-foreground/5"
             aria-label={`Quick add ${g} grams`}
           >
@@ -519,7 +524,7 @@ export default function Dashboard({ onNavigate }: Props) {
                 key={l.id}
                 onTap={() => {}}
                 onDelete={async () => {
-                  haptic();
+                  void warning();
                   try {
                     await deleteLog(user.uid, l.id, macroTargets);
                     setStreakBump(b => b + 1);
