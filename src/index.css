@@ -143,16 +143,19 @@
 
   .screen-container {
     @apply flex flex-col mx-auto;
-    width: min(100%, 28rem);
-    max-width: 100%;
+    width: 100%;
+    max-width: 28rem;
     min-height: 100svh;
     overflow-x: clip;
-    /* Single source of truth for top inset on iOS: env(safe-area-inset-top).
-       Small additive padding for visual breathing room on web/desktop. */
-    padding-top: calc(env(safe-area-inset-top) + 1.375rem);
-    padding-left: max(1.5rem, env(safe-area-inset-left));
-    padding-right: max(1.5rem, env(safe-area-inset-right));
-    padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+    /* Keep real gutters even in older iOS WebViews where max()/env() can invalidate padding. */
+    padding-top: 1.375rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-bottom: 1rem;
+    padding-top: calc(1.375rem + env(safe-area-inset-top, 0px));
+    padding-left: calc(1.5rem + env(safe-area-inset-left, 0px));
+    padding-right: calc(1.5rem + env(safe-area-inset-right, 0px));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
   }
 
   .section-divider {
