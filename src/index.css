@@ -49,8 +49,15 @@
     --font-body: 'Space Grotesk', sans-serif;
   }
 
-  * {
+  *, *::before, *::after {
     @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   html, body {
@@ -58,12 +65,18 @@
     -webkit-overflow-scrolling: auto;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
     margin: 0;
+  }
+
+  #root {
+    min-height: 100svh;
+    overflow-x: clip;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -129,10 +142,16 @@
   }
 
   .screen-container {
-    @apply min-h-screen flex flex-col px-6 max-w-md mx-auto;
+    @apply flex flex-col mx-auto;
+    width: min(100%, 28rem);
+    max-width: 100%;
+    min-height: 100svh;
+    overflow-x: clip;
     /* Single source of truth for top inset on iOS: env(safe-area-inset-top).
        Small additive padding for visual breathing room on web/desktop. */
     padding-top: calc(env(safe-area-inset-top) + 1.375rem);
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
     padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
   }
 
