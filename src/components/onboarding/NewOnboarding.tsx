@@ -277,6 +277,19 @@ interface Props {
 }
 
 const ONBOARDING_AUTH_RESUME_KEY = 'brotein_onboarding_auth_resume';
+const VIEWPORT_CONTENT = 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover';
+
+const resetViewportZoom = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  const active = document.activeElement as HTMLElement | null;
+  active?.blur?.();
+  const viewport = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+  viewport?.setAttribute('content', VIEWPORT_CONTENT);
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  document.getElementById('root')?.scrollTo(0, 0);
+};
 
 const PACE_LABEL: Record<Pace, string> = {
   slow: '0.25 kg/week — Slow & steady',
@@ -506,6 +519,7 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
 
   // Final completion after notifications + rating screens.
   const complete = async () => {
+    resetViewportZoom();
     await saveProfile();
     try {
       sessionStorage.removeItem(ONBOARDING_AUTH_RESUME_KEY);
@@ -515,6 +529,8 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
       }
     } catch { /* noop */ }
     await onDone();
+    window.requestAnimationFrame(resetViewportZoom);
+    window.setTimeout(resetViewportZoom, 80);
   };
 
   /* ============================================================
