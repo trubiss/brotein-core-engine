@@ -8,6 +8,7 @@ import { todayKey, FoodLog, DailySummary, kcalFromMacros } from '@/lib/types';
 import { evaluateReminders, getReminderSettings } from '@/lib/reminders';
 
 import { User, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
+import { mediumHaptic } from '@/lib/native';
 import { toast } from 'sonner';
 import { computePace } from '@/lib/pace';
 import { markFirstOpen } from '@/lib/paywall';
@@ -461,7 +462,7 @@ export default function Dashboard({ onNavigate }: Props) {
             key={g}
             whileTap={{ scale: 0.96 }}
             transition={{ duration: 0.06 }}
-            onClick={() => log(`+${g}g protein`, g, undefined, undefined, undefined, undefined, 'quick_add')}
+            onClick={() => { void mediumHaptic(); log(`+${g}g protein`, g, undefined, undefined, undefined, undefined, 'quick_add'); }}
             className="border border-foreground/70 py-2.5 font-display font-black text-base tracking-[0.06em] active:bg-foreground/5"
             aria-label={`Quick add ${g} grams`}
           >
