@@ -95,7 +95,6 @@ function hasActivePro(customerInfo: any): boolean {
   return KNOWN_PRODUCT_IDS.some((id) => {
     const sub = subsByProduct[id];
     if (!sub) return false;
-    if (sub.unsubscribeDetectedAt || sub.billingIssuesDetectedAt) return false;
     const expires = sub.expiresDate ?? sub.expirationDate;
     return !expires || Date.parse(expires) > Date.now();
   });
