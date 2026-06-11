@@ -341,10 +341,10 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
       </motion.div>
 
-      <motion.div variants={fadeUp} className="mb-6 min-w-0">
+      <motion.div variants={fadeUp} className="mb-6 min-w-0 overflow-hidden">
         {/* Inline date control — sits with FUEL STATUS, owns the day's context */}
-        <div className="flex items-center justify-between gap-3 mb-1">
-          <p className="label-spaced mb-0 opacity-40 tracking-[0.25em]">FUEL STATUS</p>
+        <div className="flex items-center justify-between gap-3 mb-1 min-w-0">
+          <p className="label-spaced mb-0 opacity-40 tracking-[0.25em] truncate">FUEL STATUS</p>
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => shiftDate(-1)}
@@ -392,8 +392,8 @@ export default function Dashboard({ onNavigate }: Props) {
         </p>
       </motion.div>
 
-      <motion.div variants={fadeUp} className="flex justify-end mb-1.5">
-        <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55">
+      <motion.div variants={fadeUp} className="flex justify-end mb-1.5 min-w-0 overflow-hidden">
+        <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 truncate max-w-full">
           STREAK · {streak} {streak === 1 ? 'DAY' : 'DAYS'} <BlinkingCursor className="text-foreground/40" />
         </p>
       </motion.div>
@@ -455,7 +455,7 @@ export default function Dashboard({ onNavigate }: Props) {
       </motion.div>
 
       {/* Secondary one-tap shortcuts — feel like extensions of the card */}
-      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-1.5 mb-3">
+      <motion.div variants={fadeUp} className="grid grid-cols-3 gap-1.5 mb-3 min-w-0">
         {[20, 30, 40].map(g => (
           <motion.button
             key={g}
@@ -471,7 +471,7 @@ export default function Dashboard({ onNavigate }: Props) {
       </motion.div>
 
       {/* Secondary macros — protein remains the hero above */}
-      <motion.div variants={fadeUp} className="mb-8">
+      <motion.div variants={fadeUp} className="mb-8 min-w-0 overflow-hidden">
         <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 mb-2">
           MACROS
         </p>
@@ -496,13 +496,13 @@ export default function Dashboard({ onNavigate }: Props) {
 
 
       {/* Today's Entries — swipe a row left to delete a mis-tap */}
-      <motion.div variants={fadeUp} className="mb-2">
-        <div className="flex items-baseline justify-between mb-2">
-          <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55">
+      <motion.div variants={fadeUp} className="mb-2 min-w-0 overflow-hidden">
+        <div className="flex items-baseline justify-between gap-3 mb-2 min-w-0">
+          <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/55 truncate">
             {isToday ? "TODAY'S ENTRIES" : `ENTRIES · ${dateLabel}`}
           </p>
           {logs.length > 0 && (
-            <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/40">
+            <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground/40 shrink-0">
               SWIPE TO DELETE
             </p>
           )}
