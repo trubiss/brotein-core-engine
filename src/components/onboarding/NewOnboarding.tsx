@@ -355,6 +355,11 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
     d.setDate(d.getDate() + 90);
     return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
   }, []);
+  const firstVisibleDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 28);
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }).toUpperCase();
+  }, []);
 
   const ageFromBirth = useMemo(() => {
     const now = new Date();
@@ -778,6 +783,7 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
                   carbs={carbsGoal}
                   fats={fatsGoal}
                   goalDate={goalDateLong}
+                  firstVisibleDate={firstVisibleDate}
                   pace={PACE_LABEL[state.pace]}
                   onNext={next}
                 />
@@ -1045,29 +1051,47 @@ function ScreenDarkProof({ onNext }: { onNext: () => void }) {
 
 /* ---------- Screen F (timeline) ---------- */
 function ScreenTimeline({ onNext }: { onNext: () => void }) {
-  const cards = [
-    { title: 'WEEK 1–2', body: 'The scale might not move much. Your body is adapting. This is normal.' },
-    { title: 'WEEK 3–4', body: "Protein synthesis increases. You'll start feeling fuller and stronger." },
-    { title: 'MONTH 2–3', body: 'Visible muscle changes. This is where most guys see the biggest shift.' },
+  const milestones = [
+    { label: 'WEEK 1', body: 'Habit locked. First streak. You feel it in training.', active: true },
+    { label: 'WEEK 2–3', body: 'Strength up. Recovery faster.', active: false },
+    { label: 'WEEK 4–6', body: 'You see it in the mirror.', active: false },
+    { label: 'DAY 90', body: 'Everyone else sees it.', active: false },
   ];
   return (
     <div className="flex-1 flex flex-col">
       <h1 className="text-[26px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
-        Here's what to expect.
+        WHAT HAPPENS WHEN YOU HIT YOUR NUMBER.
       </h1>
-      <p className="mt-3 text-[15px] text-[#6B6B6B]">Honesty matters more than hype.</p>
-      <div className="mt-7 space-y-3">
-        {cards.map((c) => (
-          <div key={c.title} className="rounded-2xl bg-[#F5F5F5] p-5">
-            <div className="text-[12px] font-bold tracking-wider" style={{ fontFamily: MONO }}>{c.title}</div>
-            <p className="mt-2 text-[14px] text-[#3A3A3A] leading-snug">{c.body}</p>
+      <div className="mt-8 flex-1">
+        <div className="relative ml-2">
+          {/* Vertical line */}
+          <div className="absolute left-[11px] top-[18px] bottom-[18px] w-[2px] bg-[#E5E5E5]" />
+          <div className="space-y-6">
+            {milestones.map((m) => (
+              <div key={m.label} className="flex items-start gap-4">
+                {/* Marker */}
+                <div
+                  className={`relative z-10 mt-1 w-6 h-6 shrink-0 rounded-full flex items-center justify-center ${
+                    m.active ? 'bg-black' : 'bg-white border-2 border-black'
+                  }`}
+                >
+                  {m.active && <div className="w-2 h-2 bg-white rounded-full" />}
+                </div>
+                {/* Text */}
+                <div className="flex-1">
+                  <div
+                    className={`text-[12px] font-bold tracking-wider ${m.active ? 'text-black' : 'text-[#9A9A9A]'}`}
+                    style={{ fontFamily: MONO }}
+                  >
+                    {m.label}
+                  </div>
+                  <p className="mt-1 text-[15px] text-[#3A3A3A] leading-snug">{m.body}</p>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
-      <p className="mt-6 text-center text-[13px] font-bold">
-        Stick with it past week 2. That's where most guys quit.
-      </p>
-      <div className="flex-1" />
       <PrimaryCTA label="I'm ready" onClick={onNext} />
     </div>
   );
@@ -1263,6 +1287,7 @@ function ScreenPlanReveal({
   carbs,
   fats,
   goalDate,
+  firstVisibleDate,
   pace,
   onNext,
 }: {
@@ -1272,6 +1297,7 @@ function ScreenPlanReveal({
   carbs: number;
   fats: number;
   goalDate: string;
+  firstVisibleDate: string;
   pace: string;
   onNext: () => void;
 }) {
@@ -1326,9 +1352,16 @@ function ScreenPlanReveal({
 
         <div className="h-px bg-white/15 my-5" />
 
-        <div className="text-[13px] text-white/80 space-y-1">
-          <div>Goal date: <span className="text-white font-semibold">{goalDate}</span></div>
-          <div>Pace: <span className="text-white font-semibold">{pace}</span></div>
+        <div className="space-y-1">
+          <div className="text-[13px] text-white font-semibold">
+            FIRST VISIBLE CHANGE: <span className="text-white">{firstVisibleDate}</span>
+          </div>
+          <div className="text-[12px] text-white/50">
+            FINAL GOAL: <span className="text-white/70">{goalDate}</span>
+          </div>
+        </div>
+        <div className="mt-2 text-[12px] text-white/50">
+          Pace: <span className="text-white/70">{pace}</span>
         </div>
       </div>
 
@@ -1592,6 +1625,10 @@ function ScreenPaywall({
       </ul>
 
       <div className="mt-4" />
+
+      <p className="mb-3 text-center text-[11px] tracking-wider text-[#6B6B6B]" style={{ fontFamily: MONO }}>
+        Your first milestone lands inside your free week.
+      </p>
 
       <PrimaryCTA label={busy ? 'Starting…' : 'Start 7-Day Free Trial'} onClick={onStart} disabled={busy} haptic="success" />
       <p className="mt-3 text-center text-[12px] text-[#6B6B6B]">
