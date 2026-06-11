@@ -139,6 +139,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
 
   const confirm = async () => {
     if (!ai || !imageDataUrl || !canConfirm || busy) return;
+    void mediumTap();
     setBusy(true);
     try {
       const edited = foodName.trim() !== ai.foodName || Number(protein) !== ai.proteinGrams;
