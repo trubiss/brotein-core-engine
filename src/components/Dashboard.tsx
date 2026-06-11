@@ -344,7 +344,7 @@ export default function Dashboard({ onNavigate }: Props) {
           <p className="label-spaced mb-0 opacity-40 tracking-[0.25em]">FUEL STATUS</p>
           <div className="flex items-center gap-1 shrink-0">
             <button
-              onClick={() => shiftDate(-1)}
+              onClick={() => { void lightTap(); shiftDate(-1); }}
               className="p-1 active:opacity-50 transition-opacity"
               aria-label="Previous day"
             >
