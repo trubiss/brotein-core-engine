@@ -89,7 +89,7 @@ function hasActivePro(customerInfo: any): boolean {
   if (Object.keys(activeEntitlements).length > 0) return true;
 
   const activeSubscriptions: string[] = customerInfo?.activeSubscriptions ?? [];
-  if (activeSubscriptions.some(id => KNOWN_PRODUCT_IDS.includes(id))) return true;
+  if (activeSubscriptions.length > 0) return true;
 
   const subsByProduct = customerInfo?.subscriptionsByProductIdentifier ?? {};
   return KNOWN_PRODUCT_IDS.some((id) => {
