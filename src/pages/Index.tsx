@@ -92,7 +92,7 @@ const Index = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-        <h1 className="font-sans font-black text-4xl tracking-[0.15em] mb-4">BROTEIN</h1>
+        <h1 className="text-[32px] font-black tracking-tight leading-none mb-4" style={{ fontFamily: '"SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' }}>BROTEIN</h1>
         <p className="label-spaced mb-0 opacity-50">LOADING…</p>
       </div>
     );
