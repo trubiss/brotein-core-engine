@@ -114,7 +114,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
   };
 
   const onCamera = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    void tapHaptic();
+    void mediumTap();
     if (isNative()) {
       const dataUrl = await takeFoodPhoto();
       if (dataUrl) void handleDataUrl(dataUrl);
@@ -182,7 +182,7 @@ export default function FoodScanModal({ onConfirm, onClose }: Props) {
               </p>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <button onClick={async () => {
-                  void tapHaptic();
+                  void mediumTap();
                   if (isNative()) {
                     const dataUrl = await takeFoodPhoto();
                     if (dataUrl) void handleDataUrl(dataUrl);
