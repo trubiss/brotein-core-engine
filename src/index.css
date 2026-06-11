@@ -124,6 +124,10 @@
     margin: 0;
   }
 
+  input, select, textarea {
+    font-size: 16px;
+  }
+
   #root {
     height: 100%;
     overflow-y: auto;
