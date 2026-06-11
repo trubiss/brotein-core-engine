@@ -12,35 +12,13 @@ import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
-const BuildStamp = () => {
-  const ts = typeof __BUILD_TIMESTAMP__ !== 'undefined' ? __BUILD_TIMESTAMP__ : 'DEV';
-  const label = ts === 'DEV' ? 'DEV' : `V2 · ${ts}`;
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      zIndex: 2147483647,
-      pointerEvents: 'none',
-      padding: '4px 8px',
-      fontFamily: '"SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-      fontSize: '10px',
-      fontWeight: 700,
-      letterSpacing: '0.05em',
-      color: '#fff',
-      background: '#000',
-    }}>
-      {label}
-    </div>
-  );
-};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BuildStamp />
+      
       <AuthProvider>
         <BrowserRouter>
           <ScrollToTop />
