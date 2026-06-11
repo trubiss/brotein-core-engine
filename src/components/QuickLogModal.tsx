@@ -144,6 +144,7 @@ export default function QuickLogModal({ initial, title = 'QUICK LOG', submitLabe
 
   const handleSubmit = () => {
     if (!canLog || busy) return;
+    void mediumTap();
     const payload = {
       foodName: name.trim(),
       proteinGrams: Number(protein),
