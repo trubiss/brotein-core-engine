@@ -73,11 +73,7 @@ const fadeUp = {
   animate: { opacity: 1, y: 0, transition: { duration: 0.18, ease: 'easeOut' as const } },
 };
 
-const haptic = () => {
-  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-    try { navigator.vibrate(8); } catch { /* noop */ }
-  }
-};
+const haptic = () => { void lightTap(); };
 
 function relTime(ts: number, now: number): string {
   const diff = Math.max(0, now - ts);
