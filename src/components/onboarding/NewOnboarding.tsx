@@ -854,6 +854,12 @@ function ScreenSplash({ onStart }: { onStart: () => void }) {
     <div className="flex-1 flex flex-col items-center justify-center text-center">
       <div className="flex-1 flex flex-col items-center justify-center w-full">
         <h1 className="text-[56px] font-black tracking-tight leading-none" style={{ fontFamily: MONO }}>BROTEIN</h1>
+        <div
+          className="mt-3 inline-block bg-black text-white text-[11px] font-bold tracking-wider uppercase"
+          style={{ fontFamily: MONO, padding: '4px 10px' }}
+        >
+          BUILD {typeof __BUILD_TIMESTAMP__ !== 'undefined' ? __BUILD_TIMESTAMP__.slice(5, 16).replace('T', ' ') : 'DEV'}
+        </div>
         <p className="mt-5 text-[15px] text-[#6B6B6B] max-w-[260px]">
           Built for serious muscle growth.
         </p>
