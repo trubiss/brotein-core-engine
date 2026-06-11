@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
+import { isIOS, isNative } from '@/lib/native';
 import ResetPasswordScreen from '@/components/ResetPasswordScreen';
 
 const NewOnboarding = lazy(() => import('@/components/onboarding/NewOnboarding'));
@@ -51,6 +52,19 @@ const Index = () => {
     }
     setStorySeen(localStorage.getItem(storySeenKey(user.uid)) === '1');
     setPaywallSeen(localStorage.getItem(paywallSeenKey(user.uid)) === '1');
+
+    if (isNative() && isIOS()) {
+      void import('@/lib/iap').then(async ({ hasProEntitlement }) => {
+        const hasPro = await hasProEntitlement();
+        if (!hasPro) return;
+        localStorage.setItem(storySeenKey(user.uid), '1');
+        localStorage.setItem(paywallSeenKey(user.uid), '1');
+        sessionStorage.removeItem(ONBOARDING_AUTH_RESUME_KEY);
+        setStorySeen(true);
+        setPaywallSeen(true);
+        setResumePaywall(false);
+      }).catch(() => {});
+    }
   }, [user]);
 
   const prevProfileRef = useRef(profile);

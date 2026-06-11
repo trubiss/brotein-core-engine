@@ -470,12 +470,35 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
           return;
         }
         if (user) startTrial(user.uid);
-        void complete();
+        await complete();
       } else {
         // Non-native (web/preview): keep the existing web-trial fallback.
         if (user) startTrial(user.uid);
-        void complete();
+        await complete();
       }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const restoreAndAdvance = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await saveProfile();
+      if (isNative() && isIOS()) {
+        const { restorePurchases } = await import('@/lib/iap');
+        const restored = await restorePurchases();
+        if (!restored) {
+          toast.message('No active subscription found');
+          return;
+        }
+        toast.success('Subscription restored');
+      }
+      await complete();
+    } catch (e) {
+      console.warn('Restore failed', e);
+      toast.error(e instanceof Error ? e.message : 'Restore failed. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -789,6 +812,7 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
                   pace={PACE_LABEL[state.pace]}
                   busy={busy}
                   onStart={startTrialAndAdvance}
+                  onRestore={restoreAndAdvance}
                 />
               )}
             </motion.div>
@@ -1422,15 +1446,7 @@ function ScreenSignIn({
         ))}
       </div>
 
-      {/* Spacer pushes Skip to bottom */}
       <div className="flex-1" />
-
-      <button
-        onClick={onNext}
-        className="w-full text-center text-[10px] text-[#C8C8C8] py-2"
-      >
-        Skip for now
-      </button>
     </div>
   );
 }
@@ -1486,6 +1502,7 @@ function ScreenPaywall({
   pace,
   busy,
   onStart,
+  onRestore,
 }: {
   plan: Plan;
   onPlanChange: (p: Plan) => void;
@@ -1495,6 +1512,7 @@ function ScreenPaywall({
   pace: string;
   busy: boolean;
   onStart: () => void;
+  onRestore: () => void;
 }) {
   const features = [
     'AI Food Scanner',
@@ -1563,7 +1581,11 @@ function ScreenPaywall({
       <p className="mt-3 text-center text-[12px] text-[#6B6B6B]">
         No payment due today. After 7 days, $39.99/year. Cancel anytime.
       </p>
-      <button className="mt-2 w-full text-center text-[12px] text-[#6B6B6B] underline py-1">
+      <button
+        onClick={() => { void tapHaptic(); onRestore(); }}
+        disabled={busy}
+        className="mt-2 w-full text-center text-[12px] text-[#6B6B6B] underline py-1 disabled:opacity-50"
+      >
         Restore Purchase
       </button>
     </div>
