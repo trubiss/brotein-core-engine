@@ -470,11 +470,11 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
           return;
         }
         if (user) startTrial(user.uid);
-        void complete();
+        await complete();
       } else {
         // Non-native (web/preview): keep the existing web-trial fallback.
         if (user) startTrial(user.uid);
-        void complete();
+        await complete();
       }
     } finally {
       setBusy(false);
@@ -495,7 +495,7 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
         }
         toast.success('Subscription restored');
       }
-      void complete();
+      await complete();
     } catch (e) {
       console.warn('Restore failed', e);
       toast.error(e instanceof Error ? e.message : 'Restore failed. Please try again.');
