@@ -435,21 +435,14 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
   };
 
   // When the paywall mounts: persist the profile (so macros land in Firestore even if
-  // the user later skips), then check for an existing entitlement and bypass paywall.
+  // the user later skips). The paywall is ALWAYS shown during onboarding — entitlement
+  // checks live in the paywall's own Restore button, not here.
   useEffect(() => {
     if (step !== PAYWALL_STEP) return;
-    let cancelled = false;
-    void (async () => {
-      await saveProfile();
-      try {
-        const { hasProEntitlement } = await import('@/lib/iap');
-        if (cancelled) return;
-        if (await hasProEntitlement()) void complete();
-      } catch { /* ignore — show paywall */ }
-    })();
-    return () => { cancelled = true; };
+    void saveProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, user]);
+
 
   // Tapped "Start 7-Day Free Trial" — attempt native purchase, then complete onboarding.
   const startTrialAndAdvance = async () => {
@@ -761,11 +754,12 @@ export default function NewOnboarding({ onDone, initialStep = 1 }: Props) {
                     } catch (e) {
                       console.warn('requestReview failed', e);
                     }
-                    go(PAYWALL_STEP);
                   }}
+                  onContinue={() => go(PAYWALL_STEP)}
                   onSkip={() => go(PAYWALL_STEP)}
                 />
               )}
+
 
               {step === PAYWALL_STEP && (
                 <ScreenPaywall
@@ -1630,7 +1624,8 @@ function ScreenNotifications({ onAllow, onSkip }: { onAllow: () => void; onSkip:
 }
 
 /* ---------- App Store rating ---------- */
-function ScreenRating({ onRate, onSkip }: { onRate: () => void; onSkip: () => void }) {
+function ScreenRating({ onRate, onContinue, onSkip }: { onRate: () => void | Promise<void>; onContinue: () => void; onSkip: () => void }) {
+  const [rated, setRated] = useState(false);
   return (
     <div className="flex-1 flex flex-col">
       <h1 className="text-[28px] font-bold leading-tight tracking-tight uppercase" style={{ fontFamily: MONO }}>
@@ -1647,12 +1642,28 @@ function ScreenRating({ onRate, onSkip }: { onRate: () => void; onSkip: () => vo
           ))}
         </div>
         <p className="mt-4 text-[13px] text-[#6B6B6B] font-semibold">4.8 · 100+ ratings</p>
+        {rated && (
+          <p className="mt-6 text-[13px] text-[#6B6B6B] text-center px-6">
+            Thanks! Tap Continue when you're done with the rating prompt.
+          </p>
+        )}
       </div>
 
-      <PrimaryCTA label="Rate Brotein" onClick={onRate} />
+      {rated ? (
+        <PrimaryCTA label="Continue" onClick={onContinue} />
+      ) : (
+        <PrimaryCTA
+          label="Rate Brotein"
+          onClick={async () => {
+            await onRate();
+            setRated(true);
+          }}
+        />
+      )}
       <button onClick={() => { void tapHaptic(); onSkip(); }} className="w-full text-center text-[13px] text-[#6B6B6B] underline py-3 mt-1">
-        Maybe later
+        {rated ? 'Skip' : 'Maybe later'}
       </button>
     </div>
   );
 }
+
