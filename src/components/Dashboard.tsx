@@ -309,7 +309,7 @@ export default function Dashboard({ onNavigate }: Props) {
   })();
 
   const log = (foodName: string, proteinGrams: number, mealType?: FoodLog['mealType'], carbsGrams?: number, fatsGrams?: number, caloriesKcal?: number, logType: 'manual' | 'quick_add' = 'manual') => {
-    haptic();
+    void success();
     toast.success(`+${proteinGrams}G LOGGED${isToday ? '' : ` · ${dateLabel}`}`, { duration: 1000 });
     setStreakBump(b => b + 1);
     track('food_logged', { grams: proteinGrams, meal: mealType ?? 'unspecified', source: logType, is_today: isToday });
