@@ -75,20 +75,11 @@ const Index = () => {
 
   useEffect(() => {
     const reset = () => {
-      try { window.scrollTo({ left: 0, top: 0 }); } catch { /* noop */ }
-      if (document.documentElement) {
-        document.documentElement.scrollTop = 0;
-        document.documentElement.scrollLeft = 0;
-      }
-      if (document.body) {
-        document.body.scrollTop = 0;
-        document.body.scrollLeft = 0;
-      }
+      try { window.scrollTo(0, 0); } catch { /* noop */ }
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
       const root = document.getElementById('root');
-      if (root) {
-        root.scrollTop = 0;
-        root.scrollLeft = 0;
-      }
+      if (root) root.scrollTop = 0;
     };
     reset();
     const raf = requestAnimationFrame(reset);
@@ -137,8 +128,6 @@ const Index = () => {
     <AnimatePresence mode="wait">
       <motion.div
         key={page}
-        className="w-full max-w-full overflow-x-hidden"
-        style={{ boxSizing: 'border-box' }}
         variants={pageVariants}
         initial="initial"
         animate="animate"

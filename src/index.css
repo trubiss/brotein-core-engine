@@ -49,47 +49,21 @@
     --font-body: 'Space Grotesk', sans-serif;
   }
 
-  *, *::before, *::after {
+  * {
     @apply border-border;
-    box-sizing: border-box;
-  }
-
-  html, body, #root {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
   }
 
   html, body {
-    height: 100%;
     overscroll-behavior-y: none;
-    overscroll-behavior-x: none;
     -webkit-overflow-scrolling: auto;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    overflow-x: hidden;
-    touch-action: pan-y;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
     margin: 0;
-    padding: 0;
-  }
-
-  #root {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100dvh;
-    min-height: 100svh;
-    max-width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -155,27 +129,11 @@
   }
 
   .screen-container {
-    @apply flex flex-col mx-auto;
-    box-sizing: border-box;
-    width: 100%;
-    max-width: min(28rem, 100%);
-    min-height: 100svh;
-    overflow-x: hidden;
-    contain: inline-size;
-    /* Keep real gutters even in older iOS WebViews where max()/env() can invalidate padding. */
-    padding-top: 1.375rem;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-    padding-bottom: 1rem;
-    padding-top: calc(1.375rem + env(safe-area-inset-top, 0px));
-    padding-left: calc(1.5rem + env(safe-area-inset-left, 0px));
-    padding-right: calc(1.5rem + env(safe-area-inset-right, 0px));
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-  }
-
-  .screen-container > * {
-    max-width: 100%;
-    min-width: 0;
+    @apply min-h-screen flex flex-col px-6 max-w-md mx-auto;
+    /* Single source of truth for top inset on iOS: env(safe-area-inset-top).
+       Small additive padding for visual breathing room on web/desktop. */
+    padding-top: calc(env(safe-area-inset-top) + 1.375rem);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
   }
 
   .section-divider {
