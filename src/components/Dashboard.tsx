@@ -195,6 +195,15 @@ export default function Dashboard({ onNavigate }: Props) {
     return () => clearInterval(id);
   }, []);
 
+  // Streak extension — fire success haptic when streak count grows.
+  const prevStreakRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (prevStreakRef.current !== null && streak > prevStreakRef.current) {
+      void success();
+    }
+    prevStreakRef.current = streak;
+  }, [streak]);
+
   // Reminder effect moved below — it depends on `showPaywall` which is
   // declared after the pace computation.
 
