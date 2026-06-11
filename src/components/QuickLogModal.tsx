@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { watchFavorites, watchRecentLogs, addFavorite, removeFavorite, FavoriteFood } from '@/lib/firestore';
 import { Search, Star, X, Camera, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { lightTap, mediumTap } from '@/lib/haptics';
 
 interface Props {
   initial?: {
