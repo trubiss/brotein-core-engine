@@ -1,73 +1,43 @@
+## Goal
 
-## New Onboarding Flow
+Get AI scanning working again for free, for your 1-user app.
 
-One self-contained React component that owns all 16 screens, replacing the current `OnboardingStoryFlow` → `OnboardingFlow` (biometrics/goals/results) → `Paywall` sequence in `src/pages/Index.tsx`. Persists the resulting profile + paywall acknowledgement so the user lands on the dashboard at the end.
+## Why it's broken right now
 
-Note: this onboarding intentionally uses a different aesthetic from the rest of the app (white background, Inter, rounded pills) per your spec. The main app stays brutalist B&W.
+The edge function logs show Google is returning `limit: 0` for `gemini-2.0-flash` on your current key. That means the Google Cloud project that owns your `GEMINI_API_KEY` has **no free-tier quota at all** — usually because the project was created with billing required, or quota was disabled. Retrying won't help. The "TOO MANY SCANS" message is misleading; it's really "this key has zero quota".
 
-### Files
+A brand-new key from a fresh Google AI Studio account/project gets the standard free tier, which is **plenty for 1 user**:
+- Gemini 2.0 Flash free tier: ~15 requests/minute, 1,500 requests/day, 1M tokens/minute
+- No credit card required
+- No billing enabled
 
-- `src/components/onboarding/NewOnboarding.tsx` — the full flow (all 16 screens, state, progress bar, back arrow, transitions).
-- `src/components/onboarding/screens/` — one file per screen (Splash, Pain, Validation, Commitment, Goal, Training, Experience, Weight, Height, Age, Physique, Photo, Loading, PlanReveal, SocialProof, PaywallNew) for readability.
-- `src/components/onboarding/parts/` — shared primitives: `ProgressBar`, `PillOption`, `PrimaryCTA`, `BackArrow`, `ScrollPicker`.
-- `src/pages/Index.tsx` — swap the three gated screens for the new flow.
+So yes — swapping in a new key will fix it, at $0.
 
-### State
+## Plan
 
-Single `useState` object inside `NewOnboarding`:
-```
-{ pain, commitment, goal, trainingDays, experience,
-  weight:{value,unit}, height:{value,unit}, birth:{m,d,y},
-  physique, photoDataUrl, plan:'monthly'|'yearly' }
-```
-- Step index drives the progress bar (1/14 → 14/14, hidden on splash + loading).
-- Back arrow on every screen except Splash (1) and Loading (13).
-- Choice CTAs disabled (gray pill) until a selection exists; enabled CTA = black pill, white text.
-- Transitions: framer-motion x-slide between screens (already a project dep).
+### Step 1 — You generate a new Gemini key (free, ~1 minute)
+1. Go to https://aistudio.google.com/apikey
+2. Sign in with a Google account (a personal Gmail is fine — does NOT need to be the same one tied to the broken key)
+3. Click **Create API key** → choose **Create API key in new project** (important — a new project guarantees fresh free-tier quota)
+4. Copy the key (starts with `AIza...`)
 
-### Screen-specific behavior
+### Step 2 — I update the `GEMINI_API_KEY` secret
+I'll trigger the secret-update form so you can paste the new key securely. The edge function picks it up automatically — no redeploy needed.
 
-- **Screen 8/9 weight & height:** `ScrollPicker` with kg/lb and cm/ft toggles; selected row bold/large, neighbors fade. Snap-scroll list (CSS `scroll-snap`).
-- **Screen 10 age:** three side-by-side `ScrollPicker`s (month name / day / year 1940–current).
-- **Screen 12 photo:** `<input type="file" accept="image/*" capture="environment">` triggered by "Take Photo"; preview shown in the dashed box; "Skip for now" advances without a photo. Stored as a data URL in state only (not uploaded).
-- **Screen 13 loading:** dark `#0A0A0A` bg, white text, CSS-animated bar over 3s, `setInterval` cycles 4 status strings every 750ms, `setTimeout(..., 3000)` auto-advances. No back arrow.
-- **Screen 14 plan reveal:**
-  - protein g = `Math.round((weightKg * 2.2) / 5) * 5` (convert lb→kg first if needed).
-  - date = `today + 90 days`, formatted `"September 14"` via `toLocaleDateString('en-US',{month:'long',day:'numeric'})`.
-- **Screen 16 paywall:** Monthly/Yearly segmented toggle (yearly default, "Save 67%" badge). Pricing card swaps with framer-motion fade. CTA calls `startTrial(user.uid)` (existing helper in `@/lib/paywall`), then completes. "Restore Purchase" is a no-op link for now. On mount, `console.log(state)` for testing as requested.
+### Step 3 — I improve the error messages in the edge function
+Right now any 429 from Google becomes "Too many scans — try again in a minute", even when the real problem is "key has no quota". I'll:
+- Detect `RESOURCE_EXHAUSTED` with `limit: 0` and return a distinct error: "AI key has no quota — generate a new key at aistudio.google.com"
+- Keep the existing "rate limited, try again" message only for real per-minute bursts
+- Update `src/lib/scan.ts` to surface those messages cleanly
 
-### Persistence / integration
+That's it — frontend UI stays untouched, no new dependencies, no cost.
 
-On reaching Screen 16 CTA:
-1. Build a profile compatible with the current `useAuth().refreshProfile()` contract — map: weight (kg), height (cm), age (from birth date), goal → existing `Goal` enum (`'hypertrophy' | 'cut' | 'recomp'`), activityLevel inferred from training days (`0-2→sedentary, 3-4→active, 5-6→very_active, 7→athlete` matching existing `ActivityLevel`), protein target from the formula above (use existing manual-target write path in `@/lib/profile` so dashboard reads the same shape).
-2. Mark both `brotein_story_seen:<uid>` and `brotein_paywall_seen:<uid>` in localStorage (same keys `Index.tsx` already checks) so the dashboard renders next.
-3. Call `startTrial(user.uid)`.
+## Files to change
 
-### Routing change in `Index.tsx`
+- `supabase/functions/scan-food/index.ts` — parse Gemini's 429 body, split "no quota" vs "rate limited"
+- `src/lib/scan.ts` — pass through the server's error message instead of overriding on 429
 
-Replace the three gates:
-```
-if (!storySeen) → <OnboardingStoryFlow .../>
-if (!profile)   → <OnboardingFlow />
-if (!paywallSeen) → <Paywall .../>
-```
-with a single:
-```
-if (!storySeen || !profile || !paywallSeen)
-  return <NewOnboarding onDone={...} />
-```
-The old `OnboardingStoryFlow`, `OnboardingFlow`, `Paywall` files stay on disk (unused) so nothing else breaks; we can delete them in a follow-up if you want.
+## What you should NOT do
 
-### Styling
-
-- Inline Tailwind only — no theme token changes (keeps the brutalist tokens intact for the rest of the app).
-- Container: `mx-auto w-full max-w-[390px] min-h-screen bg-white text-black font-sans` (Tailwind's `font-sans` already resolves to Inter/system).
-- Pills: `rounded-full`, selected = `bg-black text-white`, unselected = `bg-[#F5F5F5] text-black`.
-- CTA: `w-full rounded-full bg-black text-white py-4 font-semibold` (disabled = `bg-[#E5E5E5] text-[#9A9A9A]`).
-- Secondary text: `text-[#6B6B6B]`.
-- Progress bar: 2px line, `bg-black` fill on `bg-[#EFEFEF]` track.
-
-### Out of scope
-
-- No backend schema changes; AI physique projection on Screen 12 is mocked (photo is stored locally, not sent anywhere).
-- "Restore Purchase" link is visual only.
+- Don't enable billing on the broken Google Cloud project — not needed for 1 user
+- Don't switch to a different provider — Gemini free tier covers your usage easily
