@@ -60,7 +60,7 @@ serve(async (req) => {
     const mimeType = match[1];
     const base64Data = match[2];
 
-    const model = "gemini-2.0-flash";
+    const model = "gemini-2.5-flash";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 
     const aiResp = await fetch(url, {
