@@ -111,14 +111,37 @@ serve(async (req) => {
       });
     }
 
-    const data = await aiResp.json();
+    console.log("Gemini response status:", aiResp.status);
+    const rawText = await aiResp.text();
+    console.log("Gemini raw response text:", rawText);
+
+    let data: any;
+    try {
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      console.error("Gemini outer JSON parse error:", parseErr, "raw:", rawText);
+      return new Response(JSON.stringify({ error: "Failed to parse Gemini response" }), {
+        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) {
+      console.error("Gemini returned no text part. Full data:", JSON.stringify(data));
       return new Response(JSON.stringify({ error: "AI returned no analysis" }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const parsed = JSON.parse(text);
+    console.log("Gemini inner text payload:", text);
+    let parsed: any;
+    try {
+      parsed = JSON.parse(text);
+    } catch (parseErr) {
+      console.error("Gemini inner JSON parse error:", parseErr, "text:", text);
+      return new Response(JSON.stringify({ error: "Failed to parse AI analysis JSON" }), {
+        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const meal = parsed.mealType && parsed.mealType !== "none" ? parsed.mealType : null;
 
     return new Response(JSON.stringify({
