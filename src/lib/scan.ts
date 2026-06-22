@@ -26,10 +26,12 @@ export async function scanFoodImage(imageDataUrl: string): Promise<ScanResult> {
   });
 
   if (!resp.ok) {
-    let msg = 'Scan failed';
-    try { msg = (await resp.json()).error ?? msg; } catch { /* ignore */ }
-    if (resp.status === 429) msg = 'Too many scans — try again in a minute.';
-    if (resp.status === 402) msg = 'AI credits exhausted — top up your workspace.';
+    let serverMsg: string | undefined;
+    try { serverMsg = (await resp.json()).error; } catch { /* ignore */ }
+    let msg = serverMsg ?? 'Scan failed';
+    // Only override the server message for generic 429s that don't carry a specific reason.
+    if (resp.status === 429 && !serverMsg) msg = 'Too many scans — try again in a minute.';
+    if (resp.status === 402 && !serverMsg) msg = 'AI credits exhausted — top up your workspace.';
     throw new Error(msg);
   }
   return (await resp.json()) as ScanResult;

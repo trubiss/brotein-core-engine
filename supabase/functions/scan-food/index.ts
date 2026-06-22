@@ -89,6 +89,14 @@ serve(async (req) => {
       const t = await aiResp.text();
       console.error("Gemini error", aiResp.status, t);
       if (aiResp.status === 429) {
+        // Distinguish "key has zero quota" (broken/billing-less project)
+        // from a real per-minute burst rate limit.
+        const noQuota = /limit:\s*0\b/i.test(t) || /GenerateRequestsPerDay/i.test(t);
+        if (noQuota) {
+          return new Response(JSON.stringify({
+            error: "AI key has no quota. Generate a fresh key at aistudio.google.com/apikey (use 'Create API key in new project') and update GEMINI_API_KEY.",
+          }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
         return new Response(JSON.stringify({ error: "Rate limited. Try again in a moment." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
